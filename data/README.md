@@ -82,7 +82,7 @@ working that route drive `speed_multiplier` times faster.
 | `category` | `"unit"` or `"structure"` |
 | `scene` | The Godot scene of the unit. Leave it out when you use `base` |
 | `base` | Id of an existing unit to copy. The new unit inherits every field and you only list what changes |
-| `model` | `.glb` / `.gltf` / `.tscn` model replacing the base model (needs `base`) |
+| `model` | `.glb` / `.gltf` / `.tscn` model replacing the scene's own model (for any unit, with or without `base`) |
 | `model_scale`, `model_offset`, `model_rotation_y_deg` | Placement of `model` |
 | `name`, `description` | Translation keys (see `assets/translations/match.csv`) |
 | `icon`, `icon_tint` | Build menu button image and tint |

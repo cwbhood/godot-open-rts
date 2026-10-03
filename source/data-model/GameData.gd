@@ -116,6 +116,27 @@ static func register_generated_scenes():
 				_generated_scenes[unit["scene"]] = scene
 
 
+static func apply_model(root, unit):
+	"""swaps the visible model under the unit's Geometry node for the entry's "model";
+	returns the added model node or null"""
+	var model_scene = load(unit["model"]) if ResourceLoader.exists(unit["model"]) else null
+	var geometry = root.find_child("Geometry", false)
+	if model_scene == null or geometry == null:
+		push_error("GameData: cannot use model '{0}'".format([unit.get("model")]))
+		return null
+	for child in geometry.get_children():
+		if child is VisualInstance3D or child.scene_file_path != "":
+			child.visible = false  # kept so that scripts referring to them keep working
+	var model = model_scene.instantiate()
+	model.name = "Model"
+	model.scale = Vector3.ONE * float(unit.get("model_scale", 1.0))
+	var offset = unit.get("model_offset", [0, 0, 0])
+	model.position = Vector3(offset[0], offset[1], offset[2])
+	model.rotation.y = deg_to_rad(float(unit.get("model_rotation_y_deg", 0.0)))
+	geometry.add_child(model)
+	return model
+
+
 static func _build_generated_scene(unit):
 	var base_scene = load(unit["base_scene"])
 	if base_scene == null:
@@ -123,22 +144,8 @@ static func _build_generated_scene(unit):
 		return null
 	var root = base_scene.instantiate()
 	if "model" in unit:
-		var model_scene = load(unit["model"])
-		var geometry = root.find_child("Geometry", false)
-		if model_scene == null or geometry == null:
-			push_error("GameData: cannot use model '{0}'".format([unit.get("model")]))
-		else:
-			for child in geometry.get_children():
-				if child is VisualInstance3D or child.scene_file_path != "":
-					child.visible = false  # kept so that scripts referring to them keep working
-			var model = model_scene.instantiate()
-			model.name = "Model"
-			var model_scale = float(unit.get("model_scale", 1.0))
-			model.scale = Vector3.ONE * model_scale
-			var offset = unit.get("model_offset", [0, 0, 0])
-			model.position = Vector3(offset[0], offset[1], offset[2])
-			model.rotation.y = deg_to_rad(float(unit.get("model_rotation_y_deg", 0.0)))
-			geometry.add_child(model)
+		var model = apply_model(root, unit)
+		if model != null:
 			model.owner = root
 	var scene = PackedScene.new()
 	var error = scene.pack(root)

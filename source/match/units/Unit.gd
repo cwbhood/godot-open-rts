@@ -6,6 +6,7 @@ signal hp_changed
 signal action_changed(new_action)
 signal action_updated
 
+const GameData = preload("res://source/data-model/GameData.gd")
 const MATERIAL_ALBEDO_TO_REPLACE = Color(0.99, 0.81, 0.48)
 const MATERIAL_ALBEDO_TO_REPLACE_EPSILON = 0.05
 
@@ -54,8 +55,8 @@ var _action_locked = false
 func _ready():
 	if not _match.is_node_ready():
 		await _match.ready
+	_setup_default_properties_from_constants()  # may swap in the model from data
 	_setup_color()
-	_setup_default_properties_from_constants()
 	assert(_safety_checks())
 
 
@@ -211,6 +212,9 @@ func _setup_default_properties_from_constants():
 	var default_properties = Constants.Match.Units.DEFAULT_PROPERTIES[scene_path]
 	for property in default_properties:
 		set(property, default_properties[property])
+	var entry = GameData.unit_by_scene(scene_path)
+	if entry != null and "model" in entry and not GameData.is_generated_scene(scene_path):
+		GameData.apply_model(self, entry)  # art swapped in from data/units/*.json
 	var movement = find_child("Movement")
 	if movement != null and scene_path in Constants.Match.Units.SPEEDS:
 		movement.speed = Constants.Match.Units.SPEEDS[scene_path]
