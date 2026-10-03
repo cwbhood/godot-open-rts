@@ -7,3 +7,18 @@ BACK,Back,Wstecz
 CORE_CONTRIBUTORS,Core contributors,Kluczowi współtwórcy
 ASSETS,Assets,Treści multimedialne
 START,Start,Rozpocznij
+REPLAYS,Replays,Powtórki
+REPLAYS_NONE,No replays yet: play a match first,Brak powtórek: najpierw rozegraj mecz
+REPLAY_PLAY,Play,Odtwórz
+REPLAY_PAUSE,Pause,Pauza
+REPLAY_PLAYER_LINE,"Player {0} {1}: tier {2}, population {3}, science {4}
+Delivered {5}, lost {6}, power {7} MW
+{8}","Gracz {0} {1}: epoka {2}, populacja {3}, nauka {4}
+Dostarczono {5}, stracono {6}, energia {7} MW
+{8}"
+REPLAY_EVENT_RAID,{0} lost {1} goods to {2},{0} stracił {1} towarów na rzecz {2}
+REPLAY_EVENT_TIER,{0} reached tier {1},{0} osiągnął epokę {1}
+REPLAY_EVENT_TRADE,{0} traded with {1},{0} handlował z {1}
+REPLAY_EVENT_EMBARGO,{0} put {1} under embargo,{0} nałożył embargo na {1}
+REPLAY_EVENT_CALL_FOR_HELP,{0} city calls for help,miasto {0} wzywa pomocy
+REPLAY_EVENT_ROAD,{0} upgraded a road to level {1},{0} ulepszył drogę do poziomu {1}
