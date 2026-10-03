@@ -10,6 +10,7 @@ var cargo_capacity = null
 var cargo_site = null  # construction site the cargo is meant for, if any
 var automated = true
 var dedicated_extractor = null  # set when the player pins the hauler to one extractor
+var road_speed_multiplier = 1.0  # set by Logistics from the road of the current route
 
 
 func get_cargo_total():

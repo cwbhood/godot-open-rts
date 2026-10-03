@@ -8,6 +8,8 @@ extends Node
 # - goods delivered to a depot are split between the player's stock and the city
 #   warehouse (see City.receive_delivery).
 # Haulers away from depots are exposed: destroying them loses the cargo (see Unit loot).
+# The route between an extractor and its depot starts as a dirt track and can be upgraded
+# (data/roads.json) so that haulers on it drive faster.
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
@@ -15,12 +17,17 @@ const Extractor = preload("res://source/match/units/Extractor.gd")
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const Hauling = preload("res://source/match/units/actions/Hauling.gd")
 
+const ROAD_WIDTH_M = 1.1
+
 var delivered_total = {}  # statistics: goods that reached a depot
 var lost_total = {}  # statistics: goods destroyed on the way or in extractors
 var looted_total = {}  # statistics: goods taken from other players
 var fuel_burnt_total = {}  # statistics
 
 var out_of_fuel = false
+var road_levels = {}  # extractor -> index into Constants.Match.Roads.LEVELS
+
+var _road_visuals = {}  # extractor -> MeshInstance3D
 
 var _site_loaders = {}
 var _fuel_accumulated = 0.0  # site -> number of haulers on their way to load materials for it
@@ -148,6 +155,98 @@ func assign_job(hauler):
 	return best_job[0].call(hauler, best_job[1])
 
 
+func get_road_level(extractor):
+	return road_levels.get(extractor, 0)
+
+
+func get_road_speed_multiplier(extractor):
+	var levels = Constants.Match.Roads.LEVELS
+	if levels.is_empty():
+		return 1.0
+	return float(levels[min(get_road_level(extractor), levels.size() - 1)]["speed_multiplier"])
+
+
+func get_road_length_m(extractor):
+	var depot = closest_depot(extractor.global_position)
+	if depot == null:
+		return 0.0
+	return _distance(depot.global_position, extractor.global_position)
+
+
+func get_road_upgrade_for(extractor):
+	"""{"level", "entry", "cost"} of the next upgrade of the extractor's route, or null"""
+	var levels = Constants.Match.Roads.LEVELS
+	var next_level = get_road_level(extractor) + 1
+	if next_level >= levels.size() or closest_depot(extractor.global_position) == null:
+		return null
+	var segments = max(1, int(ceil(get_road_length_m(extractor) / 10.0)))
+	var cost = {}
+	for resource in levels[next_level].get("cost_per_10_m", {}):
+		cost[resource] = int(levels[next_level]["cost_per_10_m"][resource]) * segments
+	return {"level": next_level, "entry": levels[next_level], "cost": cost}
+
+
+func can_upgrade_road(extractor):
+	var upgrade = get_road_upgrade_for(extractor)
+	return (
+		upgrade != null
+		and extractor.is_constructed()
+		and _player.has_tier(int(upgrade["entry"].get("tier", 1)))
+		and _player.has_resources(upgrade["cost"])
+	)
+
+
+func upgrade_road(extractor):
+	if not can_upgrade_road(extractor):
+		return false
+	var upgrade = get_road_upgrade_for(extractor)
+	_player.subtract_resources(upgrade["cost"])
+	road_levels[extractor] = upgrade["level"]
+	_update_road_visual(extractor)
+	if not extractor.tree_exiting.is_connected(_on_extractor_removed):
+		extractor.tree_exiting.connect(_on_extractor_removed.bind(extractor))
+	MatchSignals.road_upgraded.emit(_player, extractor, upgrade["level"])
+	return true
+
+
+func _on_extractor_removed(extractor):
+	road_levels.erase(extractor)
+	var visual = _road_visuals.get(extractor)
+	if visual != null and is_instance_valid(visual):
+		visual.queue_free()
+	_road_visuals.erase(extractor)
+	MatchSignals.road_upgraded.emit(_player, extractor, 0)
+
+
+func _update_road_visual(extractor):
+	"""a simple strip between the depot and the extractor so upgraded routes are visible"""
+	var depot = closest_depot(extractor.global_position)
+	if depot == null:
+		return
+	var visual = _road_visuals.get(extractor)
+	if visual == null or not is_instance_valid(visual):
+		visual = MeshInstance3D.new()
+		visual.name = "Road"
+		visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(visual)
+		_road_visuals[extractor] = visual
+	var start = depot.global_position * Vector3(1, 0, 1)
+	var end = extractor.global_position * Vector3(1, 0, 1)
+	var length = start.distance_to(end)
+	var mesh = BoxMesh.new()
+	mesh.size = Vector3(ROAD_WIDTH_M, 0.04, max(0.1, length))
+	var material = StandardMaterial3D.new()
+	material.albedo_color = Color(
+		Constants.Match.Roads.LEVELS[get_road_level(extractor)].get("color", "#555555")
+	)
+	material.roughness = 0.95
+	mesh.material = material
+	visual.mesh = mesh
+	visual.global_transform = Transform3D(Basis(), (start + end) * 0.5 + Vector3(0, 0.03, 0))
+	if length > 0.01:
+		visual.look_at(end + Vector3(0, 0.03, 0), Vector3.UP)
+
+
 func is_unit_out_of_fuel(unit):
 	return out_of_fuel and Constants.Match.Units.FUEL_PER_S.get(unit._scene_path(), 0.0) > 0.0
 
@@ -220,6 +319,7 @@ func assign_supply(hauler, site):
 			return false
 		site.receive_materials(hauler.unload_cargo())
 		return true
+	hauler.road_speed_multiplier = 1.0
 	hauler.action = Hauling.new(
 		[[depot, load_materials], [site, unload_materials]], release_loader, "SUPPLYING"
 	)
@@ -251,6 +351,7 @@ func _assign_pickup(hauler, extractor):
 	var unload_goods = func():
 		deliver(hauler.unload_cargo())
 		return true
+	hauler.road_speed_multiplier = get_road_speed_multiplier(extractor)
 	hauler.action = Hauling.new(
 		[[extractor, take_goods], [depot, unload_goods]], release_reservation, "COLLECTING"
 	)
@@ -258,6 +359,7 @@ func _assign_pickup(hauler, extractor):
 
 
 func _assign_unloading(hauler):
+	hauler.road_speed_multiplier = 1.0
 	var site = hauler.cargo_site
 	if (
 		site != null

@@ -66,7 +66,7 @@ func _ready():
 
 
 func get_speed_multiplier():
-	"""weather and running out of fuel slow units down"""
+	"""weather and running out of fuel slow units down, roads speed haulers up"""
 	var multiplier = 1.0
 	var weather = _match.get_node_or_null("WeatherEffects")
 	if weather != null:
@@ -74,6 +74,9 @@ func get_speed_multiplier():
 	var logistics = _unit.player.get_node_or_null("Logistics") if "player" in _unit else null
 	if logistics != null and logistics.is_unit_out_of_fuel(_unit):
 		multiplier *= Constants.Match.Fuel.OUT_OF_FUEL_SPEED_FACTOR
+	var road_speed_multiplier = _unit.get("road_speed_multiplier")
+	if road_speed_multiplier != null:
+		multiplier *= road_speed_multiplier
 	return multiplier
 
 

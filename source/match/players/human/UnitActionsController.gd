@@ -13,6 +13,7 @@ class Actions:
 	const Following = preload("res://source/match/units/actions/Following.gd")
 	const AutoAttacking = preload("res://source/match/units/actions/AutoAttacking.gd")
 	const Constructing = preload("res://source/match/units/actions/Constructing.gd")
+	const Escorting = preload("res://source/match/units/actions/Escorting.gd")
 
 
 func _ready():
@@ -51,6 +52,7 @@ func _try_navigating_selected_units_towards_position(target_point):
 		if unit is Hauler:
 			unit.automated = false  # manually driven haulers wait for orders
 			unit.dedicated_extractor = null
+			unit.road_speed_multiplier = 1.0
 		unit.action = Actions.Moving.new(new_target)
 
 
@@ -99,6 +101,9 @@ func _navigate_unit_towards_unit(unit, target_unit):
 		return true
 	if Actions.Constructing.is_applicable(unit, target_unit):
 		unit.action = Actions.Constructing.new(target_unit)
+		return true
+	if target_unit is Hauler and Actions.Escorting.is_applicable(unit, target_unit):
+		unit.action = Actions.Escorting.new(target_unit)  # convoy escort
 		return true
 	if (
 		(target_unit.is_in_group("adversary_units") or target_unit.is_in_group("controlled_units"))

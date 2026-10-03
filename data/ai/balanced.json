@@ -18,6 +18,7 @@
   "trade_profit_margin": 1.05,
   "trade_offer_interval_s": 30,
   "proposes_agreements": false,
+  "upgrades_roads": true,
   "id": "balanced",
   "name": "AI_BALANCED",
   "description": "AI_BALANCED_DESCRIPTION"
