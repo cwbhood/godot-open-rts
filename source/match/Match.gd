@@ -4,6 +4,7 @@ const Unit = preload("res://source/match/units/Unit.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
 const Player = preload("res://source/match/players/Player.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
+const City = preload("res://source/match/city/City.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
@@ -101,6 +102,15 @@ func _setup_players():
 	for node in _players.get_children():
 		if node is Player:
 			node.add_to_group("players")
+			_setup_city(node)
+
+
+func _setup_city(player):
+	if player.get_node_or_null("City") != null:
+		return
+	var city = City.new()
+	city.name = "City"
+	player.add_child(city)
 
 
 func _create_players_from_settings():

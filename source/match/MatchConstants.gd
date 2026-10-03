@@ -80,12 +80,21 @@ class Units:
 			"resource_a": 3,
 			"resource_b": 1,
 		},
+		"res://source/match/units/HeavyTank.tscn":
+		{
+			"resource_a": 4,
+			"resource_b": 3,
+		},
 	}
 	const PRODUCTION_TIMES = {
 		"res://source/match/units/Worker.tscn": 3.0,
 		"res://source/match/units/Helicopter.tscn": 6.0,
 		"res://source/match/units/Drone.tscn": 3.0,
 		"res://source/match/units/Tank.tscn": 6.0,
+		"res://source/match/units/HeavyTank.tscn": 8.0,
+	}
+	const TECH_REQUIREMENTS = {
+		"res://source/match/units/HeavyTank.tscn": Tech.HEAVY_ARMOR,
 	}
 	const PRODUCTION_QUEUE_LIMIT = 5
 	const STRUCTURE_BLUEPRINTS = {
@@ -161,6 +170,16 @@ class Units:
 			"attack_range": 5.0,
 			"attack_domains": [Navigation.Domain.TERRAIN],
 		},
+		"res://source/match/units/HeavyTank.tscn":
+		{
+			"sight_range": 8.0,
+			"hp": 18,
+			"hp_max": 18,
+			"attack_damage": 3,
+			"attack_interval": 0.75,
+			"attack_range": 5.5,
+			"attack_domains": [Navigation.Domain.TERRAIN],
+		},
 		"res://source/match/units/CommandCenter.tscn":
 		{
 			"sight_range": 10.0,
@@ -205,6 +224,8 @@ class Units:
 		"res://source/match/units/projectiles/Rocket.tscn",
 		"res://source/match/units/Tank.tscn":
 		"res://source/match/units/projectiles/CannonShell.tscn",
+		"res://source/match/units/HeavyTank.tscn":
+		"res://source/match/units/projectiles/CannonShell.tscn",
 		"res://source/match/units/AntiGroundTurret.tscn":
 		"res://source/match/units/projectiles/CannonShell.tscn",
 		"res://source/match/units/AntiAirTurret.tscn":
@@ -215,6 +236,44 @@ class Units:
 	const MOVING_UNIT_RADIUS_MAX_M = 1.0
 	const EMPTY_SPACE_RADIUS_SURROUNDING_STRUCTURE_M = MOVING_UNIT_RADIUS_MAX_M * 2.5
 	const STRUCTURE_CONSTRUCTING_SPEED = 0.3  # progress [0.0..1.0] per second
+
+
+class City:
+	const TICK_S = 0.5
+	const STARTING_POPULATION = 10.0
+	const POPULATION_PER_BUILDING = 5.0
+	const MAX_BUILDINGS = 16
+	const BASE_GROWTH_PER_S = 0.15  # slows down as the city fills up its building slots
+	const WORKSHOP_EVERY_NTH_BUILDING = 3  # the rest are houses
+	const PRODUCTION_SPEED_BONUS_PER_WORKSHOP = 0.1
+	const SCIENCE_PER_POPULATION_PER_S = 0.02
+	const BUILDING_RADIUS_M = 1.0
+	const FIRST_BUILDING_RING_RADIUS_M = 5.5
+	const BUILDING_RING_SPACING_M = 2.5
+	const BUILDING_RINGS = 3
+	const BUILDING_MODELS = {
+		"house": "res://assets/models/kenney-spacekit/hangar_roundA.glb",
+		"workshop": "res://assets/models/kenney-spacekit/machine_generator.glb",
+	}
+
+
+class Trade:
+	const RESOURCES = ["resource_a", "resource_b"]
+	const PARTNER_COOLDOWN_S = 20.0  # how often a single faction is willing to trade
+	const GROWTH_BOOST_PER_TRADED_RESOURCE = 0.03  # population/s, for both sides
+	const GROWTH_BOOST_MAX = 0.5
+	const GROWTH_BOOST_DECAY_PER_S = 0.005
+	const AI_TRADE_RESERVE = 4  # crystals of each kind an AI keeps aside instead of spending
+	const SCARCE_RESOURCE_VALUE = 1.5  # an AI values the crystal it has less of this much more
+	const AI_OFFER_INTERVAL_S = 30.0
+	const OFFER_EXPIRY_S = 20.0
+
+
+class Tech:
+	const HEAVY_ARMOR = "heavy_armor"
+	const SCIENCE_COSTS = {
+		HEAVY_ARMOR: 150.0,
+	}
 
 
 class VoiceNarrator:

@@ -6,6 +6,7 @@ signal setup_and_spawn_unit(unit, transform, player)
 signal place_structure(structure_prototype)
 signal schedule_navigation_rebake(domain)
 signal navigate_unit_to_rally_point(unit, rally_point)  # currently, only for human players
+signal trade_offered(proposer, partner, offered, requested)  # AI offering a trade to a human
 
 # notifications
 signal match_started
@@ -24,3 +25,5 @@ signal unit_production_finished(unit, producer_unit)
 signal unit_construction_finished(unit)
 signal not_enough_resources_for_production(player)
 signal not_enough_resources_for_construction(player)
+signal trade_completed(proposer, partner, offered, requested)
+signal tech_unlocked(player, tech)

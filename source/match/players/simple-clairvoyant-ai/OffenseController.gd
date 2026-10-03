@@ -8,6 +8,7 @@ const VehicleFactory = preload("res://source/match/units/VehicleFactory.gd")
 const VehicleFactoryScene = preload("res://source/match/units/VehicleFactory.tscn")
 const Tank = preload("res://source/match/units/Tank.gd")
 const TankScene = preload("res://source/match/units/Tank.tscn")
+const HeavyTankScene = preload("res://source/match/units/HeavyTank.tscn")
 const AircraftFactory = preload("res://source/match/units/AircraftFactory.gd")
 const AircraftFactoryScene = preload("res://source/match/units/AircraftFactory.tscn")
 const Helicopter = preload("res://source/match/units/Helicopter.gd")
@@ -53,6 +54,7 @@ func setup(player):
 		if _ai.secondary_offensive_structure == _ai.OffensiveStructure.VEHICLE_FACTORY
 		else HelicopterScene
 	)
+	MatchSignals.tech_unlocked.connect(_on_tech_unlocked)
 	_setup_refresh_timer()
 	_try_creating_new_battlegroup()
 	_attach_current_battle_units()
@@ -95,6 +97,11 @@ func _provision_structure(structure_scene, resources, metadata):
 
 
 func _provision_unit(unit_scene, structure_producing_unit, resources, metadata):
+	if (
+		unit_scene == HeavyTankScene
+		and resources == Constants.Match.Units.PRODUCTION_COSTS[TankScene.resource_path]
+	):
+		unit_scene = TankScene  # resources were requested before the upgrade
 	assert(
 		resources == Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path],
 		"unexpected amount of resources"
@@ -299,3 +306,12 @@ func _on_refresh_timer_timeout():
 	# secondary structure existence is enforced only when a battlegroup is formed
 	_enforce_primary_units_production()
 	_enforce_secondary_units_production()
+
+
+func _on_tech_unlocked(player, tech):
+	if player != _player or tech != Constants.Match.Tech.HEAVY_ARMOR:
+		return
+	if _primary_unit_scene == TankScene:
+		_primary_unit_scene = HeavyTankScene
+	if _secondary_unit_scene == TankScene:
+		_secondary_unit_scene = HeavyTankScene

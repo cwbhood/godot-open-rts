@@ -3,6 +3,10 @@ extends "res://source/match/players/Player.gd"
 enum ResourceRequestPriority { LOW, MEDIUM, HIGH }
 enum OffensiveStructure { VEHICLE_FACTORY, AIRCRAFT_FACTORY }
 
+const TradeController = preload(
+	"res://source/match/players/simple-clairvoyant-ai/TradeController.gd"
+)
+
 @export var expected_number_of_workers = 3
 @export var expected_number_of_ccs = 1
 @export var expected_number_of_ag_turrets = 1
@@ -51,6 +55,10 @@ func _ready():
 	_offense_controller.setup(self)
 	_intelligence_controller.setup(self)
 	_construction_works_controller.setup(self)
+	var trade_controller = TradeController.new()
+	trade_controller.name = "TradeController"
+	add_child(trade_controller)
+	trade_controller.setup(self)
 
 
 func _process(_delta):
@@ -81,7 +89,9 @@ func _try_fulfilling_resource_requests_according_to_priorities():
 	]:
 		while (
 			not _resource_requests[priority].is_empty()
-			and has_resources(_resource_requests[priority].front()["resources"])
+			and _has_resources_beyond_trade_reserve(
+				_resource_requests[priority].front()["resources"]
+			)
 		):
 			var resource_request = _resource_requests[priority].pop_front()
 			_provision(
@@ -91,9 +101,21 @@ func _try_fulfilling_resource_requests_according_to_priorities():
 			)
 		if (
 			not _resource_requests[priority].is_empty()
-			and not has_resources(_resource_requests[priority].front()["resources"])
+			and not _has_resources_beyond_trade_reserve(
+				_resource_requests[priority].front()["resources"]
+			)
 		):
 			break
+
+
+func _has_resources_beyond_trade_reserve(resources):
+	"""AI keeps a few crystals of each kind aside so that it has something to trade with"""
+	var resources_with_reserve = {}
+	for resource in Constants.Match.Trade.RESOURCES:
+		resources_with_reserve[resource] = (
+			resources.get(resource, 0) + Constants.Match.Trade.AI_TRADE_RESERVE
+		)
+	return has_resources(resources_with_reserve)
 
 
 func _on_player_data_changed():

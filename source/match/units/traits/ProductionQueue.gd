@@ -25,6 +25,7 @@ var _queue = []
 
 
 func _process(delta):
+	delta *= _unit.player.get_production_multiplier()
 	while _queue.size() > 0 and delta > 0.0:
 		var current_queue_element = _queue.front()
 		current_queue_element.time_left = max(0.0, current_queue_element.time_left - delta)
@@ -44,6 +45,9 @@ func get_elements():
 
 func produce(unit_prototype, ignore_limit = false):
 	if not ignore_limit and _queue.size() >= Constants.Match.Units.PRODUCTION_QUEUE_LIMIT:
+		return
+	var required_tech = Constants.Match.Units.TECH_REQUIREMENTS.get(unit_prototype.resource_path)
+	if required_tech != null and not _unit.player.has_tech(required_tech):
 		return
 	var production_cost = Constants.Match.Units.PRODUCTION_COSTS[unit_prototype.resource_path]
 	if not _unit.player.has_resources(production_cost):

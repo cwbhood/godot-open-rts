@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://camns8fqod8d4"]
+[gd_scene load_steps=45 format=3 uid="uid://camns8fqod8d4"]
 
 [ext_resource type="Script" path="res://source/match/Match.gd" id="1_1555u"]
 [ext_resource type="Script" path="res://source/match/IsometricCamera3D.gd" id="1_qb2ry"]
@@ -29,6 +29,7 @@
 [ext_resource type="PackedScene" uid="uid://yn470qvc3eak" path="res://source/match/handlers/MatchEndHandler.tscn" id="26_4d7im"]
 [ext_resource type="PackedScene" uid="uid://ck6vrgdyg7hja" path="res://source/match/handlers/UnitGroupSelectionHandler.tscn" id="27_j2drv"]
 [ext_resource type="PackedScene" uid="uid://b8p6lcwubx1tp" path="res://source/match/handlers/UnitVisibilityHandler.tscn" id="32_fci1c"]
+[ext_resource type="Script" path="res://source/match/hud/CityHud.gd" id="33_cityhud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ysb0j"]
 sun_angle_max = 200.0
@@ -405,6 +406,17 @@ layout_mode = 2
 [node name="UnitMenus" parent="HUD/MarginContainer3/VBoxContainer" instance=ExtResource("13_6cypl")]
 layout_mode = 2
 size_flags_horizontal = 8
+
+[node name="CityHud" type="PanelContainer" parent="HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -335.0
+offset_top = 70.0
+offset_right = -5.0
+offset_bottom = 110.0
+grow_horizontal = 0
+script = ExtResource("33_cityhud")
 
 [node name="Menu" parent="." instance=ExtResource("22_ofmlu")]
 visible = false

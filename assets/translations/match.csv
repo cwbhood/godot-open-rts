@@ -29,3 +29,30 @@ VEHICLE_FACTORY,Vehicle factory,Fabryka pojazdów
 VEHICLE_FACTORY_DESCRIPTION,produces vehicles,wytwarza pojazdy
 AIRCRAFT_FACTORY,Aircraft factory,Fabryka jednostek powietrznych
 AIRCRAFT_FACTORY_DESCRIPTION,produces air units,wytwarza jednostki powietrzne
+HEAVY_TANK,Heavy tank,Ciężki czołg
+HEAVY_TANK_DESCRIPTION,"tougher tank, needs Heavy armor research","wytrzymalszy czołg, wymaga badania Ciężki pancerz"
+CITY,City,Miasto
+CITY_POPULATION,Population {0} (+{1}/s),Populacja {0} (+{1}/s)
+CITY_TRADE_BOOST,[trade boom],[boom handlowy]
+CITY_NO_CORE,[needs a command center],[wymaga centrum dowodzenia]
+CITY_BUILDINGS,"Houses {0}, workshops {1}","Domy {0}, warsztaty {1}"
+CITY_PRODUCTION,Unit production speed +{0}%,Szybkość produkcji jednostek +{0}%
+CITY_SCIENCE,Science {0}/{1}: {2},Nauka {0}/{1}: {2}
+CITY_SCIENCE_DONE,Science {0}: all researched,Nauka {0}: wszystko zbadane
+TECH_HEAVY_ARMOR,Heavy armor,Ciężki pancerz
+TRADE,Trade,Handel
+TRADE_PARTNER,With,Z
+TRADE_FACTION,Faction {0},Frakcja {0}
+TRADE_GIVE,Give,Daj
+TRADE_GET,Get,Weź
+TRADE_PROPOSE,Propose trade,Zaproponuj wymianę
+TRADE_ACCEPT,Accept,Akceptuj
+TRADE_DECLINE,Decline,Odrzuć
+TRADE_INCOMING_OFFER,{0} offers {1} for {2},{0} oferuje {1} za {2}
+TRADE_RESULT_ACCEPTED,Deal! Both cities grow faster for a while.,Umowa! Oba miasta przez chwilę rosną szybciej.
+TRADE_RESULT_INVALID,Choose what to give and what to get.,"Wybierz, co dać i co wziąć."
+TRADE_RESULT_PROPOSER_CANNOT_AFFORD,You don't have enough crystals.,Nie masz dość kryształów.
+TRADE_RESULT_PARTNER_CANNOT_AFFORD,They don't have that many crystals.,Nie mają tylu kryształów.
+TRADE_RESULT_PARTNER_BUSY,"They traded recently, try again soon.","Niedawno handlowali, spróbuj za chwilę."
+TRADE_RESULT_PARTNER_REFUSED,"They refused, offer a better deal.","Odmówili, zaproponuj lepszą ofertę."
+TRADE_RESULT_OFFER_EXPIRED,The offer is no longer valid.,Oferta jest już nieaktualna.

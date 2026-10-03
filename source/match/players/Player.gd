@@ -12,6 +12,10 @@ signal changed
 		emit_changed()
 @export var color = Color.WHITE
 
+var city:
+	get:
+		return get_node_or_null("City")
+
 var _color_material = null
 
 
@@ -32,6 +36,14 @@ func has_resources(resources):
 func subtract_resources(resources):
 	for resource in resources:
 		set(resource, get(resource) - resources[resource])
+
+
+func has_tech(tech):
+	return city != null and city.has_tech(tech)
+
+
+func get_production_multiplier():
+	return city.production_multiplier if city != null else 1.0
 
 
 func get_color_material():
