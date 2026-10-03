@@ -19,6 +19,9 @@ func _ready():
 	NavigationServer3D.map_set_cell_height(
 		navigation_map_rid, Constants.Match.Terrain.Navmesh.CELL_HEIGHT
 	)
+	# synchronous map updates make freshly baked navmeshes usable right away
+	NavigationServer3D.map_set_use_async_iterations(navigation_map_rid, false)
+	NavigationServer3D.region_set_use_async_iterations(_navigation_region.get_rid(), false)
 	NavigationServer3D.map_force_update(navigation_map_rid)
 	MatchSignals.schedule_navigation_rebake.connect(_on_schedule_navigation_rebake)
 
@@ -69,10 +72,12 @@ func _rebake():
 	)
 
 
-# TODO: remove whenever Godot fixes that on its side
 func _sync_navmesh_changes():
-	"""this function forces synchronization between server-level primitives and nodes"""
-	_navigation_region.navigation_mesh = _navigation_region.navigation_mesh
+	"""forces synchronization between the baked navmesh and the navigation server; re-assigning
+	the same resource to the region (the earlier workaround) is a no-op since Godot 4.4"""
+	NavigationServer3D.region_set_navigation_mesh(
+		_navigation_region.get_rid(), _navigation_region.navigation_mesh
+	)
 
 
 func _safety_checks():
