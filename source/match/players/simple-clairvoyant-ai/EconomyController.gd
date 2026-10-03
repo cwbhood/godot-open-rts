@@ -127,6 +127,7 @@ func _next_structure():
 		and _player.has_tier(
 			int(Constants.Match.Units.TIER_REQUIREMENTS.get(PowerPlantScene.resource_path, 1))
 		)
+		and _obtainable(PowerPlantScene.resource_path)
 	):
 		var position = _find_position_near(_ccs[0].global_position, PowerPlantScene, 6.0)
 		if position != null:
@@ -140,6 +141,8 @@ func _next_structure():
 		if have >= target:
 			continue
 		var ratio = float(have) / float(target)
+		if not _obtainable(_extractor_scenes[kind]):
+			continue
 		if (
 			(best == null or ratio < best[0])
 			and _find_extractor_spot(kind, _extractor_scenes[kind]) != null
@@ -178,6 +181,16 @@ func _try_upgrading_a_road():
 			best = [length, extractor]
 	if best != null and logistics.upgrade_road(best[1]):
 		_since_road_upgrade_s = 0.0
+
+
+func _obtainable(scene_path):
+	"""false when the structure needs a commodity the AI neither has nor extracts, so that
+	such a request does not block the economy forever (e.g. copper on a copper-less map)"""
+	var cost = Constants.Match.Units.CONSTRUCTION_COSTS.get(scene_path, {})
+	for resource in cost:
+		if _player.get(resource) < cost[resource] and _extractors_of_kind(resource) == 0:
+			return false
+	return true
 
 
 static func _find_extractor_scenes():

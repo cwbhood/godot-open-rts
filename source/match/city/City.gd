@@ -243,7 +243,12 @@ func _try_placing_buildings():
 	var kind = _next_building_kind()
 	var cost = Constants.Match.City.BUILDING_COSTS[kind]
 	if not take_from_warehouse(cost):
-		return
+		if kind == "house":
+			return
+		kind = "house"  # a workshop the city cannot afford yet does not block housing
+		cost = Constants.Match.City.BUILDING_COSTS[kind]
+		if not take_from_warehouse(cost):
+			return
 	var position = _find_building_position(core)
 	if position == null:
 		for resource in cost:
@@ -264,7 +269,10 @@ func _spill_warehouse_overflow():
 
 
 func _next_building_kind():
-	if (_buildings.size() + 1) % Constants.Match.City.WORKSHOP_EVERY_NTH_BUILDING == 0:
+	var due_workshops = int(
+		(_buildings.size() + 1) / Constants.Match.City.WORKSHOP_EVERY_NTH_BUILDING
+	)
+	if get_buildings_count("workshop") < due_workshops:
 		return "workshop"
 	return "house"
 

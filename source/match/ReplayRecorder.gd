@@ -172,6 +172,8 @@ func _snapshot():
 
 
 func _event(kind, data):
+	if _saved:
+		return
 	data["t"] = snapped(_elapsed_s, 0.1)
 	data["kind"] = kind
 	_events.append(data)
@@ -204,6 +206,8 @@ func _on_trade_completed(proposer, partner, offered, requested):
 
 
 func _players():
+	if not is_inside_tree():
+		return []  # signals may still arrive while the match is being torn down
 	return get_tree().get_nodes_in_group("players")
 
 

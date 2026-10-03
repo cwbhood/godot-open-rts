@@ -195,11 +195,7 @@ func _refresh_stats():
 					. format(
 						[
 							index + 1,
-							(
-								tr("AI_PLAYER").format([info["personality"]])
-								if not info["human"]
-								else ""
-							),
+							_personality_label(info),
 							int(economy["tier"]),
 							int(economy["population"]),
 							int(economy["science"]),
@@ -232,7 +228,7 @@ func _describe_event(event):
 	match event["kind"]:
 		"raid":
 			text = tr("REPLAY_EVENT_RAID").format(
-				[player, Utils.Dict.sum(event["cargo"]), "P%d" % (int(event["looter"]) + 1)]
+				[player, int(Utils.Dict.sum(event["cargo"])), "P%d" % (int(event["looter"]) + 1)]
 			)
 		"tier":
 			text = tr("REPLAY_EVENT_TIER").format([player, int(event["tier"])])
@@ -305,3 +301,12 @@ func _draw_canvas():
 			var color = Color(1, 0.15, 0.1, 1.0 - age / RAID_MARKER_S)
 			_canvas.draw_line(center - Vector2(5, 5), center + Vector2(5, 5), color, 2.0)
 			_canvas.draw_line(center - Vector2(5, -5), center + Vector2(5, -5), color, 2.0)
+
+
+func _personality_label(info):
+	if info["human"]:
+		return ""
+	for personality in GameData.ai_personalities():
+		if personality["id"] == info["personality"]:
+			return tr("AI_PLAYER").format([tr(personality["name"])])
+	return tr("AI_PLAYER").format([str(info["personality"])])

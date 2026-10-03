@@ -14,8 +14,6 @@ var _spawn_button = null
 var _placing = false
 var _unit_ids = []
 
-@onready var _match = find_parent("Match")
-
 
 func _ready():
 	var box = VBoxContainer.new()
@@ -40,8 +38,12 @@ func _ready():
 	top_up.text = tr("SANDBOX_TOP_UP").format([TOP_UP_AMOUNT])
 	top_up.pressed.connect(_on_top_up_pressed)
 	box.add_child(top_up)
-	if not _match.is_node_ready():
-		await _match.ready
+	MatchSignals.match_started.connect(_fill_players)
+	_fill_players()
+
+
+func _fill_players():
+	_player_option.clear()
 	for player in get_tree().get_nodes_in_group("players"):
 		_player_option.add_item(tr("TRADE_FACTION").format([player.get_index() + 1]))
 		_player_option.set_item_icon(_player_option.item_count - 1, _color_icon(player.color))
