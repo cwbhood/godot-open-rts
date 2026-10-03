@@ -17,28 +17,17 @@ func _ready():
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	var match_scene = load(_args.get("scene", "res://tests/manual/TestOneCityOneRival.tscn"))
 	var match_node = match_scene.instantiate()
+	if _args.has("no_ai"):
+		# drop AI players: useful when only the world needs checking
+		match_node.settings.players = match_node.settings.players.filter(
+			func(player_settings): return player_settings.controller == Constants.PlayerType.HUMAN
+		)
 	add_child(match_node)
 	await _frames(int(_args.get("warmup", "60")))
 	var atmosphere = match_node.find_child("Atmosphere", true, false)
 	if atmosphere != null and _args.has("weather"):
 		atmosphere.set_weather_immediately(_args["weather"])
 		await _frames(int(_args.get("weather_frames", "40")))
-	if _args.has("debug_atmosphere") and atmosphere != null:
-		var decal = atmosphere.find_child("CloudShadows")
-		print("decal ", decal.global_position, " size ", decal.size, " mod ", decal.modulate)
-		print(" visible ", decal.is_visible_in_tree(), " tex ", decal.texture_albedo)
-		print(" layers ", decal.layers, " cull ", decal.cull_mask, " mix ", decal.albedo_mix)
-		if _args["debug_atmosphere"] == "extra":
-			var extra = Decal.new()
-			extra.texture_albedo = decal.texture_albedo
-			extra.size = Vector3(800, 24, 800)
-			extra.upper_fade = 0.0
-			extra.lower_fade = 0.0
-			extra.modulate = Color(1, 1, 1, 0.55)
-			match_node.add_child(extra)
-			extra.global_position = Vector3(float(_args.get("dx", "60")), 9, float(_args.get("dz", "60")))
-		if _args["debug_atmosphere"] == "move":
-			decal.reparent(match_node)
 	if _args.has("hide_hud"):
 		for layer in match_node.find_children("*", "CanvasLayer", true, false):
 			layer.visible = false

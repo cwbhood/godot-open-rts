@@ -3,7 +3,7 @@ render_mode blend_mix, cull_disabled, depth_draw_never, shadows_disabled, unshad
 
 // Cloud layer drawn at altitude. It only shows when the camera is zoomed out ('visibility' is
 // driven by Atmosphere.gd from the camera size). The same texture and offsets drive the cloud
-// shadow decal, so shadows on the ground line up with the clouds above.
+// shadow overlay, so shadows on the ground line up with the clouds above.
 
 uniform sampler2D cloud_texture : hint_default_black, filter_linear_mipmap, repeat_enable;
 uniform float period = 400.0;
@@ -13,7 +13,7 @@ uniform float softness = 0.18;
 uniform float visibility = 0.0;
 uniform vec3 lit_color : source_color = vec3(1.0, 0.98, 0.95);
 uniform vec3 shade_color : source_color = vec3(0.62, 0.64, 0.72);
-uniform float max_opacity = 0.85;
+uniform float max_opacity = 0.72;
 
 varying vec3 world_position;
 

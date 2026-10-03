@@ -6,12 +6,17 @@ extends "res://source/match/Map.gd"
 # as obstacles, dunes and sandstone mesas beyond the playable area, and resource deposit
 # markers (see Map.get_resource_deposits()). Everything is point-symmetric around the map
 # center so that opposite spawns get equivalent surroundings.
+#
+# A map is described by a JSON definition (see data/maps/desert_expanse.json and
+# docs/making-maps.md): generator settings, and optionally an explicit "layout" listing every
+# spawn, lake, forest, rock outcrop and deposit (the in-game map editor writes those). With no
+# layout, features are placed from the seed.
 
 enum ResourceLayout { SYMMETRIC, ASYMMETRIC }
 
-const ResourceA = preload("res://source/match/units/non-player/ResourceA.tscn")
-const ResourceB = preload("res://source/match/units/non-player/ResourceB.tscn")
-const TerrainMaterial = preload("res://source/match/resources/materials/desert_terrain.material.tres")
+const TerrainMaterial = preload(
+	"res://source/match/resources/materials/desert_terrain.material.tres"
+)
 const WaterMaterial = preload("res://source/match/resources/materials/water.material.tres")
 const Scatter = preload("res://source/match/maps/DesertScatter.gd")
 
@@ -21,29 +26,21 @@ const LAKE_SHORE_RATIO = 1.35
 const SPAWN_CLEARANCE = 15.0
 const DEPOSIT_CLEARANCE = 3.5
 const INNER_MARGIN = 6.0
-const DEPOSIT_AMOUNTS = {
-	&"oil": 3000,
-	&"iron": 3000,
-	&"copper": 2000,
-	&"coal": 2500,
-	&"timber": 1500,
-}
-const LEGACY_RESOURCE_SCENES = {
-	&"oil": ResourceB,
-	&"coal": ResourceB,
-	&"iron": ResourceA,
-	&"copper": ResourceA,
-	&"timber": ResourceA,
+const FOREST_KINDS = [&"acacia", &"pine", &"mixed"]
+const RESOURCE_LAYOUTS = {
+	"symmetric": ResourceLayout.SYMMETRIC, "asymmetric": ResourceLayout.ASYMMETRIC
 }
 
+## JSON map definition; its settings override the exports below
+@export_file("*.json") var map_definition = ""
 @export var map_seed = 7
 @export var outer_margin = 110.0
 @export var resource_layout = ResourceLayout.SYMMETRIC
 @export_range(0, 4) var extra_lake_pairs = 2
 @export_range(0, 6) var forest_pairs = 3
 @export_range(0, 8) var outcrop_pairs = 4
-## spawns the prototype's crystal resources at deposit sites, for builds without extractors
-@export var spawn_legacy_resources = true
+## spawns the harvestable deposit units (data/resources.json "deposit_scene") at deposit sites
+@export var spawn_deposits = true
 @export var regenerate_in_editor = false:
 	set(value):
 		if value and is_inside_tree():
@@ -54,6 +51,7 @@ var forests = []  # [{circles: [{center: Vector2, radius: float}], kind: StringN
 var outcrops = []  # [{center: Vector2, radius: float}]
 var deposits = []  # [{kind: StringName, center: Vector2, amount: int, owner_hint: int}]
 var spawns = []  # [Vector2]
+var layout = null  # explicit layout from the map definition or the map editor, if any
 
 var _rng = RandomNumberGenerator.new()
 var _dune_noise = FastNoiseLite.new()
@@ -64,13 +62,35 @@ var _patch_noise = FastNoiseLite.new()
 
 
 func _ready():
+	load_definition()
 	generate()
+
+
+func load_definition():
+	if map_definition == "" or not FileAccess.file_exists(map_definition):
+		return
+	var definition = JSON.parse_string(FileAccess.get_file_as_string(map_definition))
+	if not definition is Dictionary:
+		push_error("cannot parse map definition '{0}'".format([map_definition]))
+		return
+	if "size" in definition:
+		size = Vector2(definition.size[0], definition.size[1])
+	var settings = definition.get("generator", {})
+	map_seed = int(settings.get("seed", map_seed))
+	resource_layout = RESOURCE_LAYOUTS.get(settings.get("resource_layout"), resource_layout)
+	extra_lake_pairs = int(settings.get("lake_pairs", extra_lake_pairs))
+	forest_pairs = int(settings.get("forest_pairs", forest_pairs))
+	outcrop_pairs = int(settings.get("outcrop_pairs", outcrop_pairs))
+	layout = definition.get("layout", null)
 
 
 func generate():
 	_clear_generated()
 	_setup_noise()
-	_plan_layout()
+	if layout != null:
+		_apply_layout(layout)
+	else:
+		_plan_layout()
 	_build_terrain()
 	_build_water()
 	_build_spawn_points()
@@ -202,23 +222,19 @@ func _random_point(margin: float) -> Vector2:
 func _is_free(pos: Vector2, radius: float, gap: float) -> bool:
 	if pos.distance_to(_mirror(pos)) < (radius + gap) * 2.0:
 		return false
+	var blockers = []  # [center, clearance]
 	for spawn in spawns:
-		if pos.distance_to(spawn) < SPAWN_CLEARANCE + radius:
-			return false
+		blockers.append([spawn, SPAWN_CLEARANCE + radius - gap])
 	for lake in lakes:
-		if pos.distance_to(lake.center) < lake.radius * LAKE_SHORE_RATIO + radius + gap:
-			return false
+		blockers.append([lake.center, lake.radius * LAKE_SHORE_RATIO + radius])
 	for forest in forests:
 		for circle in forest.circles:
-			if pos.distance_to(circle.center) < circle.radius + radius + gap:
-				return false
+			blockers.append([circle.center, circle.radius + radius])
 	for outcrop in outcrops:
-		if pos.distance_to(outcrop.center) < outcrop.radius + radius + gap:
-			return false
+		blockers.append([outcrop.center, outcrop.radius + radius])
 	for deposit in deposits:
-		if pos.distance_to(deposit.center) < DEPOSIT_CLEARANCE + radius + gap:
-			return false
-	return true
+		blockers.append([deposit.center, DEPOSIT_CLEARANCE + radius])
+	return blockers.all(func(blocker): return pos.distance_to(blocker[0]) >= blocker[1] + gap)
 
 
 func _place_mirrored_feature(target, radius, gap, is_lake):
@@ -266,7 +282,7 @@ func _plan_deposits():
 					_add_deposit(kinds[i], pos, 1.0, spawn_index)
 					break
 	# contested deposits in the open, each mirrored for fairness
-	var contested = [&"oil", &"oil", &"copper", &"copper", &"coal", &"iron"]
+	var contested = [&"oil", &"oil", &"copper", &"copper", &"iron", &"iron"]
 	for kind in contested:
 		for _attempt in range(200):
 			var pos = _random_point(8.0)
@@ -309,14 +325,79 @@ func _deposit_spot_ok(pos: Vector2) -> bool:
 
 
 func _add_deposit(kind, pos, richness, owner_hint):
-	deposits.append(
-		{
-			"kind": kind,
-			"center": pos,
-			"amount": int(DEPOSIT_AMOUNTS[kind] * richness),
-			"owner_hint": owner_hint,
-		}
+	var base_amount = Constants.Match.Resources.DEFAULT_DEPOSIT_AMOUNT.get(String(kind), 500)
+	(
+		deposits
+		. append(
+			{
+				"kind": kind,
+				"center": pos,
+				"amount": int(base_amount * richness),
+				"owner_hint": owner_hint,
+			}
+		)
 	)
+
+
+# layout (de)serialization, used by map definitions and the map editor
+
+
+func export_layout() -> Dictionary:
+	var forest_list = []
+	for forest in forests:
+		forest_list.append(
+			{"kind": String(forest.kind), "circles": forest.circles.map(_circle_to_dict)}
+		)
+	var deposit_list = []
+	for deposit in deposits:
+		(
+			deposit_list
+			. append(
+				{
+					"kind": String(deposit.kind),
+					"center": _vector_to_list(deposit.center),
+					"amount": deposit.amount,
+				}
+			)
+		)
+	return {
+		"spawns": spawns.map(_vector_to_list),
+		"lakes": lakes.map(_circle_to_dict),
+		"forests": forest_list,
+		"outcrops": outcrops.map(_circle_to_dict),
+		"deposits": deposit_list,
+	}
+
+
+func _vector_to_list(vector):
+	return [snappedf(vector.x, 0.01), snappedf(vector.y, 0.01)]
+
+
+func _circle_to_dict(circle):
+	return {"center": _vector_to_list(circle.center), "radius": snappedf(circle.radius, 0.01)}
+
+
+func _apply_layout(a_layout: Dictionary):
+	var to_vector = func(list): return Vector2(float(list[0]), float(list[1]))
+	for spawn in a_layout.get("spawns", []):
+		spawns.append(to_vector.call(spawn))
+	for lake in a_layout.get("lakes", []):
+		var center = to_vector.call(lake.center)
+		lakes.append(
+			{"center": center, "radius": float(lake.radius), "phase": center.x * 0.37 + center.y}
+		)
+	for forest in a_layout.get("forests", []):
+		var circles = forest.get("circles", []).map(
+			func(c): return {"center": to_vector.call(c.center), "radius": float(c.radius)}
+		)
+		forests.append({"circles": circles, "kind": StringName(forest.get("kind", "mixed"))})
+	for outcrop in a_layout.get("outcrops", []):
+		outcrops.append({"center": to_vector.call(outcrop.center), "radius": float(outcrop.radius)})
+	for deposit in a_layout.get("deposits", []):
+		var kind = StringName(deposit.kind)
+		_add_deposit(kind, to_vector.call(deposit.center), 1.0, -1)
+		if "amount" in deposit:
+			deposits[-1].amount = int(deposit.amount)
 
 
 # height field
@@ -535,17 +616,18 @@ func _build_deposit_markers():
 		marker.set_meta("amount", deposit.amount)
 		marker.set_meta("owner_hint", deposit.owner_hint)
 		deposits_node.add_child(marker)
-		if spawn_legacy_resources and not Engine.is_editor_hint():
-			_spawn_legacy_resources(deposit)
+		if spawn_deposits and not Engine.is_editor_hint():
+			_spawn_deposit(deposit, marker.rotation.y)
 
 
-func _spawn_legacy_resources(deposit):
-	var resources = find_child("Resources")
-	for i in range(3):
-		var unit = LEGACY_RESOURCE_SCENES[deposit.kind].instantiate()
-		var offset = Vector2.from_angle(TAU * i / 3.0 + 0.4) * 1.3
-		var pos = deposit.center + offset
-		unit.transform = Transform3D(
-			Basis(Vector3.UP, _rng.randf() * TAU), Vector3(pos.x, 0.0, pos.y)
-		)
-		resources.add_child(unit)
+func _spawn_deposit(deposit, rotation_y):
+	var scene_path = Constants.Match.Resources.DEPOSIT_SCENES.get(String(deposit.kind))
+	if scene_path == null or not ResourceLoader.exists(scene_path):
+		return
+	var unit = load(scene_path).instantiate()
+	unit.transform = Transform3D(
+		Basis(Vector3.UP, rotation_y), Vector3(deposit.center.x, 0.0, deposit.center.y)
+	)
+	if "amount" in unit:
+		unit.amount = deposit.amount
+	find_child("Resources").add_child(unit)

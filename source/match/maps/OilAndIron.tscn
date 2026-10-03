@@ -5,5 +5,5 @@
 
 [node name="Map" instance=ExtResource("1_map")]
 script = ExtResource("2_gen")
-size = Vector2(120, 120)
-map_definition = "res://data/maps/desert_expanse.json"
+size = Vector2(110, 110)
+map_definition = "res://data/maps/oil_and_iron.json"

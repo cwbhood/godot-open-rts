@@ -146,7 +146,7 @@ current = true
 size = 15.0
 script = ExtResource("1_qb2ry")
 size_max = 95
-visible_height_max = 25
+visible_height_max = 40
 bounding_planes = Array[Plane]([Plane(1, 0, 0, 0), Plane(-1, 0, 0, -50), Plane(0, 0, 1, 0), Plane(0, 0, -1, -50)])
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]

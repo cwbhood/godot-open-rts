@@ -2,12 +2,14 @@ extends Node3D
 
 # Sky, sun, clouds, cloud shadows and weather for a match.
 #
-# Gameplay hooks (for economy/combat code; nothing here changes gameplay by itself):
+# Gameplay: the current weather is pushed into the match's WeatherEffects node (ground speed,
+# vision, air vision, plus low air vision zones under thick cloud), which the game systems read.
+# Extra hooks for economy/combat code:
 #   var atmosphere = get_tree().get_first_node_in_group("atmosphere")
 #   atmosphere.weather_changed                       # signal(weather: StringName)
 #   atmosphere.get_weather() -> StringName           # &"clear", &"hazy", &"overcast", ...
 #   atmosphere.get_vision_multiplier() -> float      # scale unit sight ranges
-#   atmosphere.get_hauler_speed_multiplier() -> float
+#   atmosphere.get_ground_speed_multiplier() -> float
 #   atmosphere.get_wood_growth_multiplier() -> float
 #   atmosphere.get_air_scouting_multiplier_at(pos) -> float   # < 1 under thick cloud
 #   atmosphere.get_cloud_density_at(pos) -> float    # 0..1 cloud above a world position
@@ -19,17 +21,20 @@ signal weather_changed(weather)
 
 const CloudShader = preload("res://source/shaders/3d/clouds.gdshader")
 const CloudTexture = preload("res://assets/textures/clouds_tile.png")
-const CloudShadowTexture = preload("res://assets/textures/cloud_shadows_2x2.png")
+const CloudShadowShader = preload("res://source/shaders/3d/cloud_shadows.gdshader")
 
 const CLOUD_HEIGHT = 32.0
-const CLOUD_PERIOD = 400.0
+const CLOUD_ZONE_SPACING = 12.0
+const CLOUD_ZONE_REFRESH_S = 2.0
+const THICK_CLOUD_DENSITY = 0.6
+const CLOUD_PERIOD = 360.0
 const CLOUDS_FADE_IN_CAMERA_SIZES = Vector2(32.0, 55.0)
 const WEATHERS = {
 	&"clear":
 	{
 		"weight": 45.0,
-		"coverage": 0.38,
-		"shadow_opacity": 0.55,
+		"coverage": 0.45,
+		"shadow_opacity": 0.7,
 		"sun_energy": 1.35,
 		"sun_color": Color(1.0, 0.93, 0.82),
 		"ambient_energy": 1.0,
@@ -39,14 +44,14 @@ const WEATHERS = {
 		"dust": 0.0,
 		"wind_speed": 3.0,
 		"vision": 1.0,
-		"hauler_speed": 1.0,
+		"ground_speed": 1.0,
 		"wood_growth": 1.0,
 	},
 	&"hazy":
 	{
 		"weight": 20.0,
 		"coverage": 0.22,
-		"shadow_opacity": 0.35,
+		"shadow_opacity": 0.45,
 		"sun_energy": 1.2,
 		"sun_color": Color(1.0, 0.88, 0.72),
 		"ambient_energy": 1.1,
@@ -56,7 +61,7 @@ const WEATHERS = {
 		"dust": 0.15,
 		"wind_speed": 4.0,
 		"vision": 0.9,
-		"hauler_speed": 1.0,
+		"ground_speed": 1.0,
 		"wood_growth": 0.9,
 	},
 	&"overcast":
@@ -73,7 +78,7 @@ const WEATHERS = {
 		"dust": 0.0,
 		"wind_speed": 5.0,
 		"vision": 0.95,
-		"hauler_speed": 1.0,
+		"ground_speed": 1.0,
 		"wood_growth": 1.15,
 	},
 	&"rain":
@@ -90,7 +95,7 @@ const WEATHERS = {
 		"dust": 0.0,
 		"wind_speed": 6.0,
 		"vision": 0.8,
-		"hauler_speed": 0.85,
+		"ground_speed": 0.85,
 		"wood_growth": 1.6,
 	},
 	&"sandstorm":
@@ -107,7 +112,7 @@ const WEATHERS = {
 		"dust": 1.0,
 		"wind_speed": 14.0,
 		"vision": 0.55,
-		"hauler_speed": 0.7,
+		"ground_speed": 0.7,
 		"wood_growth": 0.8,
 	},
 }
@@ -123,7 +128,7 @@ const BLENDED_KEYS = [
 	"dust",
 	"wind_speed",
 	"vision",
-	"hauler_speed",
+	"ground_speed",
 	"wood_growth",
 ]
 
@@ -144,7 +149,8 @@ var _cloud_image = null
 var _rng = RandomNumberGenerator.new()
 var _lightning_cooldown = 6.0
 var _flash = 0.0
-var _cloud_shadows = Decal.new()
+var _cloud_shadows = MeshInstance3D.new()
+var _cloud_zone_timer = 0.0
 
 @onready var _match = find_parent("Match")
 @onready var _clouds = $Clouds
@@ -160,18 +166,10 @@ func _ready():
 	if _cloud_image.is_compressed():
 		_cloud_image.decompress()
 	_setup_clouds()
-	_cloud_shadows.name = "CloudShadows"
-	_cloud_shadows.texture_albedo = CloudShadowTexture
-	_cloud_shadows.upper_fade = 0.0
-	_cloud_shadows.lower_fade = 0.0
-	add_child(_cloud_shadows)
-	# keep the box below the camera: decals whose box contains an orthogonal camera are dropped
-	_cloud_shadows.size = Vector3(CLOUD_PERIOD * 2.0, 24.0, CLOUD_PERIOD * 2.0)
+	_setup_cloud_shadows()
 	_weather = initial_weather
 	_current = WEATHERS[_weather].duplicate()
-	_time_to_next_weather = _rng.randf_range(
-		weather_duration_range_s.x, weather_duration_range_s.y
-	)
+	_time_to_next_weather = _rng.randf_range(weather_duration_range_s.x, weather_duration_range_s.y)
 	_apply()
 
 
@@ -181,6 +179,7 @@ func _process(delta):
 	_apply()
 	_follow_camera()
 	_update_lightning(delta)
+	_update_weather_effects(delta)
 
 
 func get_weather():
@@ -191,8 +190,8 @@ func get_vision_multiplier():
 	return _current.vision
 
 
-func get_hauler_speed_multiplier():
-	return _current.hauler_speed
+func get_ground_speed_multiplier():
+	return _current.ground_speed
 
 
 func get_wood_growth_multiplier():
@@ -245,8 +244,27 @@ func _setup_clouds():
 	material.shader = CloudShader
 	material.set_shader_parameter("cloud_texture", CloudTexture)
 	material.set_shader_parameter("period", CLOUD_PERIOD)
+	material.render_priority = 3  # above the fog of war overlay, so map edges don't cut clouds
 	_clouds.material_override = material
 	_clouds.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func _setup_cloud_shadows():
+	_cloud_shadows.name = "CloudShadows"
+	var quad = QuadMesh.new()
+	quad.size = Vector2(2.0, 2.0)
+	quad.flip_faces = true
+	_cloud_shadows.mesh = quad
+	_cloud_shadows.extra_cull_margin = 16384.0
+	_cloud_shadows.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var material = ShaderMaterial.new()
+	material.shader = CloudShadowShader
+	material.render_priority = 1  # below the fog of war overlay
+	material.set_shader_parameter("cloud_texture", CloudTexture)
+	material.set_shader_parameter("period", CLOUD_PERIOD)
+	material.set_shader_parameter("cloud_height", CLOUD_HEIGHT)
+	_cloud_shadows.material_override = material
+	add_child(_cloud_shadows)
 
 
 func _advance_weather(delta):
@@ -297,9 +315,13 @@ func _apply():
 			CLOUDS_FADE_IN_CAMERA_SIZES.x, CLOUDS_FADE_IN_CAMERA_SIZES.y, camera.size
 		)
 	cloud_material.set_shader_parameter("visibility", zoom_visibility)
-	_cloud_shadows.modulate.a = _current.shadow_opacity
+	var shadow_material = _cloud_shadows.material_override
+	shadow_material.set_shader_parameter("opacity", _current.shadow_opacity)
+	shadow_material.set_shader_parameter("coverage", _current.coverage)
+	shadow_material.set_shader_parameter("offset", _cloud_offset)
 	var sun = _get_sun()
 	if sun != null:
+		shadow_material.set_shader_parameter("sun_direction", -sun.global_transform.basis.z)
 		sun.light_energy = _current.sun_energy + _flash * 3.0
 		sun.light_color = _current.sun_color
 	var environment = _get_environment()
@@ -339,32 +361,9 @@ func _follow_camera():
 		particles.process_material.emission_box_extents.x = area
 		particles.process_material.emission_box_extents.z = area
 		particles.visibility_aabb = AABB(
-			Vector3(-area - 30.0, -5.0, -area - 30.0), Vector3(area * 2.0 + 60.0, 45.0, area * 2.0 + 60.0)
+			Vector3(-area - 30.0, -5.0, -area - 30.0),
+			Vector3(area * 2.0 + 60.0, 45.0, area * 2.0 + 60.0)
 		)
-	_position_cloud_shadows()
-
-
-func _position_cloud_shadows():
-	"""places the 2x2-tiled shadow decal so that it lines up with the cloud layer as seen along
-	the sun direction, wrapping by one period so it always covers the playable area"""
-	var sun = _get_sun()
-	var shadow_shift = Vector2.ZERO
-	if sun != null:
-		var light_direction = -sun.global_transform.basis.z
-		if light_direction.y < -0.1:
-			shadow_shift = (
-				Vector2(light_direction.x, light_direction.z) * CLOUD_HEIGHT / -light_direction.y
-			)
-	var map_center = Vector2(60.0, 60.0)
-	if _match != null and _match.map != null:
-		map_center = _match.map.size / 2.0
-	var anchor = _cloud_offset + shadow_shift
-	var low = map_center - Vector2(CLOUD_PERIOD, CLOUD_PERIOD) / 2.0
-	var center = Vector2(
-		low.x + fposmod(anchor.x - low.x, CLOUD_PERIOD),
-		low.y + fposmod(anchor.y - low.y, CLOUD_PERIOD)
-	)
-	_cloud_shadows.global_position = Vector3(center.x, 9.0, center.y)
 
 
 func _update_lightning(delta):
@@ -375,6 +374,32 @@ func _update_lightning(delta):
 	if _lightning_cooldown <= 0.0:
 		_lightning_cooldown = _rng.randf_range(5.0, 18.0)
 		_flash = 1.0
+
+
+func _update_weather_effects(delta):
+	var weather_effects = _match.get_node_or_null("WeatherEffects") if _match != null else null
+	if weather_effects == null:
+		return
+	weather_effects.speed_multiplier = _current.ground_speed
+	weather_effects.vision_multiplier = _current.vision
+	weather_effects.air_vision_multiplier = lerp(1.0, 0.6, _current.dust)
+	_cloud_zone_timer -= delta
+	if _cloud_zone_timer > 0.0 or _match.map == null:
+		return
+	_cloud_zone_timer = CLOUD_ZONE_REFRESH_S
+	var zones = []
+	var x = CLOUD_ZONE_SPACING / 2.0
+	while x < _match.map.size.x:
+		var z = CLOUD_ZONE_SPACING / 2.0
+		while z < _match.map.size.y:
+			var point = Vector3(x, 0.0, z)
+			if get_cloud_density_at(point) > THICK_CLOUD_DENSITY:
+				zones.append(
+					{"center": point, "radius": CLOUD_ZONE_SPACING * 0.7, "air_vision": 0.5}
+				)
+			z += CLOUD_ZONE_SPACING
+		x += CLOUD_ZONE_SPACING
+	weather_effects.zones = zones
 
 
 func _get_sun():

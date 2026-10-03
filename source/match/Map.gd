@@ -26,12 +26,15 @@ func get_resource_deposits():
 		return []
 	var deposits = []
 	for marker in deposits_node.get_children():
-		deposits.append(
-			{
-				"kind": marker.get_meta("kind", &""),
-				"position": marker.global_position,
-				"amount": marker.get_meta("amount", 0),
-				"node": marker,
-			}
+		(
+			deposits
+			. append(
+				{
+					"kind": marker.get_meta("kind", &""),
+					"position": marker.global_position,
+					"amount": marker.get_meta("amount", 0),
+					"node": marker,
+				}
+			)
 		)
 	return deposits

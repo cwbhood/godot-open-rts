@@ -63,7 +63,10 @@ func _scatter_forests():
 				_add(_pick(tree_names), pos, Vector2(0.65, 1.0))
 			for _i in range(int(circle.radius * 4.0)):
 				var angle = _rng.randf() * TAU
-				var pos = circle.center + Vector2.from_angle(angle) * (circle.radius + _rng.randf_range(0.5, 3.5))
+				var pos = (
+					circle.center
+					+ Vector2.from_angle(angle) * (circle.radius + _rng.randf_range(0.5, 3.5))
+				)
 				if _map.is_obstructed(pos) or _map.is_reserved(pos):
 					continue
 				var roll = _rng.randf()
@@ -105,13 +108,20 @@ func _scatter_outcrops():
 		for _i in range(int(outcrop.radius * 3.0)):
 			var pos = (
 				outcrop.center
-				+ Vector2.from_angle(_rng.randf() * TAU) * outcrop.radius * _rng.randf_range(0.5, 1.0)
+				+ (
+					Vector2.from_angle(_rng.randf() * TAU)
+					* outcrop.radius
+					* _rng.randf_range(0.5, 1.0)
+				)
 			)
 			_add(_pick(["boulder_a", "boulder_b", "boulder_c"]), pos, Vector2(0.6, 1.3), 0.1)
 		for _i in range(4):
 			var pos = (
 				outcrop.center
-				+ Vector2.from_angle(_rng.randf() * TAU) * (outcrop.radius + _rng.randf_range(0.5, 2.5))
+				+ (
+					Vector2.from_angle(_rng.randf() * TAU)
+					* (outcrop.radius + _rng.randf_range(0.5, 2.5))
+				)
 			)
 			if not _map.is_obstructed(pos) and not _map.is_reserved(pos):
 				_add("rock_slabs", pos, Vector2(0.3, 0.6), 0.05)
@@ -161,7 +171,9 @@ func _scatter_outer_area():
 			var roll = _rng.randf()
 			if mesa > 1.5:
 				if roll < 0.18:
-					_add(_pick(["boulder_a", "boulder_b", "boulder_c"]), pos, Vector2(0.8, 2.2), 0.3)
+					_add(
+						_pick(["boulder_a", "boulder_b", "boulder_c"]), pos, Vector2(0.8, 2.2), 0.3
+					)
 				elif roll < 0.22:
 					_add(_pick(["rock_spire_a", "rock_spire_b"]), pos, Vector2(0.8, 1.6), 0.3)
 			elif roll < 0.12:

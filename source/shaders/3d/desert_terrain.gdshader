@@ -42,7 +42,7 @@ void fragment()
   float n_detail = detail_height(p);
 
   // sand: large soft color variation plus fine grain
-  vec3 sand = mix(sand_dark, sand_light, smoothstep(0.3, 0.7, n_large * 0.65 + n_mid * 0.35));
+  vec3 sand = mix(sand_dark, sand_light, smoothstep(0.2, 0.8, n_large * 0.8 + n_mid * 0.2));
   sand *= 0.96 + 0.08 * n_detail;
 
   // hardpan: pale, flatter, speckled
