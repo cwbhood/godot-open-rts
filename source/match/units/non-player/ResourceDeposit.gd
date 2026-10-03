@@ -6,7 +6,7 @@ extends "res://source/match/units/non-player/ResourceUnit.gd"
 
 signal depleted
 
-@export_enum("timber", "iron", "copper", "oil") var kind = "iron"
+@export var kind = "iron"  # id of a commodity from data/resources.json
 @export var amount = -1  # -1 means the default amount for the kind
 @export var tint_material: Material = null  # optional override for imported models
 

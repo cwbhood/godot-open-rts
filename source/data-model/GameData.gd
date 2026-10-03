@@ -3,6 +3,11 @@
 # Base content lives in res://data/, mods are merged on top from res://mods/<mod>/data/
 # and user://mods/<mod>/data/ (entries with the same "id" are patched field by field).
 # See data/README.md for the schema.
+#
+# A unit entry may name a "base" unit instead of a "scene": it then inherits every field
+# of the base (properties are merged key by key) and gets a scene generated at runtime
+# from the base scene, with its own "model" swapped in. This is how new units are added
+# without touching code or the Godot editor (see docs/modding/add-a-unit.md).
 
 const BASE_DATA_DIR = "res://data"
 const MOD_ROOTS = ["res://mods", "user://mods"]
@@ -12,8 +17,10 @@ const PROJECTILES = {
 	"rocket": "res://source/match/units/projectiles/Rocket.tscn",
 }
 const DOMAINS = {"terrain": 1, "air": 0}  # mirrors Constants.Match.Navigation.Domain
+const GENERATED_SCENES_ROOT = "res://data-units/"
 
 static var _cache = null
+static var _generated_scenes = {}  # scene path -> PackedScene, kept alive for load()
 
 
 static func get_data():
@@ -92,6 +99,57 @@ static func tiers():
 	return get_data()["tiers"]
 
 
+static func roads():
+	return get_data()["roads"]
+
+
+static func is_generated_scene(scene_path):
+	return scene_path.begins_with(GENERATED_SCENES_ROOT)
+
+
+static func register_generated_scenes():
+	"""builds the scenes of data-only units; call before any of them is loaded"""
+	for unit in units():
+		if is_generated_scene(unit["scene"]) and not unit["scene"] in _generated_scenes:
+			var scene = _build_generated_scene(unit)
+			if scene != null:
+				_generated_scenes[unit["scene"]] = scene
+
+
+static func _build_generated_scene(unit):
+	var base_scene = load(unit["base_scene"])
+	if base_scene == null:
+		push_error("GameData: unit '{0}' has an unknown base".format([unit["id"]]))
+		return null
+	var root = base_scene.instantiate()
+	if "model" in unit:
+		var model_scene = load(unit["model"])
+		var geometry = root.find_child("Geometry", false)
+		if model_scene == null or geometry == null:
+			push_error("GameData: cannot use model '{0}'".format([unit.get("model")]))
+		else:
+			for child in geometry.get_children():
+				if child is VisualInstance3D or child.scene_file_path != "":
+					child.visible = false  # kept so that scripts referring to them keep working
+			var model = model_scene.instantiate()
+			model.name = "Model"
+			var model_scale = float(unit.get("model_scale", 1.0))
+			model.scale = Vector3.ONE * model_scale
+			var offset = unit.get("model_offset", [0, 0, 0])
+			model.position = Vector3(offset[0], offset[1], offset[2])
+			model.rotation.y = deg_to_rad(float(unit.get("model_rotation_y_deg", 0.0)))
+			geometry.add_child(model)
+			model.owner = root
+	var scene = PackedScene.new()
+	var error = scene.pack(root)
+	root.free()
+	if error != OK:
+		push_error("GameData: cannot build scene of unit '{0}'".format([unit["id"]]))
+		return null
+	scene.take_over_path(unit["scene"])
+	return scene
+
+
 static func maps():
 	var maps_by_scene = {}
 	for a_map in get_data()["maps"]:
@@ -116,9 +174,10 @@ static func _convert(field, value):
 		"properties":
 			var properties = value.duplicate(true)
 			if "attack_domains" in properties:
-				properties["attack_domains"] = properties["attack_domains"].map(
-					func(domain): return DOMAINS[domain]
+				var domains = properties["attack_domains"].filter(
+					func(domain): return domain in DOMAINS
 				)
+				properties["attack_domains"] = domains.map(func(domain): return DOMAINS[domain])
 			for key in ["hp", "hp_max", "attack_damage", "cargo_capacity"]:
 				if key in properties:
 					properties[key] = int(properties[key])
@@ -140,6 +199,7 @@ static func _load_all():
 		"units": _load_dir(BASE_DATA_DIR + "/units"),
 		"maps": _load_dir(BASE_DATA_DIR + "/maps"),
 		"ai_personalities": _load_dir(BASE_DATA_DIR + "/ai"),
+		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -149,9 +209,49 @@ static func _load_all():
 		_merge(data["units"], _load_dir(mod_dir + "/units"))
 		_merge(data["maps"], _load_dir(mod_dir + "/maps"))
 		_merge(data["ai_personalities"], _load_dir(mod_dir + "/ai"))
+		var mod_roads = _load_list_file(mod_dir + "/roads.json", "roads")
+		if not mod_roads.is_empty():
+			data["roads"] = mod_roads
+	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
 	return data
+
+
+static func _resolve_bases(entries):
+	"""units with a "base" inherit the base unit's fields and get a generated scene"""
+	var by_id = {}
+	for entry in entries:
+		by_id[entry["id"]] = entry
+	for entry in entries:
+		if not "base" in entry:
+			continue
+		var chain = [entry]
+		var base = by_id.get(entry["base"])
+		while base != null and "base" in base and not base in chain:
+			chain.append(base)
+			base = by_id.get(base["base"])
+		if base == null or base in chain:
+			push_error("GameData: unit '{0}' has a missing or circular base".format([entry["id"]]))
+			entry["invalid"] = true
+			continue
+		var resolved = base.duplicate(true)
+		chain.reverse()
+		for link in chain:
+			for key in link:
+				if key == "properties" or key == "power" or key == "cost":
+					var merged = resolved.get(key, {}).duplicate(true)
+					merged.merge(link[key], true)
+					resolved[key] = merged
+				else:
+					resolved[key] = link[key]
+		resolved["base_scene"] = base["scene"]
+		resolved["scene"] = GENERATED_SCENES_ROOT + entry["id"] + ".tscn"
+		entry.clear()
+		entry.merge(resolved)
+	for index in range(entries.size() - 1, -1, -1):
+		if entries[index].get("invalid", false):
+			entries.remove_at(index)
 
 
 static func _find_mod_data_dirs():

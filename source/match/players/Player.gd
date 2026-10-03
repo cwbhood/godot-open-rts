@@ -31,6 +31,23 @@ var logistics:
 		return get_node_or_null("Logistics")
 
 var _color_material = null
+var _extra_stock = {}  # commodities added in data/ beyond the four exported above
+
+
+func _get(property):
+	if property in _extra_stock:
+		return _extra_stock[property]
+	if property in Constants.Match.Resources.ALL:
+		return 0
+	return null
+
+
+func _set(property, value):
+	if property in Constants.Match.Resources.ALL:  # only reached for undeclared ones
+		_extra_stock[property] = value
+		emit_changed()
+		return true
+	return false
 
 
 func add_resources(resources):

@@ -12,6 +12,7 @@
     "oil": 3
   },
   "build_time_s": 4.0,
+  "speed": 4.4,
   "produced_by": [
     "vehicle_factory"
   ],

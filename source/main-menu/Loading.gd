@@ -40,6 +40,7 @@ func _ready():
 
 
 func _preload_scenes():
+	preload("res://source/data-model/GameData.gd").register_generated_scenes()
 	var scene_paths = []
 	scene_paths += Constants.Match.Units.PROJECTILES.values()
 	scene_paths += Constants.Match.Units.CONSTRUCTION_COSTS.keys()

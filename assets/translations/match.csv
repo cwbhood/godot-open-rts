@@ -127,3 +127,17 @@ AI_TURTLE,Turtle,Żółw
 AI_TURTLE_DESCRIPTION,walls up with turrets and out-builds you before attacking,"okopuje się wieżyczkami i rozbudowuje, zanim zaatakuje"
 SANDBOX_MODE,Sandbox,Piaskownica
 SANDBOX_MODE_DESCRIPTION,"no match end, spending into debt allowed, whole map visible","bez końca gry, wydatki na kredyt, cała mapa widoczna"
+ROAD_DIRT,Dirt track,Droga gruntowa
+ROAD_PAVED,Paved road,Droga utwardzona
+ROAD_RAIL,Railway,Kolej
+ROAD_BUTTON,Road,Droga
+ROAD_CURRENT,Route: {0} (haulers x{1} speed),Trasa: {0} (transportery x{1} prędkości)
+ROAD_LENGTH,Length to depot: {0} m,Długość do składu: {0} m
+ROAD_UPGRADE,Upgrade to {0} (x{1} speed) for {2},Ulepsz do: {0} (x{1} prędkości) za {2}
+ROAD_MAXED,Fully upgraded,W pełni ulepszona
+SCOUT_BUGGY,Scout buggy,Łazik zwiadowczy
+SCOUT_BUGGY_DESCRIPTION,"fast, sharp-eyed and fragile; defined only in data","szybki, dalekowzroczny i kruchy; zdefiniowany tylko w danych"
+ESCORTING,Escorting,Eskortuje
+SANDBOX_SPAWN,Spawn,Postaw
+SANDBOX_SPAWN_TOOLTIP,"Left-click the map to spawn, right-click to stop","Kliknij lewym, aby postawić, prawym, aby przestać"
+SANDBOX_TOP_UP,+{0} of everything for all,+{0} wszystkiego dla wszystkich

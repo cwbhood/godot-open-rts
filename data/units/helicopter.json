@@ -12,6 +12,7 @@
     "oil": 5
   },
   "build_time_s": 7.0,
+  "speed": 4.0,
   "produced_by": [
     "aircraft_factory"
   ],

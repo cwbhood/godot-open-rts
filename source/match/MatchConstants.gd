@@ -83,6 +83,9 @@ class Units:
 	# oil burnt per second while a unit is moving
 	# gdlint: ignore=class-variable-name
 	static var FUEL_PER_S = GameData.unit_field("fuel_per_s")
+	# movement speed in m/s, overrides the Movement node of the scene
+	# gdlint: ignore=class-variable-name
+	static var SPEEDS = GameData.unit_field("speed")
 
 
 class Extraction:
@@ -104,6 +107,12 @@ class Logistics:
 	const MIN_PICKUP = 4  # haulers do not drive out for less than this
 	const LOOT_SHARE = 0.5  # share of destroyed cargo that goes to the attacker
 	const HAULER_IDLE_RECHECK_S = 1.0
+
+
+class Roads:
+	# road levels a supply route can be upgraded to, from data/roads.json
+	# gdlint: ignore=class-variable-name
+	static var LEVELS = GameData.roads()
 
 
 class Fuel:

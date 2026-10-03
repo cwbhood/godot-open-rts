@@ -137,6 +137,8 @@ func _set_action(action_node):
 
 
 func _scene_path():
+	if scene_file_path != "":
+		return scene_file_path  # also covers data-only units built from a base scene
 	return get_script().resource_path.replace(".gd", ".tscn")
 
 
@@ -205,11 +207,13 @@ func _hand_out_loot():
 
 
 func _setup_default_properties_from_constants():
-	var default_properties = Constants.Match.Units.DEFAULT_PROPERTIES[
-		get_script().resource_path.replace(".gd", ".tscn")
-	]
+	var scene_path = _scene_path()
+	var default_properties = Constants.Match.Units.DEFAULT_PROPERTIES[scene_path]
 	for property in default_properties:
 		set(property, default_properties[property])
+	var movement = find_child("Movement")
+	if movement != null and scene_path in Constants.Match.Units.SPEEDS:
+		movement.speed = Constants.Match.Units.SPEEDS[scene_path]
 
 
 func _on_action_node_tree_exited(action_node):

@@ -9,6 +9,9 @@ const Logistics = preload("res://source/match/economy/Logistics.gd")
 const PowerGrid = preload("res://source/match/economy/PowerGrid.gd")
 const WeatherEffects = preload("res://source/match/WeatherEffects.gd")
 const Market = preload("res://source/match/economy/Market.gd")
+const GameData = preload("res://source/data-model/GameData.gd")
+const ReplayRecorder = preload("res://source/match/ReplayRecorder.gd")
+const SandboxPanel = preload("res://source/match/hud/SandboxPanel.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
@@ -39,6 +42,7 @@ var _feature_flags_before_sandbox = null
 func _enter_tree():
 	assert(settings != null, "match cannot start without settings, see examples in tests/manual/")
 	assert(map != null, "match cannot start without map, see examples in tests/manual/")
+	GameData.register_generated_scenes()
 	if settings.get("sandbox"):
 		_feature_flags_before_sandbox = {
 			"allow_resources_deficit_spending": FeatureFlags.allow_resources_deficit_spending,
@@ -60,6 +64,15 @@ func _ready():
 		var weather_effects = WeatherEffects.new()
 		weather_effects.name = "WeatherEffects"
 		add_child(weather_effects)
+	if get_node_or_null("ReplayRecorder") == null:
+		var replay_recorder = ReplayRecorder.new()
+		replay_recorder.name = "ReplayRecorder"
+		add_child(replay_recorder)
+	if settings.get("sandbox"):
+		var sandbox_panel = SandboxPanel.new()
+		sandbox_panel.name = "SandboxPanel"
+		sandbox_panel.position = Vector2(8, 48)
+		$HUD.add_child(sandbox_panel)
 	if get_node_or_null("Market") == null:
 		var market = Market.new()
 		market.name = "Market"

@@ -12,6 +12,7 @@
     "oil": 2
   },
   "build_time_s": 0.0,
+  "speed": 3.2,
   "produced_by": [],
   "properties": {
     "sight_range": 8.0,
