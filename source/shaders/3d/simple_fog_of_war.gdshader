@@ -6,6 +6,10 @@ uniform sampler2D world_visibility_texture : hint_default_white, filter_linear, 
 uniform int texture_units_per_world_unit = 2;
 uniform float outer_margin_for_fade_out = 2.0;
 uniform bool debug_texture_view = false;
+// how much the world outside the playable area is dimmed (1.0 hides it completely)
+uniform float outside_map_alpha = 0.35;
+// how much unexplored (shrouded) ground is dimmed
+uniform float shroud_alpha = 0.82;
 uniform sampler2D depth_texture : hint_depth_texture;
 
 void vertex()
@@ -53,7 +57,7 @@ void fragment()
       float transparency_from_world_visibility_texture = 0.0;
       transparency_from_world_visibility_texture =
           textureLod(world_visibility_texture, world_visibility_texture_uv, 0.0).r;
-      ALPHA = max(ALPHA, 1.0 - transparency_from_world_visibility_texture);
+      ALPHA = max(ALPHA, (1.0 - transparency_from_world_visibility_texture) * shroud_alpha);
     }
     else if (
         outer_margin_for_fade_out > 0.0 &&
@@ -71,19 +75,19 @@ void fragment()
       max_distance_from_boundary = max(
           max_distance_from_boundary, world_position.z - world_visibility_texture_size_scaled.y);
       float alpha_from_margin =
-          smoothstep(0.0, outer_margin_for_fade_out, max_distance_from_boundary) * 0.2 + 0.8;
+          smoothstep(0.0, outer_margin_for_fade_out, max_distance_from_boundary) * outside_map_alpha;
       ALPHA = max(ALPHA, alpha_from_margin);
 
       float alpha_from_world_visibility_texture = 0.0;
       alpha_from_world_visibility_texture =
           1.0 - textureLod(world_visibility_texture, world_visibility_texture_uv, 0.0).r;
-      ALPHA = max(ALPHA, alpha_from_world_visibility_texture);
+      ALPHA = max(ALPHA, alpha_from_world_visibility_texture * shroud_alpha);
 
       ALPHA = min(ALPHA, 1.0);
     }
     else
     {
-      ALPHA = 1.0;
+      ALPHA = outside_map_alpha;
     }
   }
 

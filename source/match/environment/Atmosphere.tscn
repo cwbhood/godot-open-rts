@@ -1,0 +1,115 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://source/match/environment/Atmosphere.gd" id="1_atmo"]
+
+[sub_resource type="ParticleProcessMaterial" id="Rain_process"]
+emission_shape = 3
+emission_shape_offset = Vector3(0, 20, 0)
+emission_box_extents = Vector3(30, 0.5, 30)
+direction = Vector3(0.1, -1, 0.05)
+spread = 3.0
+initial_velocity_min = 26.0
+initial_velocity_max = 32.0
+gravity = Vector3(0, -9.8, 0)
+
+[sub_resource type="StandardMaterial3D" id="Rain_material"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.8, 0.85, 0.95, 0.35)
+billboard_mode = 2
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="Rain_mesh"]
+material = SubResource("Rain_material")
+size = Vector2(0.035, 1.1)
+
+[sub_resource type="Gradient" id="Soft_gradient"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="Soft_texture"]
+gradient = SubResource("Soft_gradient")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="ParticleProcessMaterial" id="Dust_process"]
+emission_shape = 3
+emission_shape_offset = Vector3(0, 1.4, 0)
+emission_box_extents = Vector3(30, 1.2, 30)
+direction = Vector3(1, 0, 0)
+spread = 12.0
+initial_velocity_min = 10.0
+initial_velocity_max = 18.0
+gravity = Vector3(0, 0.3, 0)
+scale_min = 0.5
+scale_max = 1.5
+
+[sub_resource type="StandardMaterial3D" id="Dust_material"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.93, 0.74, 0.52, 0.55)
+albedo_texture = SubResource("Soft_texture")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="Dust_mesh"]
+material = SubResource("Dust_material")
+size = Vector2(0.35, 0.35)
+
+[sub_resource type="ParticleProcessMaterial" id="Haze_process"]
+emission_shape = 3
+emission_shape_offset = Vector3(0, 2.5, 0)
+emission_box_extents = Vector3(30, 2, 30)
+direction = Vector3(1, 0, 0)
+spread = 20.0
+initial_velocity_min = 6.0
+initial_velocity_max = 10.0
+scale_min = 0.6
+scale_max = 1.6
+
+[sub_resource type="StandardMaterial3D" id="Haze_material"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.86, 0.62, 0.4, 0.07)
+albedo_texture = SubResource("Soft_texture")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="Haze_mesh"]
+material = SubResource("Haze_material")
+size = Vector2(12, 12)
+
+[node name="Atmosphere" type="Node3D"]
+script = ExtResource("1_atmo")
+
+[node name="Clouds" type="MeshInstance3D" parent="."]
+
+[node name="Rain" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 5000
+lifetime = 0.9
+local_coords = false
+process_material = SubResource("Rain_process")
+draw_pass_1 = SubResource("Rain_mesh")
+cast_shadow = 0
+
+[node name="Dust" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 4000
+lifetime = 2.0
+local_coords = false
+process_material = SubResource("Dust_process")
+draw_pass_1 = SubResource("Dust_mesh")
+cast_shadow = 0
+
+[node name="DustHaze" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 260
+lifetime = 5.0
+local_coords = false
+process_material = SubResource("Haze_process")
+draw_pass_1 = SubResource("Haze_mesh")
+cast_shadow = 0
