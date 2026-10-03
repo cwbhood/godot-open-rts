@@ -1,0 +1,24 @@
+{
+  "expected_number_of_workers": 3,
+  "expected_number_of_haulers": 4,
+  "extractor_targets": {
+    "timber": 1,
+    "iron": 2,
+    "copper": 1,
+    "oil": 2
+  },
+  "expected_number_of_power_plants": 1,
+  "expected_number_of_ag_turrets": 1,
+  "expected_number_of_aa_turrets": 1,
+  "expected_number_of_battlegroups": 2,
+  "expected_number_of_units_in_battlegroup": 4,
+  "raid_party_size": 2,
+  "raid_interval_s": 240,
+  "trade_hoarding_factor": 1.0,
+  "trade_profit_margin": 1.05,
+  "trade_offer_interval_s": 30,
+  "proposes_agreements": false,
+  "id": "balanced",
+  "name": "AI_BALANCED",
+  "description": "AI_BALANCED_DESCRIPTION"
+}

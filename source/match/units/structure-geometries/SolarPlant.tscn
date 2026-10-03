@@ -1,0 +1,108 @@
+[gd_scene format=3]
+
+
+[sub_resource type="StandardMaterial3D" id="Mat0"]
+albedo_color = Color(0.08, 0.12, 0.3, 1)
+roughness = 0.15
+metallic = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh0"]
+material = SubResource("Mat0")
+size = Vector3(0.8, 0.04, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat1"]
+albedo_color = Color(0.55, 0.55, 0.55, 1)
+roughness = 0.6
+metallic = 0.2
+
+[sub_resource type="BoxMesh" id="Mesh1"]
+material = SubResource("Mat1")
+size = Vector3(0.06, 0.45, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="Mat2"]
+albedo_color = Color(0.08, 0.12, 0.3, 1)
+roughness = 0.15
+metallic = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh2"]
+material = SubResource("Mat2")
+size = Vector3(0.8, 0.04, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat3"]
+albedo_color = Color(0.55, 0.55, 0.55, 1)
+roughness = 0.6
+metallic = 0.2
+
+[sub_resource type="BoxMesh" id="Mesh3"]
+material = SubResource("Mat3")
+size = Vector3(0.06, 0.45, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="Mat4"]
+albedo_color = Color(0.08, 0.12, 0.3, 1)
+roughness = 0.15
+metallic = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh4"]
+material = SubResource("Mat4")
+size = Vector3(0.8, 0.04, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat5"]
+albedo_color = Color(0.55, 0.55, 0.55, 1)
+roughness = 0.6
+metallic = 0.2
+
+[sub_resource type="BoxMesh" id="Mesh5"]
+material = SubResource("Mat5")
+size = Vector3(0.06, 0.45, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="Mat6"]
+albedo_color = Color(0.08, 0.12, 0.3, 1)
+roughness = 0.15
+metallic = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh6"]
+material = SubResource("Mat6")
+size = Vector3(0.8, 0.04, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat7"]
+albedo_color = Color(0.55, 0.55, 0.55, 1)
+roughness = 0.6
+metallic = 0.2
+
+[sub_resource type="BoxMesh" id="Mesh7"]
+material = SubResource("Mat7")
+size = Vector3(0.06, 0.45, 0.06)
+
+[node name="Geometry" type="Node3D"]
+
+[node name="Prim0" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906, -0.423, 0, 0.423, 0.906, -0.45, 0.45, -0.45)
+mesh = SubResource("Mesh0")
+
+[node name="Prim1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0.22, -0.45)
+mesh = SubResource("Mesh1")
+
+[node name="Prim2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906, -0.423, 0, 0.423, 0.906, 0.45, 0.45, -0.45)
+mesh = SubResource("Mesh2")
+
+[node name="Prim3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.22, -0.45)
+mesh = SubResource("Mesh3")
+
+[node name="Prim4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906, -0.423, 0, 0.423, 0.906, -0.45, 0.45, 0.45)
+mesh = SubResource("Mesh4")
+
+[node name="Prim5" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0.22, 0.45)
+mesh = SubResource("Mesh5")
+
+[node name="Prim6" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906, -0.423, 0, 0.423, 0.906, 0.45, 0.45, 0.45)
+mesh = SubResource("Mesh6")
+
+[node name="Prim7" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.22, 0.45)
+mesh = SubResource("Mesh7")

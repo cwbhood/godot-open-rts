@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/simulation/Simulate.gd" id="1_sim"]
+
+[node name="Simulate" type="Node"]
+script = ExtResource("1_sim")

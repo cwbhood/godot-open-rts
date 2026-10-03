@@ -1,0 +1,32 @@
+{
+  "id": "heavy_tank",
+  "category": "unit",
+  "scene": "res://source/match/units/HeavyTank.tscn",
+  "name": "HEAVY_TANK",
+  "description": "HEAVY_TANK_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Tank.png",
+  "icon_tint": "#ff9959",
+  "tier": 2,
+  "cost": {
+    "iron": 10,
+    "copper": 2,
+    "oil": 5
+  },
+  "build_time_s": 9.0,
+  "produced_by": [
+    "vehicle_factory"
+  ],
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 18,
+    "hp_max": 18,
+    "attack_damage": 3,
+    "attack_interval": 0.75,
+    "attack_range": 5.5,
+    "attack_domains": [
+      "terrain"
+    ]
+  },
+  "projectile": "cannon_shell",
+  "fuel_per_s": 0.025
+}

@@ -1,17 +1,20 @@
 extends Node
 
-# Every now and then, when one crystal runs short while the other piles up,
-# the AI offers a trade to another faction. Other AIs decide on the spot,
-# a human player gets the offer in the city panel.
+# Every now and then the AI offers its most abundant commodity for the one it is most
+# short of, at a price that is fair in its own local prices. Other AIs decide on the
+# spot, a human player gets the offer in the city panel. Trading personalities also
+# propose repeated agreements to other AIs.
 
 const Trade = preload("res://source/match/city/Trade.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
 
-const MIN_IMBALANCE = 2
-const OFFERED_AMOUNT = 3
-const REQUESTED_AMOUNT = 2
+const MAX_OFFERED_AMOUNT = 10
+
+var trades_offered = 0  # statistics
 
 var _player = null
+
+@onready var _ai = get_parent()
 
 
 func setup(player):
@@ -19,31 +22,39 @@ func setup(player):
 	var timer = Timer.new()
 	timer.timeout.connect(_try_offering_trade)
 	add_child(timer)
-	timer.start(Constants.Match.Trade.AI_OFFER_INTERVAL_S * randf_range(0.8, 1.2))
+	timer.start(_ai.trade_offer_interval_s * randf_range(0.8, 1.2))
 
 
 func _try_offering_trade():
-	var scarce_resource = Trade.scarce_resource_of(_player)
-	if scarce_resource == null:
+	var scarce = Trade.scarce_resource_of(_player)
+	var abundant = Trade.abundant_resource_of(_player)
+	if scarce == null or abundant == null or scarce == abundant:
 		return
-	var abundant_resource = "resource_b" if scarce_resource == "resource_a" else "resource_a"
-	if (
-		_player.get(abundant_resource) - _player.get(scarce_resource) < MIN_IMBALANCE
-		or _player.get(abundant_resource) < OFFERED_AMOUNT
-	):
+	var reserve = Constants.Match.Trade.AI_TRADE_RESERVE.get(abundant, 0)
+	var offered_amount = min(MAX_OFFERED_AMOUNT, _player.get(abundant) - reserve)
+	if offered_amount < 2:
 		return
-	var offered = {abundant_resource: OFFERED_AMOUNT}
-	var requested = {scarce_resource: REQUESTED_AMOUNT}
+	var offered = {abundant: offered_amount}
+	var requested_amount = Trade.fair_amount(_player, abundant, offered_amount, scarce)
+	if requested_amount < 1:
+		return
+	var requested = {scarce: requested_amount}
 	var partners = get_tree().get_nodes_in_group("players").filter(
 		func(player): return player != _player
 	)
 	partners.shuffle()
+	var market = find_parent("Match").get_node_or_null("Market")
 	for partner in partners:
 		if Trade.validate(_player, partner, offered, requested) != Trade.Result.ACCEPTED:
 			continue
+		trades_offered += 1
 		if partner is Human:
 			MatchSignals.trade_offered.emit(_player, partner, offered, requested)
 			return
-		if Trade.ai_accepts(partner, requested, offered):
+		if not Trade.ai_accepts(partner, requested, offered):
+			continue
+		if _ai.proposes_agreements and market != null and market.agreements_of(_player).is_empty():
+			market.propose_agreement(_player, partner, offered, requested)
+		else:
 			Trade.execute(_player, partner, offered, requested)
-			return
+		return

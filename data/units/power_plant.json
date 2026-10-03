@@ -1,0 +1,31 @@
+{
+  "id": "power_plant",
+  "category": "structure",
+  "scene": "res://source/match/units/PowerPlant.tscn",
+  "blueprint": "res://source/match/units/structure-geometries/PowerPlant.tscn",
+  "name": "POWER_PLANT",
+  "description": "POWER_PLANT_DESCRIPTION",
+  "icon": "res://assets/ui/icons/VehicleFactory.png",
+  "icon_tint": "#ffe066",
+  "tier": 1,
+  "cost": {
+    "timber": 4,
+    "iron": 10,
+    "copper": 4
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 14,
+    "hp_max": 14
+  },
+  "power": {
+    "output_mw": 16.0,
+    "grid_radius_m": 6.0,
+    "burns": {
+      "oil": 0.004
+    }
+  }
+}

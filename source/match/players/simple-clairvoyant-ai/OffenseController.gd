@@ -9,6 +9,8 @@ const VehicleFactoryScene = preload("res://source/match/units/VehicleFactory.tsc
 const Tank = preload("res://source/match/units/Tank.gd")
 const TankScene = preload("res://source/match/units/Tank.tscn")
 const HeavyTankScene = preload("res://source/match/units/HeavyTank.tscn")
+const BattleTankScene = preload("res://source/match/units/BattleTank.tscn")
+const GunshipScene = preload("res://source/match/units/Gunship.tscn")
 const AircraftFactory = preload("res://source/match/units/AircraftFactory.gd")
 const AircraftFactoryScene = preload("res://source/match/units/AircraftFactory.tscn")
 const Helicopter = preload("res://source/match/units/Helicopter.gd")
@@ -18,6 +20,19 @@ const AutoAttackingBattlegroup = preload(
 )
 
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
+# better units replace the basic ones as the city reaches higher tiers
+const UPGRADES = {
+	"res://source/match/units/Tank.tscn": "res://source/match/units/HeavyTank.tscn",
+	"res://source/match/units/HeavyTank.tscn": "res://source/match/units/BattleTank.tscn",
+	"res://source/match/units/Helicopter.tscn": "res://source/match/units/Gunship.tscn",
+}
+const BATTLE_UNIT_SCENES = [
+	"res://source/match/units/Tank.tscn",
+	"res://source/match/units/HeavyTank.tscn",
+	"res://source/match/units/BattleTank.tscn",
+	"res://source/match/units/Helicopter.tscn",
+	"res://source/match/units/Gunship.tscn",
+]
 
 var _player = null
 var _primary_structure_scene = null
@@ -54,7 +69,7 @@ func setup(player):
 		if _ai.secondary_offensive_structure == _ai.OffensiveStructure.VEHICLE_FACTORY
 		else HelicopterScene
 	)
-	MatchSignals.tech_unlocked.connect(_on_tech_unlocked)
+	MatchSignals.tier_reached.connect(_on_tier_reached)
 	_setup_refresh_timer()
 	_try_creating_new_battlegroup()
 	_attach_current_battle_units()
@@ -97,11 +112,11 @@ func _provision_structure(structure_scene, resources, metadata):
 
 
 func _provision_unit(unit_scene, structure_producing_unit, resources, metadata):
-	if (
-		unit_scene == HeavyTankScene
-		and resources == Constants.Match.Units.PRODUCTION_COSTS[TankScene.resource_path]
-	):
-		unit_scene = TankScene  # resources were requested before the upgrade
+	if resources != Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path]:
+		for scene_path in BATTLE_UNIT_SCENES:  # resources were requested before an upgrade
+			if resources == Constants.Match.Units.PRODUCTION_COSTS[scene_path]:
+				unit_scene = load(scene_path)
+				break
 	assert(
 		resources == Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path],
 		"unexpected amount of resources"
@@ -137,7 +152,7 @@ func _try_creating_new_battlegroup():
 
 func _attach_current_battle_units():
 	var battle_units = get_tree().get_nodes_in_group("units").filter(
-		func(unit): return unit.player == _player and (unit is Tank or unit is Helicopter)
+		func(unit): return unit.player == _player and unit._scene_path() in BATTLE_UNIT_SCENES
 	)
 	for battle_unit in battle_units:
 		_on_unit_spawned(battle_unit)
@@ -189,6 +204,8 @@ func _enforce_secondary_structure_existence():
 
 
 func _enforce_structure_existence(structure, structure_scene, type):
+	if not _player.meets_tier_requirement(structure_scene.resource_path):
+		return
 	if structure == null and _number_of_pending_structure_resource_requests.get(type, 0) == 0:
 		_number_of_pending_structure_resource_requests[type] = (
 			_number_of_pending_structure_resource_requests.get(type, 0) + 1
@@ -208,6 +225,8 @@ func _enforce_secondary_units_production():
 
 func _enforce_units_production(structure, unit_scene, type):
 	if structure == null or not structure.is_constructed() or not _is_units_production_allowed():
+		return
+	if not _player.meets_tier_requirement(unit_scene.resource_path):
 		return
 	var number_of_pending_units = structure.production_queue.size()
 	if number_of_pending_units + _number_of_pending_unit_resource_requests.get(type, 0) == 0:
@@ -283,7 +302,7 @@ func _number_of_additional_units_required():
 func _on_unit_spawned(unit):
 	if unit.player != _player:
 		return
-	if unit is Tank or unit is Helicopter:
+	if unit._scene_path() in BATTLE_UNIT_SCENES:
 		# TODO: check if this still happens after ensuring only own players should match
 		# assert(_battlegroup_under_forming != null) # TODO: investigate how do we get here
 		if _battlegroup_under_forming == null:
@@ -308,10 +327,17 @@ func _on_refresh_timer_timeout():
 	_enforce_secondary_units_production()
 
 
-func _on_tech_unlocked(player, tech):
-	if player != _player or tech != Constants.Match.Tech.HEAVY_ARMOR:
+func _on_tier_reached(player, _tier):
+	if player != _player:
 		return
-	if _primary_unit_scene == TankScene:
-		_primary_unit_scene = HeavyTankScene
-	if _secondary_unit_scene == TankScene:
-		_secondary_unit_scene = HeavyTankScene
+	for _i in range(2):
+		var primary_upgrade = UPGRADES.get(_primary_unit_scene.resource_path)
+		if primary_upgrade != null and _player.meets_tier_requirement(primary_upgrade):
+			_primary_unit_scene = load(primary_upgrade)
+		var secondary_upgrade = UPGRADES.get(_secondary_unit_scene.resource_path)
+		if (
+			secondary_upgrade != null
+			and _player.meets_tier_requirement(secondary_upgrade)
+			and _player.meets_tier_requirement(_secondary_unit_scene.resource_path)
+		):
+			_secondary_unit_scene = load(secondary_upgrade)

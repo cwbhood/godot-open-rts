@@ -23,7 +23,14 @@ var movement_domain:
 	get = _get_movement_domain
 var movement_speed:
 	get = _get_movement_speed
-var sight_range = null
+var sight_range = null:
+	get:
+		if sight_range == null or _match == null:
+			return sight_range
+		var weather = _match.get_node_or_null("WeatherEffects")
+		if weather == null:
+			return sight_range
+		return sight_range * weather.get_vision_multiplier(global_position, movement_domain)
 var player:
 	get:
 		return get_parent()
@@ -37,6 +44,7 @@ var global_position_yless:
 		return global_position * Vector3(1, 0, 1)
 var type:
 	get = _get_type
+var last_attacker_player = null  # used to hand out loot when cargo gets destroyed
 
 var _action_locked = false
 
@@ -49,6 +57,12 @@ func _ready():
 	_setup_color()
 	_setup_default_properties_from_constants()
 	assert(_safety_checks())
+
+
+func take_damage(damage, attacker):
+	if attacker != null and is_instance_valid(attacker) and "player" in attacker:
+		last_attacker_player = attacker.player
+	hp -= damage
 
 
 func is_revealing():
@@ -122,6 +136,10 @@ func _set_action(action_node):
 	action_changed.emit(action)
 
 
+func _scene_path():
+	return get_script().resource_path.replace(".gd", ".tscn")
+
+
 func _get_type():
 	var unit_script_path = get_script().resource_path
 	var unit_file_name = unit_script_path.substr(unit_script_path.rfind("/") + 1)
@@ -158,9 +176,32 @@ func _safety_checks():
 	return true
 
 
+func get_lootable_cargo():
+	"""goods carried or stored by the unit; part of them goes to whoever destroys it"""
+	return {}
+
+
 func _handle_unit_death():
+	_hand_out_loot()
 	tree_exited.connect(func(): MatchSignals.unit_died.emit(self))
 	queue_free()
+
+
+func _hand_out_loot():
+	var cargo = get_lootable_cargo()
+	if cargo.is_empty():
+		return
+	var looter = last_attacker_player
+	var loot = {}
+	if looter != null and is_instance_valid(looter) and looter != player:
+		for resource in cargo:
+			var amount = int(floor(cargo[resource] * Constants.Match.Logistics.LOOT_SHARE))
+			if amount > 0:
+				loot[resource] = amount
+		looter.add_resources(loot)
+	else:
+		looter = null
+	MatchSignals.cargo_destroyed.emit(self, player, cargo, looter, loot)
 
 
 func _setup_default_properties_from_constants():

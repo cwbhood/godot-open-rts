@@ -16,6 +16,10 @@ static func is_applicable(source_unit, target_unit):
 		and "player" in target_unit
 		and source_unit.player != target_unit.player
 		and target_unit.movement_domain in source_unit.attack_domains
+		and not (
+			target_unit.has_method("is_protected_from")
+			and target_unit.is_protected_from(source_unit.player)
+		)
 	)
 
 

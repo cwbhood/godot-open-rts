@@ -1,10 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://bkqj84vbodkb6"]
+[gd_scene format=3 uid="uid://bkqj84vbodkb6"]
 
 [ext_resource type="PackedScene" uid="uid://b7c1crf36x1li" path="res://source/match/Map.tscn" id="1_c0hq7"]
 [ext_resource type="Material" uid="uid://co8vfcoqqs5i8" path="res://source/match/resources/materials/terrain.material.tres" id="2_hmoqb"]
-[ext_resource type="PackedScene" uid="uid://bf3jjdafqvh0w" path="res://source/match/units/non-player/ResourceA.tscn" id="3_qa7u8"]
-[ext_resource type="PackedScene" uid="uid://bufgjfa3ne3uk" path="res://source/match/units/non-player/ResourceB.tscn" id="4_un678"]
 [ext_resource type="PackedScene" uid="uid://btor1402wkw8k" path="res://source/match/decorations/RockLargeA.tscn" id="5_blryv"]
+[ext_resource type="PackedScene" path="res://source/match/units/non-player/TimberStand.tscn" id="dep_timber"]
+[ext_resource type="PackedScene" path="res://source/match/units/non-player/IronDeposit.tscn" id="dep_iron"]
+[ext_resource type="PackedScene" path="res://source/match/units/non-player/CopperDeposit.tscn" id="dep_copper"]
+[ext_resource type="PackedScene" path="res://source/match/units/non-player/OilDeposit.tscn" id="dep_oil"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_43n1t"]
 resource_local_to_scene = true
@@ -46,117 +48,150 @@ transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 35, 0,
 [node name="Marker3D8" type="Marker3D" parent="SpawnPoints" index="7"]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 10, 0, 70)
 
-[node name="Spot0" type="Node3D" parent="Resources" index="0"]
+[node name="TimberStand1" parent="Resources" index="0" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.97, 0, 38.94)
 
-[node name="ResourceA" parent="Resources/Spot0" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.97989, 0, -0.199539, 0, 1, 0, 0.199539, 0, -0.97989, 13.8154, 0, 23.5681)
+[node name="IronDeposit1" parent="Resources" index="1" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.47, 0, 25.95)
 
-[node name="ResourceA2" parent="Resources/Spot0" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.97989, 0, -0.199539, 0, 1, 0, 0.199539, 0, -0.97989, 12.3442, 0, 21.3867)
+[node name="IronDeposit2" parent="Resources" index="2" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.59, 0, 24.81)
 
-[node name="ResourceA3" parent="Resources/Spot0" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.97989, 0, -0.199539, 0, 1, 0, 0.199539, 0, -0.97989, 9.51845, 0, 22.2094)
+[node name="OilDeposit1" parent="Resources" index="3" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.42, 0, 36.71)
+amount = 300
 
-[node name="ResourceB" parent="Resources/Spot0" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(-0.97989, 0, -0.199539, 0, 1, 0, 0.199539, 0, -0.97989, 3.60055, 0, 23.3712)
+[node name="TimberStand2" parent="Resources" index="4" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.16, 0, 15.85)
 
-[node name="Spot1" type="Node3D" parent="Resources" index="1"]
+[node name="OilDeposit2" parent="Resources" index="5" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.23, 0, 12.12)
 
-[node name="ResourceA" parent="Resources/Spot1" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.249248, 0, -0.96844, 0, 1, 0, 0.96844, 0, 0.249248, 27.4944, -3.8147e-06, 3.46134)
+[node name="OilDeposit3" parent="Resources" index="6" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.56, 0, 12.72)
 
-[node name="ResourceA2" parent="Resources/Spot1" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.249248, 0, -0.96844, 0, 1, 0, 0.96844, 0, 0.249248, 25.3909, -3.8147e-06, 5.04189)
+[node name="IronDeposit3" parent="Resources" index="7" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.27, 0, 24.04)
+amount = 250
 
-[node name="ResourceA3" parent="Resources/Spot1" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.249248, 0, -0.96844, 0, 1, 0, 0.96844, 0, 0.249248, 26.3566, -3.8147e-06, 7.82198)
+[node name="TimberStand3" parent="Resources" index="8" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.00, 0, 9.91)
 
-[node name="ResourceB" parent="Resources/Spot1" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(0.249248, 0, -0.96844, 0, 1, 0, 0.96844, 0, 0.249248, 27.8187, -3.8147e-06, 13.6729)
+[node name="IronDeposit4" parent="Resources" index="9" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.81, 0, 17.01)
 
-[node name="Spot2" type="Node3D" parent="Resources" index="2"]
+[node name="IronDeposit5" parent="Resources" index="10" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 71.17, 0, 18.99)
 
-[node name="ResourceA" parent="Resources/Spot2" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.350224, 0, 0.936666, 0, 1, 0, -0.936666, 0, -0.350224, 73.3526, -3.8147e-06, 12.7052)
+[node name="OilDeposit4" parent="Resources" index="11" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.73, 0, 24.04)
+amount = 300
 
-[node name="ResourceA2" parent="Resources/Spot2" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.350224, 0, 0.936666, 0, 1, 0, -0.936666, 0, -0.350224, 75.2773, -3.8147e-06, 10.9112)
+[node name="TimberStand4" parent="Resources" index="12" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 83.46, 0, 23.81)
 
-[node name="ResourceA3" parent="Resources/Spot2" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.350224, 0, 0.936666, 0, 1, 0, -0.936666, 0, -0.350224, 74.0231, -3.8147e-06, 8.24873)
+[node name="OilDeposit5" parent="Resources" index="13" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 88.75, 0, 38.41)
 
-[node name="ResourceB" parent="Resources/Spot2" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(-0.350224, 0, 0.936666, 0, 1, 0, -0.936666, 0, -0.350224, 71.9507, -3.8147e-06, 2.58511)
+[node name="OilDeposit6" parent="Resources" index="14" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 88.40, 0, 40.78)
 
-[node name="Spot3" type="Node3D" parent="Resources" index="3"]
+[node name="IronDeposit6" parent="Resources" index="15" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.58, 0, 36.71)
+amount = 250
 
-[node name="ResourceA" parent="Resources/Spot3" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.975242, 0, -0.22114, 0, 1, 0, 0.22114, 0, -0.975242, 94.8869, -3.8147e-06, 25.3542)
+[node name="TimberStand5" parent="Resources" index="16" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 91.03, 0, 61.06)
 
-[node name="ResourceA2" parent="Resources/Spot3" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.975242, 0, -0.22114, 0, 1, 0, 0.22114, 0, -0.975242, 93.3679, -3.8147e-06, 23.2059)
+[node name="IronDeposit7" parent="Resources" index="17" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82.53, 0, 74.05)
 
-[node name="ResourceA3" parent="Resources/Spot3" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.975242, 0, -0.22114, 0, 1, 0, 0.22114, 0, -0.975242, 90.561, -3.8147e-06, 24.0908)
+[node name="IronDeposit8" parent="Resources" index="18" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80.41, 0, 75.19)
 
-[node name="ResourceB" parent="Resources/Spot3" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(-0.975242, 0, -0.22114, 0, 1, 0, 0.22114, 0, -0.975242, 84.6702, -3.8147e-06, 25.3831)
+[node name="OilDeposit7" parent="Resources" index="19" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76.58, 0, 63.29)
+amount = 300
 
-[node name="Spot4" type="Node3D" parent="Resources" index="4"]
+[node name="TimberStand6" parent="Resources" index="20" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 71.84, 0, 84.15)
 
-[node name="ResourceA" parent="Resources/Spot4" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.991342, 0, 0.131305, 0, 1, 0, -0.131305, 0, 0.991342, 84.7421, -3.8147e-06, 73.7477)
+[node name="OilDeposit8" parent="Resources" index="21" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56.77, 0, 87.88)
 
-[node name="ResourceA2" parent="Resources/Spot4" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.991342, 0, 0.131305, 0, 1, 0, -0.131305, 0, 0.991342, 86.059, -3.8147e-06, 76.0256)
+[node name="OilDeposit9" parent="Resources" index="22" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.44, 0, 87.28)
 
-[node name="ResourceA3" parent="Resources/Spot4" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.991342, 0, 0.131305, 0, 1, 0, -0.131305, 0, 0.991342, 88.9349, -3.8147e-06, 75.4003)
+[node name="IronDeposit9" parent="Resources" index="23" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 59.73, 0, 75.96)
+amount = 250
 
-[node name="ResourceB" parent="Resources/Spot4" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(0.991342, 0, 0.131305, 0, 1, 0, -0.131305, 0, 0.991342, 94.9189, -3.8147e-06, 74.6505)
+[node name="TimberStand7" parent="Resources" index="24" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.00, 0, 90.09)
 
-[node name="Spot5" type="Node3D" parent="Resources" index="5"]
+[node name="IronDeposit10" parent="Resources" index="25" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.19, 0, 82.99)
 
-[node name="ResourceA" parent="Resources/Spot5" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.306194, 0, 0.951969, 0, 1, 0, -0.951969, 0, -0.306194, 71.2856, -3.8147e-06, 94.4847)
+[node name="IronDeposit11" parent="Resources" index="26" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.83, 0, 81.01)
 
-[node name="ResourceA2" parent="Resources/Spot5" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.306194, 0, 0.951969, 0, 1, 0, -0.951969, 0, -0.306194, 73.2918, -3.8147e-06, 92.7823)
+[node name="OilDeposit10" parent="Resources" index="27" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.27, 0, 75.96)
+amount = 300
 
-[node name="ResourceA3" parent="Resources/Spot5" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(-0.306194, 0, 0.951969, 0, 1, 0, -0.951969, 0, -0.306194, 72.163, -3.8147e-06, 90.0643)
+[node name="TimberStand8" parent="Resources" index="28" instance=ExtResource("dep_timber")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.54, 0, 76.19)
 
-[node name="ResourceB" parent="Resources/Spot5" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(-0.306194, 0, 0.951969, 0, 1, 0, -0.951969, 0, -0.306194, 70.3568, -3.8147e-06, 84.3103)
+[node name="OilDeposit11" parent="Resources" index="29" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.25, 0, 61.59)
 
-[node name="Spot6" type="Node3D" parent="Resources" index="6"]
+[node name="OilDeposit12" parent="Resources" index="30" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.60, 0, 59.22)
 
-[node name="ResourceA" parent="Resources/Spot6" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.244326, 0, -0.969693, 0, 1, 0, 0.969693, 0, 0.244326, 29.1414, -3.8147e-06, 85.0513)
+[node name="IronDeposit12" parent="Resources" index="31" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.42, 0, 63.29)
+amount = 250
 
-[node name="ResourceA2" parent="Resources/Spot6" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.244326, 0, -0.969693, 0, 1, 0, 0.969693, 0, 0.244326, 27.0299, -3.8147e-06, 86.6211)
+[node name="CopperDeposit1" parent="Resources" index="32" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.00, 0, 50.00)
 
-[node name="ResourceA3" parent="Resources/Spot6" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.244326, 0, -0.969693, 0, 1, 0, 0.969693, 0, 0.244326, 27.9815, -3.8147e-06, 89.4061)
+[node name="CopperDeposit2" parent="Resources" index="33" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.00, 0, 53.00)
 
-[node name="ResourceB" parent="Resources/Spot6" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(0.244326, 0, -0.969693, 0, 1, 0, 0.969693, 0, 0.244326, 29.4138, -3.8147e-06, 95.2644)
+[node name="CopperDeposit3" parent="Resources" index="34" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53.00, 0, 47.00)
 
-[node name="Spot7" type="Node3D" parent="Resources" index="7"]
+[node name="CopperDeposit4" parent="Resources" index="35" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.00, 0, 50.00)
+amount = 300
 
-[node name="ResourceA" parent="Resources/Spot7" index="0" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.974331, 0, 0.225121, 0, 1, 0, -0.225121, 0, 0.974331, 4.39248, -3.8147e-06, 74.789)
+[node name="CopperDeposit5" parent="Resources" index="36" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 78.00, 0, 50.00)
+amount = 300
 
-[node name="ResourceA2" parent="Resources/Spot7" index="1" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.974331, 0, 0.225121, 0, 1, 0, -0.225121, 0, 0.974331, 5.9203, -3.8147e-06, 76.9311)
+[node name="CopperDeposit6" parent="Resources" index="37" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.00, 0, 22.00)
+amount = 300
 
-[node name="ResourceA3" parent="Resources/Spot7" index="2" instance=ExtResource("3_qa7u8")]
-transform = Transform3D(0.974331, 0, 0.225121, 0, 1, 0, -0.225121, 0, 0.974331, 8.72352, -3.8147e-06, 76.0348)
+[node name="CopperDeposit7" parent="Resources" index="38" instance=ExtResource("dep_copper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50.00, 0, 78.00)
+amount = 300
 
-[node name="ResourceB" parent="Resources/Spot7" index="3" instance=ExtResource("4_un678")]
-transform = Transform3D(0.974331, 0, 0.225121, 0, 1, 0, -0.225121, 0, 0.974331, 14.609, -3.8147e-06, 74.7184)
+[node name="OilDeposit13" parent="Resources" index="39" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.00, 0, 40.00)
+amount = 400
+
+[node name="OilDeposit14" parent="Resources" index="40" instance=ExtResource("dep_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.00, 0, 60.00)
+amount = 400
+
+[node name="IronDeposit13" parent="Resources" index="41" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.00, 0, 40.00)
+amount = 400
+
+[node name="IronDeposit14" parent="Resources" index="42" instance=ExtResource("dep_iron")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.00, 0, 60.00)
+amount = 400
 
 [node name="Wall0" type="Node3D" parent="Decorations" index="0"]
 

@@ -3,8 +3,11 @@ extends Control
 const MatchSettings = preload("res://source/data-model/MatchSettings.gd")
 const PlayerSettings = preload("res://source/data-model/PlayerSettings.gd")
 const LoadingScene = preload("res://source/main-menu/Loading.tscn")
+const GameData = preload("res://source/data-model/GameData.gd")
 
 var _map_paths = []
+var _ai_personalities = []  # option index - SIMPLE_CLAIRVOYANT_AI -> personality id
+var _sandbox_check_box = null
 
 @onready var _start_button = find_child("StartButton")
 @onready var _map_list = find_child("MapList")
@@ -14,9 +17,38 @@ var _map_paths = []
 func _ready():
 	_setup_map_list()
 	_on_map_list_item_selected(0)
+	_setup_ai_personalities()
+	_setup_sandbox_check_box()
 	var option_nodes = find_child("GridContainer").find_children("OptionButton*")
 	for option_node_id in range(option_nodes.size()):
 		option_nodes[option_node_id].item_selected.connect(_on_player_selected.bind(option_node_id))
+
+
+func _setup_ai_personalities():
+	"""every AI personality from data/ai/ becomes its own entry in the player dropdowns"""
+	var personalities = GameData.ai_personalities()
+	personalities.sort_custom(
+		func(a, b): return a["id"] == "balanced" or (b["id"] != "balanced" and a["id"] < b["id"])
+	)
+	_ai_personalities = personalities.map(func(personality): return personality["id"])
+	for option_node in find_child("GridContainer").find_children("OptionButton*"):
+		var selected = option_node.selected
+		while option_node.item_count > Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI:
+			option_node.remove_item(option_node.item_count - 1)
+		for personality in personalities:
+			option_node.add_item(tr("AI_PLAYER").format([tr(personality["name"])]))
+			option_node.set_item_tooltip(
+				option_node.item_count - 1, tr(personality.get("description", ""))
+			)
+		option_node.selected = min(selected, option_node.item_count - 1)
+
+
+func _setup_sandbox_check_box():
+	_sandbox_check_box = CheckBox.new()
+	_sandbox_check_box.name = "SandboxCheckBox"
+	_sandbox_check_box.text = tr("SANDBOX_MODE")
+	_sandbox_check_box.tooltip_text = tr("SANDBOX_MODE_DESCRIPTION")
+	_map_details.get_parent().add_child(_sandbox_check_box)
 
 
 func _setup_map_list():
@@ -38,6 +70,13 @@ func _create_match_settings():
 		var player_controller = option_nodes[option_node_id].selected
 		if player_controller != Constants.PlayerType.NONE:
 			var player_settings = PlayerSettings.new()
+			if player_controller >= Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI:
+				var personality_index = (
+					player_controller - Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI
+				)
+				if personality_index < _ai_personalities.size():
+					player_settings.ai_personality = _ai_personalities[personality_index]
+				player_controller = Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI
 			player_settings.controller = player_controller
 			player_settings.color = Constants.Player.COLORS[option_node_id]
 			player_settings.spawn_index_offset = spawn_index_offset
@@ -53,6 +92,7 @@ func _create_match_settings():
 			match_settings.visible_player = player_id
 	if match_settings.visible_player == -1:
 		match_settings.visibility = match_settings.Visibility.ALL_PLAYERS
+	match_settings.sandbox = _sandbox_check_box.button_pressed
 
 	return match_settings
 

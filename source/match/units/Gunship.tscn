@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://source/match/units/Helicopter.tscn" id="1_heli"]
+[ext_resource type="Script" path="res://source/match/units/Gunship.gd" id="2_script"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/turret_double.glb" id="3_turret"]
+
+[node name="Gunship" instance=ExtResource("1_heli")]
+script = ExtResource("2_script")
+
+[node name="Geometry" parent="." index="0"]
+transform = Transform3D(1.15, 0, 0, 0, 1.15, 0, 0, 0, 1.15, 0, 0, 0)
+
+[node name="Guns" parent="Geometry" instance=ExtResource("3_turret")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, -1.0, 0.5, -0.75)

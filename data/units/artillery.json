@@ -1,0 +1,32 @@
+{
+  "id": "artillery",
+  "category": "unit",
+  "scene": "res://source/match/units/Artillery.tscn",
+  "name": "ARTILLERY",
+  "description": "ARTILLERY_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AntiGroundTurret.png",
+  "icon_tint": "#ffd27a",
+  "tier": 2,
+  "cost": {
+    "iron": 8,
+    "copper": 2,
+    "oil": 4
+  },
+  "build_time_s": 9.0,
+  "produced_by": [
+    "vehicle_factory"
+  ],
+  "properties": {
+    "sight_range": 7.0,
+    "hp": 9,
+    "hp_max": 9,
+    "attack_damage": 5,
+    "attack_interval": 2.5,
+    "attack_range": 11.0,
+    "attack_domains": [
+      "terrain"
+    ]
+  },
+  "projectile": "rocket",
+  "fuel_per_s": 0.02
+}

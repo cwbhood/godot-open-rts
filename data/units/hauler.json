@@ -1,0 +1,26 @@
+{
+  "id": "hauler",
+  "category": "unit",
+  "scene": "res://source/match/units/Hauler.tscn",
+  "name": "HAULER",
+  "description": "HAULER_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Worker.png",
+  "icon_tint": "#e6c35c",
+  "tier": 1,
+  "cost": {
+    "iron": 3,
+    "timber": 2,
+    "oil": 2
+  },
+  "build_time_s": 4.0,
+  "produced_by": [
+    "command_center"
+  ],
+  "properties": {
+    "sight_range": 5.0,
+    "hp": 8,
+    "hp_max": 8,
+    "cargo_capacity": 10
+  },
+  "fuel_per_s": 0.0
+}

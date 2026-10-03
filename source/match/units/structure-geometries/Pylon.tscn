@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/pipe_supportHigh.glb" id="1_m"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/machine_wireless.glb" id="2_m"]
+
+[node name="Geometry" type="Node3D"]
+
+[node name="pipe_supportHigh_0" parent="." instance=ExtResource("1_m")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -2, 0, -1.5)
+
+[node name="machine_wireless_1" parent="." instance=ExtResource("2_m")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, -0, 0, 0.8, -1.6, 1, -1.2)

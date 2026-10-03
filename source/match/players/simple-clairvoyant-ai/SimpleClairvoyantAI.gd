@@ -6,8 +6,17 @@ enum OffensiveStructure { VEHICLE_FACTORY, AIRCRAFT_FACTORY }
 const TradeController = preload(
 	"res://source/match/players/simple-clairvoyant-ai/TradeController.gd"
 )
+const RaidingController = preload(
+	"res://source/match/players/simple-clairvoyant-ai/RaidingController.gd"
+)
+const GameData = preload("res://source/data-model/GameData.gd")
 
+# personalities (data/ai/*.json) override the numbers below
+@export var personality_id = "balanced"
 @export var expected_number_of_workers = 3
+@export var expected_number_of_haulers = 4
+@export var extractor_targets = {"timber": 1, "iron": 2, "copper": 1, "oil": 2}
+@export var expected_number_of_power_plants = 1
 @export var expected_number_of_ccs = 1
 @export var expected_number_of_ag_turrets = 1
 @export var expected_number_of_aa_turrets = 1
@@ -15,6 +24,10 @@ const TradeController = preload(
 @export var secondary_offensive_structure = OffensiveStructure.AIRCRAFT_FACTORY
 @export var expected_number_of_battlegroups = 2
 @export var expected_number_of_units_in_battlegroup = 4
+@export var raid_party_size = 2
+@export var raid_interval_s = 240.0
+@export var trade_offer_interval_s = 30.0
+@export var proposes_agreements = false
 
 var _provisioning_ongoing = false
 var _resource_requests = {
@@ -40,6 +53,7 @@ func _ready():
 	# wait additional frame to make sure other players are in place
 	await get_tree().physics_frame
 
+	_apply_personality()
 	changed.connect(_on_player_data_changed)
 	_economy_controller.resources_required.connect(
 		_on_resource_request.bind(_economy_controller, ResourceRequestPriority.HIGH)
@@ -59,6 +73,32 @@ func _ready():
 	trade_controller.name = "TradeController"
 	add_child(trade_controller)
 	trade_controller.setup(self)
+	var raiding_controller = RaidingController.new()
+	raiding_controller.name = "RaidingController"
+	add_child(raiding_controller)
+	raiding_controller.resources_required.connect(
+		_on_resource_request.bind(raiding_controller, ResourceRequestPriority.LOW)
+	)
+	raiding_controller.setup(self)
+
+
+func _apply_personality():
+	var personalities = GameData.ai_personalities().filter(
+		func(personality): return personality["id"] == personality_id
+	)
+	if personalities.is_empty():
+		return
+	var personality = personalities[0]
+	for key in personality:
+		if key in ["id", "name", "description"]:
+			continue
+		if key == "trade_hoarding_factor" or key == "trade_profit_margin":
+			set_meta(key, float(personality[key]))
+		elif key == "extractor_targets":
+			extractor_targets = personality[key]
+		elif key in self:
+			var value = personality[key]
+			set(key, int(value) if value is float and key.begins_with("expected") else value)
 
 
 func _process(_delta):
@@ -109,11 +149,11 @@ func _try_fulfilling_resource_requests_according_to_priorities():
 
 
 func _has_resources_beyond_trade_reserve(resources):
-	"""AI keeps a few crystals of each kind aside so that it has something to trade with"""
+	"""AI keeps a few goods of each kind aside so that it has something to trade with"""
 	var resources_with_reserve = {}
-	for resource in Constants.Match.Trade.RESOURCES:
+	for resource in Constants.Match.Resources.ALL:
 		resources_with_reserve[resource] = (
-			resources.get(resource, 0) + Constants.Match.Trade.AI_TRADE_RESERVE
+			resources.get(resource, 0) + Constants.Match.Trade.AI_TRADE_RESERVE.get(resource, 0)
 		)
 	return has_resources(resources_with_reserve)
 

@@ -1,0 +1,30 @@
+{
+  "id": "mine",
+  "category": "structure",
+  "scene": "res://source/match/units/Mine.tscn",
+  "blueprint": "res://source/match/units/structure-geometries/Mine.tscn",
+  "name": "MINE",
+  "description": "MINE_DESCRIPTION",
+  "icon": "res://assets/ui/icons/ResourceA.png",
+  "icon_tint": "#c0714a",
+  "tier": 1,
+  "cost": {
+    "timber": 6,
+    "iron": 4
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 12,
+    "hp_max": 12
+  },
+  "extracts": [
+    "iron",
+    "copper"
+  ],
+  "power": {
+    "demand_mw": 1.5
+  }
+}

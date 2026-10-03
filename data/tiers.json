@@ -1,0 +1,16 @@
+{
+  "tiers": [
+    {
+      "name": "TIER_FRONTIER",
+      "science": 0
+    },
+    {
+      "name": "TIER_INDUSTRIAL",
+      "science": 150
+    },
+    {
+      "name": "TIER_ELECTRIC",
+      "science": 450
+    }
+  ]
+}

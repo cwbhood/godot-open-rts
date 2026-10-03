@@ -21,6 +21,24 @@ class Set:
 
 
 class Dict:
+	static func sum(dict):
+		var total = 0
+		for key in dict:
+			total += dict[key]
+		return total
+
+	static func add_amount(dict, key, amount):
+		"""adds to dict[key] and erases the key once it drops to zero"""
+		dict[key] = dict.get(key, 0) + amount
+		if dict[key] <= 0:
+			dict.erase(key)
+
+	static func scaled(dict, factor):
+		var result = {}
+		for key in dict:
+			result[key] = dict[key] * factor
+		return result
+
 	static func items(dict):
 		var pairs = []
 		for key in dict:

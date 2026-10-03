@@ -32,6 +32,9 @@ func _get_units_to_attack():
 			return (
 				unit.player != _unit.player
 				and unit.movement_domain in _unit.attack_domains
+				and not (
+					unit.has_method("is_protected_from") and unit.is_protected_from(_unit.player)
+				)
 				and (
 					_unit.global_position_yless.distance_to(unit.global_position_yless)
 					<= _unit.sight_range

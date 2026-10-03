@@ -1,0 +1,31 @@
+{
+  "id": "raider",
+  "category": "unit",
+  "scene": "res://source/match/units/Raider.tscn",
+  "name": "RAIDER",
+  "description": "RAIDER_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Drone.png",
+  "icon_tint": "#ff9a5c",
+  "tier": 1,
+  "cost": {
+    "iron": 3,
+    "oil": 3
+  },
+  "build_time_s": 4.0,
+  "produced_by": [
+    "vehicle_factory"
+  ],
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 6,
+    "hp_max": 6,
+    "attack_damage": 1,
+    "attack_interval": 0.5,
+    "attack_range": 4.0,
+    "attack_domains": [
+      "terrain"
+    ]
+  },
+  "projectile": "cannon_shell",
+  "fuel_per_s": 0.01
+}

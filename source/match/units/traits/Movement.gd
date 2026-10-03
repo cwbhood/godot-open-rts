@@ -37,7 +37,7 @@ var _passive_movement_detected = false
 
 
 func _physics_process(delta):
-	_interim_speed = speed * delta
+	_interim_speed = speed * get_speed_multiplier() * delta
 	var fake_direction = _get_fake_direction_due_to_stuck_prevention()
 	if fake_direction != null:
 		set_velocity(fake_direction * _interim_speed)
@@ -63,6 +63,18 @@ func _ready():
 			+ Vector3(randf(), 0, randf()).normalized() * INITIAL_DISPERSION_FACTOR
 		)
 	)
+
+
+func get_speed_multiplier():
+	"""weather and running out of fuel slow units down"""
+	var multiplier = 1.0
+	var weather = _match.get_node_or_null("WeatherEffects")
+	if weather != null:
+		multiplier *= weather.get_speed_multiplier(_unit.global_position, domain)
+	var logistics = _unit.player.get_node_or_null("Logistics") if "player" in _unit else null
+	if logistics != null and logistics.is_unit_out_of_fuel(_unit):
+		multiplier *= Constants.Match.Fuel.OUT_OF_FUEL_SPEED_FACTOR
+	return multiplier
 
 
 func move(movement_target: Vector3):

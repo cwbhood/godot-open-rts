@@ -1,0 +1,27 @@
+{
+  "id": "solar_plant",
+  "category": "structure",
+  "scene": "res://source/match/units/SolarPlant.tscn",
+  "blueprint": "res://source/match/units/structure-geometries/SolarPlant.tscn",
+  "name": "SOLAR_PLANT",
+  "description": "SOLAR_PLANT_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AircraftFactory.png",
+  "icon_tint": "#ffe066",
+  "tier": 3,
+  "cost": {
+    "iron": 6,
+    "copper": 8
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 8,
+    "hp_max": 8
+  },
+  "power": {
+    "output_mw": 7.0,
+    "grid_radius_m": 5.0
+  }
+}

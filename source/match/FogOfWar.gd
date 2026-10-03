@@ -72,6 +72,10 @@ func _sync_circles_to_unit(unit):
 	var unit_pos_2d = Vector2(unit_pos_3d.x, unit_pos_3d.z) * texture_units_per_world_unit
 	_unit_to_circles_mapping[unit][0].position = unit_pos_2d
 	_unit_to_circles_mapping[unit][1].position = unit_pos_2d
+	var radius = unit.sight_range * texture_units_per_world_unit  # weather changes it
+	if not is_equal_approx(_unit_to_circles_mapping[unit][0].radius, radius):
+		_unit_to_circles_mapping[unit][0].radius = radius
+		_unit_to_circles_mapping[unit][1].radius = radius
 
 
 func _cleanup_mapping(unit):

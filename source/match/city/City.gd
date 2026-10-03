@@ -1,21 +1,31 @@
 extends Node3D
 
-# Every player owns a city that grows by itself around its first command center.
-# Population fills houses and workshops in rings around the core. Workshops speed up
-# unit production, population produces science, and science unlocks technologies.
-# Trading with other factions temporarily speeds up growth for both sides.
+# Every player owns a city that runs by itself around its first command center.
+# - A share of every delivery (see Logistics) goes into the city warehouse.
+# - Citizens consume commodities from the warehouse. How well that upkeep is met over time
+#   is the city's satisfaction.
+# - Satisfied cities grow; new houses and workshops are built from warehouse materials.
+#   Workshops speed up unit production.
+# - Population produces science on its own, scaled by satisfaction and power. Science is
+#   never spent: the city reaches the next tier when it crosses a threshold.
+# - The city draws power from the grid of its core and keeps a civil defense.
+# - Trading with other factions temporarily speeds up growth for both sides.
 
 signal changed
 signal building_added(building)
-signal tech_unlocked(tech)
+signal tier_reached(tier)
 
 const CityBuilding = preload("res://source/match/city/CityBuilding.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
+const CivilDefense = preload("res://source/match/city/CivilDefense.gd")
 
 var population = Constants.Match.City.STARTING_POPULATION
 var science = 0.0
+var tier = 1
 var trade_growth_boost = 0.0
-var unlocked_techs = []
+var warehouse = {}
+var satisfaction = {}  # commodity -> [0..1], how well upkeep has been met lately
+var power_ratio = 1.0  # set by the power grid
 var growth_per_s:
 	get = _get_growth_per_s
 var production_multiplier:
@@ -28,20 +38,42 @@ var production_multiplier:
 			)
 		)
 var science_per_s:
+	get = _get_science_per_s
+var power_demand_mw:
 	get:
-		return population * Constants.Match.City.SCIENCE_PER_POPULATION_PER_S if has_core() else 0.0
+		return (
+			population * Constants.Match.Power.CITY_DEMAND_MW_PER_POPULATION if has_core() else 0.0
+		)
+var housing:
+	get:
+		return (
+			Constants.Match.City.STARTING_POPULATION
+			+ _buildings.size() * Constants.Match.City.POPULATION_PER_BUILDING
+		)
 var player:
 	get:
 		return get_parent()
+var civil_defense:
+	get:
+		return get_node_or_null("CivilDefense")
 
 var _buildings = []
 var _elapsed_s = 0.0
 var _last_trade_time_s = {}  # partner instance id -> _elapsed_s at the time of the trade
+var _upkeep_accumulated = {}
+var _core = null
 
 @onready var _match = find_parent("Match")
 
 
 func _ready():
+	for resource in Constants.Match.Resources.ALL:
+		warehouse[resource] = float(Constants.Match.City.STARTING_WAREHOUSE.get(resource, 0.0))
+		satisfaction[resource] = 1.0
+		_upkeep_accumulated[resource] = 0.0
+	var civil_defense_node = CivilDefense.new()
+	civil_defense_node.name = "CivilDefense"
+	add_child(civil_defense_node)
 	if not _match.is_node_ready():
 		await _match.ready
 	var timer = Timer.new()
@@ -50,12 +82,28 @@ func _ready():
 	timer.start(Constants.Match.City.TICK_S)
 
 
+func get_core():
+	return _find_core()
+
+
 func has_core():
 	return _find_core() != null
 
 
-func has_tech(tech):
-	return tech in unlocked_techs
+func get_satisfaction():
+	"""overall satisfaction, the average over all commodities"""
+	if satisfaction.is_empty():
+		return 1.0
+	return Utils.Arr.sum(satisfaction.values()) / float(satisfaction.size())
+
+
+func get_upkeep_per_min():
+	var upkeep = {}
+	for resource in Constants.Match.City.UPKEEP_PER_POPULATION_PER_MIN:
+		upkeep[resource] = (
+			population * Constants.Match.City.UPKEEP_PER_POPULATION_PER_MIN[resource]
+		)
+	return upkeep
 
 
 func get_buildings_count(kind = null):
@@ -64,11 +112,37 @@ func get_buildings_count(kind = null):
 	return _buildings.filter(func(building): return building.kind == kind).size()
 
 
-func get_next_tech():
-	for tech in Constants.Match.Tech.SCIENCE_COSTS:
-		if not has_tech(tech):
-			return tech
-	return null
+func get_next_tier_science():
+	var tiers = Constants.Match.Tech.TIERS
+	return tiers[tier]["science"] if tier < tiers.size() else null
+
+
+func get_tier_name(a_tier = null):
+	return Constants.Match.Tech.TIERS[(a_tier if a_tier != null else tier) - 1]["name"]
+
+
+func receive_delivery(goods):
+	"""takes the city's share of delivered goods, returns what is left for the player"""
+	var remainder = {}
+	for resource in goods:
+		var share = min(
+			round(goods[resource] * Constants.Match.City.DELIVERY_SHARE),
+			max(0.0, Constants.Match.City.WAREHOUSE_CAPACITY - warehouse.get(resource, 0.0))
+		)
+		warehouse[resource] = warehouse.get(resource, 0.0) + share
+		if goods[resource] - share > 0:
+			remainder[resource] = int(goods[resource] - share)
+	return remainder
+
+
+func take_from_warehouse(resources):
+	"""used by the civil defense; returns false if the warehouse cannot afford it"""
+	for resource in resources:
+		if warehouse.get(resource, 0.0) < resources[resource]:
+			return false
+	for resource in resources:
+		warehouse[resource] -= resources[resource]
+	return true
 
 
 func seconds_since_last_trade_with(partner):
@@ -78,14 +152,11 @@ func seconds_since_last_trade_with(partner):
 	return _elapsed_s - _last_trade_time_s[partner_id]
 
 
-func register_trade(partner, traded_resources_total):
+func register_trade(partner, traded_value):
 	_last_trade_time_s[partner.get_instance_id()] = _elapsed_s
 	trade_growth_boost = min(
 		Constants.Match.Trade.GROWTH_BOOST_MAX,
-		(
-			trade_growth_boost
-			+ traded_resources_total * Constants.Match.Trade.GROWTH_BOOST_PER_TRADED_RESOURCE
-		)
+		trade_growth_boost + traded_value * Constants.Match.Trade.GROWTH_BOOST_PER_TRADED_VALUE
 	)
 	changed.emit()
 
@@ -93,49 +164,103 @@ func register_trade(partner, traded_resources_total):
 func _get_growth_per_s():
 	if not has_core():
 		return 0.0
+	var city_satisfaction = get_satisfaction()
+	if city_satisfaction < Constants.Match.City.STARVING_SATISFACTION:
+		return -Constants.Match.City.SHRINK_PER_S
 	var max_population = (
 		Constants.Match.City.MAX_BUILDINGS * Constants.Match.City.POPULATION_PER_BUILDING
 		+ Constants.Match.City.STARTING_POPULATION
 	)
 	var room_left = max(0.0, 1.0 - population / max_population)
-	return (Constants.Match.City.BASE_GROWTH_PER_S + trade_growth_boost) * room_left
+	var power_factor = 0.5 + 0.5 * power_ratio
+	return (
+		(Constants.Match.City.BASE_GROWTH_PER_S * city_satisfaction + trade_growth_boost)
+		* room_left
+		* power_factor
+	)
+
+
+func _get_science_per_s():
+	if not has_core():
+		return 0.0
+	var unpowered = Constants.Match.City.UNPOWERED_SCIENCE_FACTOR
+	return (
+		population
+		* Constants.Match.City.SCIENCE_PER_POPULATION_PER_S
+		* get_satisfaction()
+		* (unpowered + (1.0 - unpowered) * power_ratio)
+	)
 
 
 func _tick(delta):
 	_elapsed_s += delta
-	population += growth_per_s * delta
+	if has_core():
+		_consume_upkeep(delta)
+	# population cannot outgrow the housing the city managed to build
+	population = clamp(
+		population + growth_per_s * delta,
+		Constants.Match.City.STARTING_POPULATION * 0.5,
+		housing + Constants.Match.City.POPULATION_PER_BUILDING
+	)
 	trade_growth_boost = max(
 		0.0, trade_growth_boost - Constants.Match.Trade.GROWTH_BOOST_DECAY_PER_S * delta
 	)
 	science += science_per_s * delta
-	_try_unlocking_techs()
+	_try_reaching_next_tier()
 	_try_placing_buildings()
+	_spill_warehouse_overflow()
 	_update_buildings_visibility()
 	changed.emit()
 
 
-func _try_unlocking_techs():
-	var tech = get_next_tech()
-	while tech != null and science >= Constants.Match.Tech.SCIENCE_COSTS[tech]:
-		unlocked_techs.append(tech)
-		tech_unlocked.emit(tech)
-		MatchSignals.tech_unlocked.emit(player, tech)
-		tech = get_next_tech()
+func _consume_upkeep(delta):
+	var smoothing = Constants.Match.City.SATISFACTION_SMOOTHING
+	for resource in Constants.Match.City.UPKEEP_PER_POPULATION_PER_MIN:
+		var needed = (
+			population * Constants.Match.City.UPKEEP_PER_POPULATION_PER_MIN[resource] / 60.0 * delta
+		)
+		var taken = min(needed, warehouse.get(resource, 0.0))
+		warehouse[resource] = warehouse.get(resource, 0.0) - taken
+		var met = taken / needed if needed > 0.0 else 1.0
+		satisfaction[resource] = lerp(satisfaction.get(resource, 1.0), met, smoothing)
+
+
+func _try_reaching_next_tier():
+	var next_science = get_next_tier_science()
+	while next_science != null and science >= next_science:
+		tier += 1
+		tier_reached.emit(tier)
+		MatchSignals.tier_reached.emit(player, tier)
+		next_science = get_next_tier_science()
 
 
 func _try_placing_buildings():
 	var core = _find_core()
-	if core == null:
+	if core == null or _buildings.size() >= Constants.Match.City.MAX_BUILDINGS:
 		return
-	var expected_buildings = min(
-		Constants.Match.City.MAX_BUILDINGS,
-		int(population / Constants.Match.City.POPULATION_PER_BUILDING)
-	)
-	while _buildings.size() < expected_buildings:
-		var position = _find_building_position(core)
-		if position == null:
-			return
-		_add_building(_next_building_kind(), position)
+	if population < housing - Constants.Match.City.POPULATION_PER_BUILDING * 0.5:
+		return  # houses are built when the city gets crowded
+	var kind = _next_building_kind()
+	var cost = Constants.Match.City.BUILDING_COSTS[kind]
+	if not take_from_warehouse(cost):
+		return
+	var position = _find_building_position(core)
+	if position == null:
+		for resource in cost:
+			warehouse[resource] += cost[resource]
+		return
+	_add_building(kind, position)
+
+
+func _spill_warehouse_overflow():
+	var overflow = {}
+	for resource in warehouse:
+		var extra = int(floor(warehouse[resource] - Constants.Match.City.WAREHOUSE_CAPACITY))
+		if extra > 0:
+			warehouse[resource] -= extra
+			overflow[resource] = extra
+	if not overflow.is_empty():
+		player.add_resources(overflow)
 
 
 func _next_building_kind():
@@ -191,10 +316,14 @@ func _find_building_position(core):
 
 
 func _find_core():
+	if _core != null and is_instance_valid(_core) and _core.is_inside_tree():
+		return _core
+	_core = null
 	for unit in get_tree().get_nodes_in_group("units"):
 		if unit.player == player and unit is CommandCenter and unit.is_constructed():
-			return unit
-	return null
+			_core = unit
+			break
+	return _core
 
 
 func _update_buildings_visibility():

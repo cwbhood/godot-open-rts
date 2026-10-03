@@ -8,11 +8,9 @@ BLUEPRINT_COLLIDES_WITH_OBJECT,Something already ocuppies that spot,Inny obiekt 
 BLUEPRINT_NOT_NAVIGABLE,Irregular terrain,Nierówny teren
 BLUEPRINT_NOT_ENOUGH_RESOURCES,Not enough resources,Brakuje zasobów
 BLUEPRINT_OUT_OF_MAP,Out of map limits,Poza granicami mapy
-RESOURCE_A,Blue Crystal,Niebieski Kryształ
-RESOURCE_B,Red Crystal,Czerwony Kryształ
 CANCEL_CURRENT_ACTION,Cancel current action,Anuluj aktualną akcję
-WORKER,Worker,Robotnik
-WORKER_DESCRIPTION,collects resources,zbiera zasoby
+WORKER,Constructor,Konstruktor
+WORKER_DESCRIPTION,builds structures; haulers bring the materials,wznosi budynki; materiały dowożą transportery
 HELICOPTER,Helicopter,Helikopter
 HELICOPTER_DESCRIPTION,fights ground and air targets,zwlacza cele naziemne i powietrzne
 DRONE,Scout drone,Dron zwiadoczy
@@ -24,22 +22,21 @@ AG_TURRET_DESCRIPTION,fights ground targets,zwalcza cele naziemne
 AA_TURRET,Anti-air turret,Wieżyczka przeciwlotnicza
 AA_TURRET_DESCRIPTION,fights air targets,zwalcza cele powietrzne
 CC,Command center,Centrum dowodzenia
-CC_DESCRIPTION,produces workers,produkuje robotników
+CC_DESCRIPTION,"depot of your supply lines, produces constructors and haulers","skład linii zaopatrzenia, produkuje konstruktorów i transportery"
 VEHICLE_FACTORY,Vehicle factory,Fabryka pojazdów
 VEHICLE_FACTORY_DESCRIPTION,produces vehicles,wytwarza pojazdy
 AIRCRAFT_FACTORY,Aircraft factory,Fabryka jednostek powietrznych
 AIRCRAFT_FACTORY_DESCRIPTION,produces air units,wytwarza jednostki powietrzne
 HEAVY_TANK,Heavy tank,Ciężki czołg
-HEAVY_TANK_DESCRIPTION,"tougher tank, needs Heavy armor research","wytrzymalszy czołg, wymaga badania Ciężki pancerz"
+HEAVY_TANK_DESCRIPTION,"tougher tank, needs the Industrial tier","wytrzymalszy czołg, wymaga epoki przemysłowej"
 CITY,City,Miasto
-CITY_POPULATION,Population {0} (+{1}/s),Populacja {0} (+{1}/s)
+CITY_POPULATION,Population {0}/{1} ({2}/s),Populacja {0}/{1} ({2}/s)
 CITY_TRADE_BOOST,[trade boom],[boom handlowy]
 CITY_NO_CORE,[needs a command center],[wymaga centrum dowodzenia]
-CITY_BUILDINGS,"Houses {0}, workshops {1}","Domy {0}, warsztaty {1}"
+CITY_BUILDINGS,"Houses {0}, workshops {1} (production +{2}%)","Domy {0}, warsztaty {1} (produkcja +{2}%)"
 CITY_PRODUCTION,Unit production speed +{0}%,Szybkość produkcji jednostek +{0}%
-CITY_SCIENCE,Science {0}/{1}: {2},Nauka {0}/{1}: {2}
-CITY_SCIENCE_DONE,Science {0}: all researched,Nauka {0}: wszystko zbadane
-TECH_HEAVY_ARMOR,Heavy armor,Ciężki pancerz
+CITY_SCIENCE,Science {0}/{1} until {2} (+{3}/s),Nauka {0}/{1} do epoki {2} (+{3}/s)
+CITY_SCIENCE_DONE,Science {0}: final tier reached,Nauka {0}: osiągnięto ostatnią epokę
 TRADE,Trade,Handel
 TRADE_PARTNER,With,Z
 TRADE_FACTION,Faction {0},Frakcja {0}
@@ -49,10 +46,84 @@ TRADE_PROPOSE,Propose trade,Zaproponuj wymianę
 TRADE_ACCEPT,Accept,Akceptuj
 TRADE_DECLINE,Decline,Odrzuć
 TRADE_INCOMING_OFFER,{0} offers {1} for {2},{0} oferuje {1} za {2}
-TRADE_RESULT_ACCEPTED,Deal! Both cities grow faster for a while.,Umowa! Oba miasta przez chwilę rosną szybciej.
+TRADE_RESULT_ACCEPTED,Deal! Caravans are on their way.,Umowa! Karawany są w drodze.
 TRADE_RESULT_INVALID,Choose what to give and what to get.,"Wybierz, co dać i co wziąć."
-TRADE_RESULT_PROPOSER_CANNOT_AFFORD,You don't have enough crystals.,Nie masz dość kryształów.
-TRADE_RESULT_PARTNER_CANNOT_AFFORD,They don't have that many crystals.,Nie mają tylu kryształów.
+TRADE_RESULT_PROPOSER_CANNOT_AFFORD,You don't have enough of that.,Nie masz tego tyle.
+TRADE_RESULT_PARTNER_CANNOT_AFFORD,They don't have that much.,Nie mają tyle.
 TRADE_RESULT_PARTNER_BUSY,"They traded recently, try again soon.","Niedawno handlowali, spróbuj za chwilę."
 TRADE_RESULT_PARTNER_REFUSED,"They refused, offer a better deal.","Odmówili, zaproponuj lepszą ofertę."
 TRADE_RESULT_OFFER_EXPIRED,The offer is no longer valid.,Oferta jest już nieaktualna.
+TIMBER,Timber,Drewno
+IRON,Iron,Żelazo
+COPPER,Copper,Miedź
+OIL,Oil,Ropa
+HAULER,Hauler,Transporter
+HAULER_DESCRIPTION,carries materials to sites and goods back home; raidable,wozi materiały na budowy i towary do miasta; można go złupić
+RAIDER,Raider,Łupieżca
+RAIDER_DESCRIPTION,fast light vehicle for hitting supply lines,szybki lekki pojazd do atakowania linii zaopatrzenia
+MISSILE_TRUCK,Missile truck,Wyrzutnia rakiet
+MISSILE_TRUCK_DESCRIPTION,long-range rockets against ground and air,rakiety dalekiego zasięgu na cele naziemne i powietrzne
+ARTILLERY,Artillery,Artyleria
+ARTILLERY_DESCRIPTION,"outranges turrets, fragile up close","zasięgiem przewyższa wieżyczki, słaba z bliska"
+BATTLE_TANK,Battle tank,Czołg podstawowy
+BATTLE_TANK_DESCRIPTION,"the strongest ground unit, needs the Electric tier","najsilniejsza jednostka naziemna, wymaga epoki elektrycznej"
+GUNSHIP,Gunship,Śmigłowiec szturmowy
+GUNSHIP_DESCRIPTION,"heavily armed helicopter, burns a lot of fuel","ciężko uzbrojony śmigłowiec, spala dużo paliwa"
+MILITIA,Militia,Milicja
+MILITIA_DESCRIPTION,"city civil defense, reinforced by the city","obrona cywilna miasta, uzupełniana przez miasto"
+CARAVAN,Trade caravan,Karawana handlowa
+CARAVAN_DESCRIPTION,carries traded goods between cities,przewozi towary między miastami
+OIL_DERRICK,Oil derrick,Szyb naftowy
+OIL_DERRICK_DESCRIPTION,pumps oil from a nearby oil field,wydobywa ropę z pobliskiego złoża
+MINE,Mine,Kopalnia
+MINE_DESCRIPTION,mines a nearby iron or copper deposit,wydobywa pobliskie złoże żelaza lub miedzi
+LUMBER_MILL,Lumber mill,Tartak
+LUMBER_MILL_DESCRIPTION,cuts timber from a nearby forest,pozyskuje drewno z pobliskiego lasu
+POWER_PLANT,Power plant,Elektrownia
+POWER_PLANT_DESCRIPTION,burns oil to power the grid around it,"spala ropę, zasilając sieć wokół siebie"
+PYLON,Pylon,Słup energetyczny
+PYLON_DESCRIPTION,extends the electric grid,rozszerza sieć elektryczną
+SOLAR_PLANT,Solar plant,Elektrownia słoneczna
+SOLAR_PLANT_DESCRIPTION,"power without fuel, needs the Electric tier","prąd bez paliwa, wymaga epoki elektrycznej"
+TIER_FRONTIER,Frontier,Pogranicze
+TIER_INDUSTRIAL,Industrial,Przemysł
+TIER_ELECTRIC,Electric,Elektryczność
+CITY_TIER,Tier {0}: {1},Epoka {0}: {1}
+CITY_SATISFACTION,Needs met {0}%: {1}. Power {2}%,Potrzeby {0}%: {1}. Zasilanie {2}%
+CITY_WAREHOUSE,Warehouse: {0} (gets {1}% of deliveries),Magazyn: {0} (dostaje {1}% dostaw)
+CITY_DEFENSE,"Civil defense: {0} posts, {1} militia, {2}","Obrona cywilna: {0} posterunki, {1} milicji, {2}"
+THREAT_NONE,calm,spokój
+THREAT_CONTAINED,fighting,walka
+THREAT_OVERWHELMING,CITY CALLS FOR HELP,MIASTO WZYWA POMOCY
+LOGISTICS_SUMMARY,"Haulers {0} ({1} busy). Delivered {2}, lost {3}, looted {4}","Transportery {0} ({1} w trasie). Dostarczono {2}, stracono {3}, złupiono {4}"
+OUT_OF_FUEL,Out of oil: vehicles crawl and power plants stop,"Brak ropy: pojazdy zwalniają, elektrownie stają"
+POWER_BAR,{0}/{1} MW,{0}/{1} MW
+POWER_TOOLTIP,"Power supply / demand. A short grid slows factories, extractors, civil defense and science.","Podaż / popyt energii. Niedobór spowalnia fabryki, kopalnie, obronę cywilną i naukę."
+TRADE_PRICES_HEADER,Prices (yours / theirs),Ceny (twoje / ich)
+TRADE_FAIR_AMOUNT,Fair price: about {0} {1},Uczciwa cena: około {0} {1}
+TRADE_PROPOSE_AGREEMENT,Propose agreement,Zaproponuj umowę
+TRADE_AGREEMENT_TOOLTIP,"Repeat this trade every 30 s, 5 times. Caravans carry each delivery.","Powtarzaj tę wymianę co 30 s, 5 razy. Każdą dostawę wiezie karawana."
+TRADE_AGREEMENT_LINE,{0}: {1} for {2} ({3} left),{0}: {1} za {2} (zostało {3})
+TRADE_EMBARGO,Embargo,Embargo
+TRADE_LIFT_EMBARGO,Lift embargo,Znieś embargo
+TRADE_RESULT_EMBARGO,There is an embargo between you.,Obowiązuje embargo.
+BLUEPRINT_NO_DEPOSIT_NEARBY,Must be built next to a matching deposit,Trzeba zbudować obok odpowiedniego złoża
+BLUEPRINT_TIER_TOO_LOW,Your city has not reached the required tier,Miasto nie osiągnęło wymaganej epoki
+BLUEPRINT_NEEDS_HAULERS,Outside the depot yard: haulers must bring the materials,Poza placem składu: materiały muszą dowieźć transportery
+BLUEPRINT_OFF_GRID,Off the power grid: build a pylon nearby,Poza siecią: zbuduj w pobliżu słup
+COST,Cost: {0},Koszt: {0}
+REQUIRES_TIER,Requires the {0} tier,Wymaga epoki: {0}
+EXTRACTS,Extracts {0},Wydobywa: {0}
+CARGO_CAPACITY,cargo {0},ładowność {0}
+GRID_RADIUS,grid {0} m,sieć {0} m
+AI_PLAYER,AI: {0},SI: {0}
+AI_BALANCED,Balanced,Zrównoważona
+AI_BALANCED_DESCRIPTION,"builds, trades and attacks in equal measure","buduje, handluje i atakuje po równo"
+AI_RAIDER,Raider,Łupieżca
+AI_RAIDER_DESCRIPTION,hunts your haulers and extractors early and often,wcześnie i często poluje na twoje transportery i kopalnie
+AI_TRADER,Hoarding trader,Kupiec-chomik
+AI_TRADER_DESCRIPTION,"hoards goods, drives hard bargains and signs agreements","gromadzi towary, twardo negocjuje i podpisuje umowy"
+AI_TURTLE,Turtle,Żółw
+AI_TURTLE_DESCRIPTION,walls up with turrets and out-builds you before attacking,"okopuje się wieżyczkami i rozbudowuje, zanim zaatakuje"
+SANDBOX_MODE,Sandbox,Piaskownica
+SANDBOX_MODE_DESCRIPTION,"no match end, spending into debt allowed, whole map visible","bez końca gry, wydatki na kredyt, cała mapa widoczna"

@@ -12,7 +12,9 @@ func _ready():
 	_unit_particles.visible = _unit.visible
 	_setup_unit_particles()
 	_setup_timer()
-	target_unit.hp -= _unit.attack_damage
+	if not is_instance_valid(target_unit) or not is_instance_valid(_unit):
+		return
+	target_unit.take_damage(_unit.attack_damage, _unit)
 
 
 func _setup_timer():

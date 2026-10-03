@@ -6,7 +6,11 @@ enum BlueprintPositionValidity {
 	NOT_NAVIGABLE,
 	NOT_ENOUGH_RESOURCES,
 	OUT_OF_MAP,
+	NO_DEPOSIT_NEARBY,
+	TIER_TOO_LOW,
 }
+
+const Extractor = preload("res://source/match/units/Extractor.gd")
 
 const ROTATION_BY_KEY_STEP = 45.0
 const ROTATION_DEAD_ZONE_DISTANCE = 0.1
@@ -94,8 +98,24 @@ func _blueprint_rotation_started():
 func _calculate_blueprint_position_validity():
 	if _active_bluprint_out_of_map():
 		return BlueprintPositionValidity.OUT_OF_MAP
+	var scene_path = _pending_structure_prototype.resource_path
+	if not _player.meets_tier_requirement(scene_path):
+		return BlueprintPositionValidity.TIER_TOO_LOW
 	if not _player_has_enough_resources():
 		return BlueprintPositionValidity.NOT_ENOUGH_RESOURCES
+	if (
+		scene_path in Constants.Match.Extraction.EXTRACTOR_KINDS
+		and (
+			Extractor.find_deposit_near(
+				scene_path,
+				_active_blueprint_node.global_position,
+				_pending_structure_radius,
+				get_tree()
+			)
+			== null
+		)
+	):
+		return BlueprintPositionValidity.NO_DEPOSIT_NEARBY
 	var placement_validity = Utils.Match.Unit.Placement.validate_agent_placement_position(
 		_active_blueprint_node.global_position,
 		_pending_structure_radius,
@@ -106,11 +126,14 @@ func _calculate_blueprint_position_validity():
 		),
 		_pending_structure_navmap_rid
 	)
-	if placement_validity == Utils.Match.Unit.Placement.COLLIDES_WITH_AGENT:
-		return BlueprintPositionValidity.COLLIDES_WITH_OBJECT
-	if placement_validity == Utils.Match.Unit.Placement.NOT_NAVIGABLE:
-		return BlueprintPositionValidity.NOT_NAVIGABLE
-	return BlueprintPositionValidity.VALID
+	return (
+		{
+			Utils.Match.Unit.Placement.COLLIDES_WITH_AGENT:
+			BlueprintPositionValidity.COLLIDES_WITH_OBJECT,
+			Utils.Match.Unit.Placement.NOT_NAVIGABLE: BlueprintPositionValidity.NOT_NAVIGABLE,
+		}
+		. get(placement_validity, BlueprintPositionValidity.VALID)
+	)
 
 
 func _player_has_enough_resources():
@@ -130,8 +153,26 @@ func _active_bluprint_out_of_map():
 	)
 
 
+func _logistics_hint():
+	"""tells the player whether the site needs haulers and whether it will have power"""
+	var position = _active_blueprint_node.global_position
+	var hints = []
+	if _player.logistics != null and not _player.logistics.is_in_yard(position):
+		hints.append(tr("BLUEPRINT_NEEDS_HAULERS"))
+	var scene_path = _pending_structure_prototype.resource_path
+	if (
+		Constants.Match.Power.DEMAND_MW.get(scene_path, 0.0) > 0.0
+		and _player.power_grid != null
+		and not _player.power_grid.is_position_on_grid(position)
+	):
+		hints.append(tr("BLUEPRINT_OFF_GRID"))
+	return "\n".join(hints)
+
+
 func _update_feedback_label(blueprint_position_validity):
-	_feedback_label.visible = (blueprint_position_validity != BlueprintPositionValidity.VALID)
+	_feedback_label.visible = (
+		blueprint_position_validity != BlueprintPositionValidity.VALID or _logistics_hint() != ""
+	)
 	match blueprint_position_validity:
 		BlueprintPositionValidity.COLLIDES_WITH_OBJECT:
 			_feedback_label.text = tr("BLUEPRINT_COLLIDES_WITH_OBJECT")
@@ -141,6 +182,12 @@ func _update_feedback_label(blueprint_position_validity):
 			_feedback_label.text = tr("BLUEPRINT_NOT_ENOUGH_RESOURCES")
 		BlueprintPositionValidity.OUT_OF_MAP:
 			_feedback_label.text = tr("BLUEPRINT_OUT_OF_MAP")
+		BlueprintPositionValidity.NO_DEPOSIT_NEARBY:
+			_feedback_label.text = tr("BLUEPRINT_NO_DEPOSIT_NEARBY")
+		BlueprintPositionValidity.TIER_TOO_LOW:
+			_feedback_label.text = tr("BLUEPRINT_TIER_TOO_LOW")
+		BlueprintPositionValidity.VALID:
+			_feedback_label.text = _logistics_hint()
 
 
 func _start_structure_placement(structure_prototype):

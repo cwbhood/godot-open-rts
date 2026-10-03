@@ -1,0 +1,32 @@
+{
+  "id": "battle_tank",
+  "category": "unit",
+  "scene": "res://source/match/units/BattleTank.tscn",
+  "name": "BATTLE_TANK",
+  "description": "BATTLE_TANK_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Tank.png",
+  "icon_tint": "#c78bff",
+  "tier": 3,
+  "cost": {
+    "iron": 14,
+    "copper": 4,
+    "oil": 7
+  },
+  "build_time_s": 12.0,
+  "produced_by": [
+    "vehicle_factory"
+  ],
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 30,
+    "hp_max": 30,
+    "attack_damage": 4,
+    "attack_interval": 0.7,
+    "attack_range": 6.5,
+    "attack_domains": [
+      "terrain"
+    ]
+  },
+  "projectile": "cannon_shell",
+  "fuel_per_s": 0.035
+}

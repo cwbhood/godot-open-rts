@@ -1,0 +1,24 @@
+{
+  "expected_number_of_workers": 3,
+  "expected_number_of_haulers": 6,
+  "extractor_targets": {
+    "timber": 2,
+    "iron": 2,
+    "copper": 2,
+    "oil": 2
+  },
+  "expected_number_of_power_plants": 1,
+  "expected_number_of_ag_turrets": 1,
+  "expected_number_of_aa_turrets": 1,
+  "expected_number_of_battlegroups": 1,
+  "expected_number_of_units_in_battlegroup": 3,
+  "raid_party_size": 0,
+  "raid_interval_s": 0,
+  "trade_hoarding_factor": 2.0,
+  "trade_profit_margin": 1.0,
+  "trade_offer_interval_s": 15,
+  "proposes_agreements": true,
+  "id": "trader",
+  "name": "AI_TRADER",
+  "description": "AI_TRADER_DESCRIPTION"
+}

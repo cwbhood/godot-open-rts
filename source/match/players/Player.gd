@@ -2,19 +2,33 @@ extends Node3D
 
 signal changed
 
-@export var resource_a = 0:
+@export var timber = 0:
 	set(value):
-		resource_a = value
+		timber = value
 		emit_changed()
-@export var resource_b = 0:
+@export var iron = 0:
 	set(value):
-		resource_b = value
+		iron = value
+		emit_changed()
+@export var copper = 0:
+	set(value):
+		copper = value
+		emit_changed()
+@export var oil = 0:
+	set(value):
+		oil = value
 		emit_changed()
 @export var color = Color.WHITE
 
 var city:
 	get:
 		return get_node_or_null("City")
+var power_grid:
+	get:
+		return get_node_or_null("PowerGrid")
+var logistics:
+	get:
+		return get_node_or_null("Logistics")
 
 var _color_material = null
 
@@ -38,8 +52,23 @@ func subtract_resources(resources):
 		set(resource, get(resource) - resources[resource])
 
 
-func has_tech(tech):
-	return city != null and city.has_tech(tech)
+func get_stock():
+	var stock = {}
+	for resource in Constants.Match.Resources.ALL:
+		stock[resource] = get(resource)
+	return stock
+
+
+func get_tier():
+	return city.tier if city != null else 1
+
+
+func has_tier(tier):
+	return get_tier() >= tier
+
+
+func meets_tier_requirement(scene_path):
+	return has_tier(int(Constants.Match.Units.TIER_REQUIREMENTS.get(scene_path, 1)))
 
 
 func get_production_multiplier():

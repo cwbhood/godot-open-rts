@@ -1,0 +1,30 @@
+{
+  "id": "oil_derrick",
+  "category": "structure",
+  "scene": "res://source/match/units/OilDerrick.tscn",
+  "blueprint": "res://source/match/units/structure-geometries/OilDerrick.tscn",
+  "name": "OIL_DERRICK",
+  "description": "OIL_DERRICK_DESCRIPTION",
+  "icon": "res://assets/ui/icons/ResourceB.png",
+  "icon_tint": "#333333",
+  "tier": 1,
+  "cost": {
+    "timber": 2,
+    "iron": 8,
+    "copper": 1
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 12,
+    "hp_max": 12
+  },
+  "extracts": [
+    "oil"
+  ],
+  "power": {
+    "demand_mw": 1.5
+  }
+}

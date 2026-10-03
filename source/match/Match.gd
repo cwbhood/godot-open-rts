@@ -5,10 +5,15 @@ const Structure = preload("res://source/match/units/Structure.gd")
 const Player = preload("res://source/match/players/Player.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
 const City = preload("res://source/match/city/City.gd")
+const Logistics = preload("res://source/match/economy/Logistics.gd")
+const PowerGrid = preload("res://source/match/economy/PowerGrid.gd")
+const WeatherEffects = preload("res://source/match/WeatherEffects.gd")
+const Market = preload("res://source/match/economy/Market.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
 const Worker = preload("res://source/match/units/Worker.tscn")
+const Hauler = preload("res://source/match/units/Hauler.tscn")
 
 @export var settings: Resource = null
 
@@ -21,6 +26,8 @@ var visible_players = null:
 	set = _ignore,
 	get = _get_visible_players
 
+var _feature_flags_before_sandbox = null
+
 @onready var navigation = $Navigation
 @onready var fog_of_war = $FogOfWar
 
@@ -32,9 +39,31 @@ var visible_players = null:
 func _enter_tree():
 	assert(settings != null, "match cannot start without settings, see examples in tests/manual/")
 	assert(map != null, "match cannot start without map, see examples in tests/manual/")
+	if settings.get("sandbox"):
+		_feature_flags_before_sandbox = {
+			"allow_resources_deficit_spending": FeatureFlags.allow_resources_deficit_spending,
+			"handle_match_end": FeatureFlags.handle_match_end,
+		}
+		FeatureFlags.allow_resources_deficit_spending = true
+		FeatureFlags.handle_match_end = false
+		settings.visibility = settings.Visibility.FULL
+
+
+func _exit_tree():
+	if _feature_flags_before_sandbox != null:
+		for flag in _feature_flags_before_sandbox:
+			FeatureFlags.set(flag, _feature_flags_before_sandbox[flag])
 
 
 func _ready():
+	if get_node_or_null("WeatherEffects") == null:
+		var weather_effects = WeatherEffects.new()
+		weather_effects.name = "WeatherEffects"
+		add_child(weather_effects)
+	if get_node_or_null("Market") == null:
+		var market = Market.new()
+		market.name = "Market"
+		add_child(market)
 	MatchSignals.setup_and_spawn_unit.connect(_setup_and_spawn_unit)
 	_setup_subsystems_dependent_on_map()
 	_setup_players()
@@ -102,15 +131,24 @@ func _setup_players():
 	for node in _players.get_children():
 		if node is Player:
 			node.add_to_group("players")
-			_setup_city(node)
+			_setup_starting_stock(node)
+			_setup_economy(node)
 
 
-func _setup_city(player):
-	if player.get_node_or_null("City") != null:
-		return
-	var city = City.new()
-	city.name = "City"
-	player.add_child(city)
+func _setup_starting_stock(player):
+	if not player.get_stock().values().all(func(amount): return amount == 0):
+		return  # predefined in the scene
+	player.add_resources(Constants.Match.Resources.STARTING_STOCK)
+
+
+func _setup_economy(player):
+	for node_script in [City, Logistics, PowerGrid]:
+		var node_name = node_script.resource_path.get_file().get_basename()
+		if player.get_node_or_null(node_name) != null:
+			continue
+		var node = node_script.new()
+		node.name = node_name
+		player.add_child(node)
 
 
 func _create_players_from_settings():
@@ -118,6 +156,8 @@ func _create_players_from_settings():
 		var player_scene = Constants.Match.Player.CONTROLLER_SCENES[player_settings.controller]
 		var player = player_scene.instantiate()
 		player.color = player_settings.color
+		if "personality_id" in player and player_settings.get("ai_personality") != null:
+			player.personality_id = player_settings.ai_personality
 		if player_settings.spawn_index_offset > 0:
 			for _i in range(player_settings.spawn_index_offset):
 				_players.add_child(Node.new())
@@ -149,10 +189,18 @@ func _spawn_player_units(player, spawn_transform):
 	_setup_and_spawn_unit(
 		Worker.instantiate(), spawn_transform.translated(Vector3(3, 0, 3)), player
 	)
+	_setup_and_spawn_unit(
+		Hauler.instantiate(), spawn_transform.translated(Vector3(-3, 0, -3)), player
+	)
+	_setup_and_spawn_unit(
+		Hauler.instantiate(), spawn_transform.translated(Vector3(3, 0, -3)), player
+	)
 
 
 func _setup_and_spawn_unit(unit, a_transform, player, mark_structure_under_construction = true):
 	unit.global_transform = a_transform
+	if unit.get_meta("spawn_constructed", false):
+		mark_structure_under_construction = false  # e.g. defense posts the city starts with
 	if unit is Structure and mark_structure_under_construction:
 		unit.mark_as_under_construction()
 	_setup_unit_groups(unit, player)

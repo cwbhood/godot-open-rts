@@ -96,6 +96,8 @@ func _enforce_number_of_ag_turrets():
 
 
 func _enforce_number_of_aa_turrets():
+	if not _player.meets_tier_requirement(AATurretScene.resource_path):
+		return
 	var aa_turrets = get_tree().get_nodes_in_group("units").filter(
 		func(unit): return unit is AATurret and unit.player == _player
 	)

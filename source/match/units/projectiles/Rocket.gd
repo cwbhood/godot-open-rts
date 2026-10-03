@@ -39,4 +39,6 @@ func _setup_path():
 
 
 func _perform_hit():
-	target_unit.hp -= _unit.attack_damage
+	if not is_instance_valid(target_unit) or not is_instance_valid(_unit):
+		return
+	target_unit.take_damage(_unit.attack_damage, _unit)

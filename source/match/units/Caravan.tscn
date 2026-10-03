@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://source/match/units/Hauler.tscn" id="1_hauler"]
+[ext_resource type="Script" path="res://source/match/units/Caravan.gd" id="2_script"]
+
+[node name="Caravan" instance=ExtResource("1_hauler")]
+script = ExtResource("2_script")
+
+[node name="Geometry" parent="." index="0"]
+transform = Transform3D(1.15, 0, 0, 0, 1.15, 0, 0, 0, 1.15, 0, 0, 0)

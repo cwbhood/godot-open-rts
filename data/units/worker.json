@@ -1,0 +1,22 @@
+{
+  "id": "worker",
+  "category": "unit",
+  "scene": "res://source/match/units/Worker.tscn",
+  "name": "WORKER",
+  "description": "WORKER_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Worker.png",
+  "tier": 1,
+  "cost": {
+    "iron": 4,
+    "oil": 2
+  },
+  "build_time_s": 4.0,
+  "produced_by": [
+    "command_center"
+  ],
+  "properties": {
+    "sight_range": 5.0,
+    "hp": 6,
+    "hp_max": 6
+  }
+}
