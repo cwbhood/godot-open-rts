@@ -7,7 +7,7 @@
       "starting_stock": 40,
       "deposit_scene": "res://source/match/units/non-player/TimberStand.tscn",
       "deposit_amount": 500,
-      "extraction_rate_per_s": 0.3,
+      "extraction_rate_per_s": 0.55,
       "base_price": 1.0,
       "city_upkeep_per_population_per_min": 0.05,
       "city_starting_warehouse": 12
@@ -16,10 +16,10 @@
       "id": "iron",
       "name": "IRON",
       "color": "#9e614d",
-      "starting_stock": 40,
+      "starting_stock": 50,
       "deposit_scene": "res://source/match/units/non-player/IronDeposit.tscn",
       "deposit_amount": 600,
-      "extraction_rate_per_s": 0.25,
+      "extraction_rate_per_s": 0.5,
       "base_price": 1.5,
       "city_upkeep_per_population_per_min": 0.04,
       "city_starting_warehouse": 8
@@ -31,7 +31,7 @@
       "starting_stock": 14,
       "deposit_scene": "res://source/match/units/non-player/CopperDeposit.tscn",
       "deposit_amount": 450,
-      "extraction_rate_per_s": 0.2,
+      "extraction_rate_per_s": 0.4,
       "base_price": 2.5,
       "city_upkeep_per_population_per_min": 0.02,
       "city_starting_warehouse": 4
@@ -43,7 +43,7 @@
       "starting_stock": 24,
       "deposit_scene": "res://source/match/units/non-player/OilDeposit.tscn",
       "deposit_amount": 700,
-      "extraction_rate_per_s": 0.25,
+      "extraction_rate_per_s": 0.45,
       "base_price": 2.0,
       "city_upkeep_per_population_per_min": 0.04,
       "city_starting_warehouse": 6

@@ -28,6 +28,7 @@ const GameData = preload("res://source/data-model/GameData.gd")
 @export var raid_interval_s = 240.0
 @export var trade_offer_interval_s = 30.0
 @export var proposes_agreements = false
+@export var upgrades_roads = true
 
 var _provisioning_ongoing = false
 var _resource_requests = {
@@ -129,9 +130,7 @@ func _try_fulfilling_resource_requests_according_to_priorities():
 	]:
 		while (
 			not _resource_requests[priority].is_empty()
-			and _has_resources_beyond_trade_reserve(
-				_resource_requests[priority].front()["resources"]
-			)
+			and _can_afford(_resource_requests[priority].front()["resources"], priority)
 		):
 			var resource_request = _resource_requests[priority].pop_front()
 			_provision(
@@ -141,11 +140,16 @@ func _try_fulfilling_resource_requests_according_to_priorities():
 			)
 		if (
 			not _resource_requests[priority].is_empty()
-			and not _has_resources_beyond_trade_reserve(
-				_resource_requests[priority].front()["resources"]
-			)
+			and not _can_afford(_resource_requests[priority].front()["resources"], priority)
 		):
 			break
+
+
+func _can_afford(resources, priority):
+	"""the economy may dig into the trade reserve, everything else may not"""
+	if priority == ResourceRequestPriority.HIGH:
+		return has_resources(resources)
+	return _has_resources_beyond_trade_reserve(resources)
 
 
 func _has_resources_beyond_trade_reserve(resources):

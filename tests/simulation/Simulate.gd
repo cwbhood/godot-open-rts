@@ -53,6 +53,10 @@ func _ready():
 			var parts = argument.substr(2).split("=", true, 1)
 			_args[parts[0]] = parts[1]
 	Engine.time_scale = float(_args["time-scale"])
+	print(
+		"SIM start map=%s ai=%s scenario=%s seconds=%s"
+		% [_args["map"], _args["ai"], _args["scenario"], _args["seconds"]]
+	)
 	var settings = MatchSettings.new()
 	var personalities = _args["ai"].split(",")
 	for index in range(personalities.size()):
@@ -77,14 +81,10 @@ func _ready():
 			player.expected_number_of_ag_turrets = 0
 			player.expected_number_of_aa_turrets = 0
 			player.raid_party_size = 0
-	print(
-		"SIM start map=%s ai=%s scenario=%s seconds=%s"
-		% [_args["map"], _args["ai"], _args["scenario"], _args["seconds"]]
-	)
 
 
 func _physics_process(delta):
-	if _match == null or not _match.is_node_ready():
+	if _match == null or not _match.is_node_ready() or _players().is_empty():
 		return
 	_elapsed_s += delta
 	_track_haulers()
@@ -93,6 +93,7 @@ func _physics_process(delta):
 	if _elapsed_s >= _next_log_s:
 		_next_log_s += float(_args["log-every"])
 		_log()
+		print("SIM real time %.0fs" % (Time.get_ticks_msec() / 1000.0))
 	if _elapsed_s >= float(_args["seconds"]):
 		set_physics_process(false)
 		_finish()

@@ -15,15 +15,15 @@ const Hauler = preload("res://source/match/units/Hauler.gd")
 const HaulerScene = preload("res://source/match/units/Hauler.tscn")
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const PowerPlantScene = preload("res://source/match/units/PowerPlant.tscn")
-const EXTRACTOR_SCENES = {
-	"timber": "res://source/match/units/LumberMill.tscn",
-	"iron": "res://source/match/units/Mine.tscn",
-	"copper": "res://source/match/units/Mine.tscn",
-	"oil": "res://source/match/units/OilDerrick.tscn",
-}
+const GameData = preload("res://source/data-model/GameData.gd")
+const EXTRACTOR_PRIORITY = ["iron", "oil", "timber", "copper"]  # ties go to the first
 const REFRESH_INTERVAL_S = 2.0
-const MAX_DEPOSIT_DISTANCE_M = 45.0
+const MAX_DEPOSIT_DISTANCE_M = 55.0
 const POWER_HEADROOM_MW = 2.0
+const MAX_PLACEMENT_RINGS = 12
+const MIN_EXTRACTORS_FIRST = 3  # before optional power plants
+const ROAD_UPGRADE_INTERVAL_S = 20.0
+const ROAD_UPGRADE_MIN_LENGTH_M = 15.0  # short routes are not worth paving
 
 var _player = null
 var _ccs = []
@@ -31,6 +31,8 @@ var _pending_unit_requests = {}  # scene path -> number of requests waiting for 
 var _pending_units = {}  # scene path -> number of units queued in production
 var _pending_structure_request = false
 var _cc_base_position = null
+var _since_road_upgrade_s = 0.0
+var _extractor_scenes = _find_extractor_scenes()  # commodity -> scene of its extractor
 
 @onready var _ai = get_parent()
 
@@ -71,8 +73,16 @@ func provision(resources, metadata):
 
 func _refresh():
 	_ccs = _ccs.filter(func(cc): return is_instance_valid(cc) and cc.is_inside_tree())
-	_enforce_unit_count(WorkerScene, Worker, _ai.expected_number_of_workers)
-	_enforce_unit_count(HaulerScene, Hauler, _ai.expected_number_of_haulers)
+	# extractors come first: more constructors and haulers only pay off once there is
+	# something to haul
+	var extractors = _count_units(Extractor)
+	_enforce_unit_count(
+		WorkerScene, Worker, min(_ai.expected_number_of_workers, 2 + int(extractors / 2.0))
+	)
+	_enforce_unit_count(
+		HaulerScene, Hauler, min(_ai.expected_number_of_haulers, 2 + int(extractors / 2.0))
+	)
+	_try_upgrading_a_road()
 	if _pending_structure_request or _count_units(Worker) == 0:
 		return
 	var next = _next_structure()
@@ -100,12 +110,19 @@ func _next_structure():
 		]
 	var grid = _player.power_grid
 	var plants = _count_scene(PowerPlantScene.resource_path)
+	var extractors = _count_units(Extractor)
 	if (
 		grid != null
 		and plants < _ai.expected_number_of_power_plants + 2
 		and (
-			plants < _ai.expected_number_of_power_plants
-			or grid.total_supply_mw < grid.total_demand_mw + POWER_HEADROOM_MW
+			(plants < _ai.expected_number_of_power_plants and extractors >= MIN_EXTRACTORS_FIRST)
+			or (
+				grid.total_supply_mw
+				< (
+					grid.total_demand_mw
+					+ (POWER_HEADROOM_MW if extractors >= MIN_EXTRACTORS_FIRST else 0.0)
+				)
+			)
 		)
 		and _player.has_tier(
 			int(Constants.Match.Units.TIER_REQUIREMENTS.get(PowerPlantScene.resource_path, 1))
@@ -115,22 +132,70 @@ func _next_structure():
 		if position != null:
 			return [PowerPlantScene.resource_path, position]
 	var best = null
-	for kind in _ai.extractor_targets:
+	for kind in EXTRACTOR_PRIORITY + _ai.extractor_targets.keys():
+		if not kind in _ai.extractor_targets or not kind in _extractor_scenes:
+			continue
 		var have = _extractors_of_kind(kind)
 		var target = int(_ai.extractor_targets[kind])
 		if have >= target:
 			continue
 		var ratio = float(have) / float(target)
-		if best == null or ratio < best[0]:
+		if (
+			(best == null or ratio < best[0])
+			and _find_extractor_spot(kind, _extractor_scenes[kind]) != null
+		):
 			best = [ratio, kind]
 	if best == null:
 		return null
 	var kind = best[1]
-	var scene_path = EXTRACTOR_SCENES[kind]
+	var scene_path = _extractor_scenes[kind]
 	var spot = _find_extractor_spot(kind, scene_path)
 	if spot == null:
 		return null
 	return [scene_path, spot]
+
+
+func _try_upgrading_a_road():
+	"""paves the longest route first, once the economy has goods to spare"""
+	_since_road_upgrade_s += REFRESH_INTERVAL_S
+	var logistics = _player.logistics
+	if (
+		not _ai.upgrades_roads
+		or logistics == null
+		or _since_road_upgrade_s < ROAD_UPGRADE_INTERVAL_S
+		or _count_units(Extractor) < MIN_EXTRACTORS_FIRST
+	):
+		return
+	var best = null
+	for extractor in logistics.get_extractors():
+		var length = logistics.get_road_length_m(extractor)
+		if length < ROAD_UPGRADE_MIN_LENGTH_M or not logistics.can_upgrade_road(extractor):
+			continue
+		var upgrade = logistics.get_road_upgrade_for(extractor)
+		if not _ai._has_resources_beyond_trade_reserve(upgrade["cost"]):
+			continue
+		if best == null or length > best[0]:
+			best = [length, extractor]
+	if best != null and logistics.upgrade_road(best[1]):
+		_since_road_upgrade_s = 0.0
+
+
+static func _find_extractor_scenes():
+	"""the cheapest tier-1 structure from data/units/ extracting each commodity"""
+	var scenes = {}
+	for unit in GameData.units():
+		if int(unit.get("tier", 1)) != 1:
+			continue
+		for kind in unit.get("extracts", []):
+			if (
+				not kind in scenes
+				or (
+					Utils.Dict.sum(unit.get("cost", {}))
+					< Utils.Dict.sum(GameData.unit_by_scene(scenes[kind]).get("cost", {}))
+				)
+			):
+				scenes[kind] = unit["scene"]
+	return scenes
 
 
 func _extractors_of_kind(kind):
@@ -203,19 +268,23 @@ func _deposit_taken(deposit):
 
 
 func _find_position_near(origin, scene, min_distance = 0.0):
+	"""closest valid spot around 'origin' within a bounded search, null if there is none"""
 	var prototype = scene.instantiate()
-	var radius = prototype.radius
+	var radius = prototype.radius + Constants.Match.Units.EMPTY_SPACE_RADIUS_SURROUNDING_STRUCTURE_M
 	prototype.free()
-	return Utils.Match.Unit.Placement.find_valid_position_radially_yet_skip_starting_radius(
-		origin,
-		min_distance,
-		radius + Constants.Match.Units.EMPTY_SPACE_RADIUS_SURROUNDING_STRUCTURE_M,
-		0.0,
-		Vector3(0, 0, 1),
-		true,
-		_terrain_map(),
-		get_tree()
-	)
+	origin = origin * Vector3(1, 0, 1)
+	if min_distance <= 0.0 and _placement_valid(origin, radius):
+		return origin
+	for ring in range(MAX_PLACEMENT_RINGS):
+		var distance = max(min_distance, radius) + ring * radius
+		var slots = max(6, int(TAU * distance / (radius * 2.0)))
+		var start_angle = randf_range(0.0, TAU)
+		for slot in range(slots):
+			var angle = start_angle + TAU * slot / slots
+			var position = origin + Vector3(cos(angle), 0, sin(angle)) * distance
+			if _placement_valid(position, radius):
+				return position
+	return null
 
 
 func _placement_valid(position, radius):
@@ -241,10 +310,16 @@ func _placement_valid(position, radius):
 func _place_structure(scene, position):
 	var unit_to_spawn = scene.instantiate()
 	if position == null or not _placement_valid(position, unit_to_spawn.radius):
+		var worker = _first_worker()
+		if _ccs.is_empty() and worker == null:
+			unit_to_spawn.free()
+			return
 		position = _find_position_near(
-			_ccs[0].global_position if not _ccs.is_empty() else _first_worker().global_position,
-			scene
+			_ccs[0].global_position if not _ccs.is_empty() else worker.global_position, scene
 		)
+		if position == null:
+			unit_to_spawn.free()
+			return
 	var construction_cost = Constants.Match.Units.CONSTRUCTION_COSTS[scene.resource_path]
 	_player.subtract_resources(construction_cost)
 	var target_transform = Transform3D(Basis(), position).looking_at(

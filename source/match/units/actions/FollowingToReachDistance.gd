@@ -36,6 +36,9 @@ func _refresh():
 
 
 func _teardown_if_distance_reached():
+	if not is_instance_valid(_target_unit):
+		queue_free()
+		return true
 	if (
 		_unit.global_position_yless.distance_to(_target_unit.global_position_yless)
 		<= _distance_to_reach
@@ -46,6 +49,8 @@ func _teardown_if_distance_reached():
 
 
 func _align_movement_if_needed():
+	if not is_instance_valid(_target_unit):
+		return
 	if (
 		_last_known_target_unit_position == null
 		or not _last_known_target_unit_position.is_equal_approx(_target_unit.global_position)
@@ -55,4 +60,6 @@ func _align_movement_if_needed():
 
 
 func _on_movement_finished():
+	if not is_instance_valid(_target_unit):
+		return
 	_movement_trait.move(_target_unit.global_position)
