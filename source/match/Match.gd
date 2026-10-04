@@ -63,6 +63,7 @@ func _exit_tree():
 
 
 func _ready():
+	add_to_group("match")  # the crash reporter reads map, players and match time from here
 	if get_node_or_null("WeatherEffects") == null:
 		var weather_effects = WeatherEffects.new()
 		weather_effects.name = "WeatherEffects"
