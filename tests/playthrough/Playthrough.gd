@@ -891,6 +891,16 @@ func _select(units):
 		await _look_at(unit.global_position)
 		var screen = _camera.unproject_position(unit.global_position + Vector3(0, 0.3, 0))
 		await _mouse_move(screen)
+		if get_viewport().gui_get_hovered_control() != null:
+			# a panel covers it: a player would scroll the camera so it shows elsewhere
+			for offset in [
+				Vector3(0, 0, -7), Vector3(7, 0, 0), Vector3(-7, 0, 0), Vector3(0, 0, 7)
+			]:
+				await _look_at(unit.global_position + offset)
+				screen = _camera.unproject_position(unit.global_position + Vector3(0, 0.3, 0))
+				await _mouse_move(screen)
+				if get_viewport().gui_get_hovered_control() == null:
+					break
 		await _mouse_button(screen, MOUSE_BUTTON_LEFT, true)
 		await _frames(2)
 		await _mouse_button(screen, MOUSE_BUTTON_LEFT, false)

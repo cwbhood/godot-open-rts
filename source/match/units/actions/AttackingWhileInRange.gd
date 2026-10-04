@@ -56,6 +56,8 @@ func _rotate_unit_towards_target():
 
 
 func _schedule_hit():
+	if not is_inside_tree():
+		return  # the last hit ended the action (e.g. the unit got a new one)
 	var now = Time.get_ticks_msec()
 	var next_attack_availability_time = _unit.get_meta("next_attack_availability_time", now)
 	if next_attack_availability_time > now:

@@ -55,6 +55,7 @@ var _tutorial_title = Label.new()
 var _tutorial_body = Label.new()
 var _tutorial_details = VBoxContainer.new()
 var _skip_button = Button.new()
+var _folded_when_done = false
 var _more_button = Button.new()
 var _fold_button = Button.new()
 var _hint_panel = PanelContainer.new()
@@ -248,6 +249,12 @@ func _refresh_tutorial():
 		_tutorial_title.add_theme_color_override("font_color", DONE_COLOR)
 		_more_button.hide()
 		_skip_button.hide()  # nothing left to skip
+		if not _folded_when_done:
+			# fold it once so it stops covering the middle of the screen; Show brings it back
+			_folded_when_done = true
+			_tutorial_details.visible = false
+			_fold_button.text = tr("GUIDE_SHOW")
+			_tutorial.reset_size()
 		return
 	var key = STEPS[_step][0]
 	_tutorial_title.text = tr("GUIDE_TITLE").format(
