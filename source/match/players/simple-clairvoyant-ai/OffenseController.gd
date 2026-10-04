@@ -45,6 +45,7 @@ var _number_of_pending_unit_resource_requests = {}
 var _battlegroup_under_forming = null
 var _battlegroups = []
 var _no_room = false  # no free spot was found lately
+var _retreated = []  # damaged units that pulled back, they join the next battlegroup
 
 @onready var _ai = get_parent()
 
@@ -96,7 +97,7 @@ func _setup_refresh_timer():
 	var timer = Timer.new()
 	add_child(timer)
 	timer.timeout.connect(_on_refresh_timer_timeout)
-	timer.start(REFRESH_INTERVAL_S)
+	timer.start(_ai.think_interval(REFRESH_INTERVAL_S))
 
 
 func _provision_structure(structure_scene, resources, metadata):
@@ -151,8 +152,10 @@ func _try_creating_new_battlegroup():
 	)
 	_battlegroups.append(battlegroup)
 	battlegroup.tree_exited.connect(_on_battlegroup_died.bind(battlegroup))
+	battlegroup.unit_retreated.connect(_on_unit_retreated)
 	add_child(battlegroup)
 	_battlegroup_under_forming = battlegroup
+	_attach_retreated_units.call_deferred()
 	return true
 
 
@@ -327,6 +330,22 @@ func _on_unit_spawned(unit):
 		_enforce_secondary_units_production()
 
 
+func _on_unit_retreated(unit):
+	_retreated.append(unit)
+	_attach_retreated_units()
+
+
+func _attach_retreated_units():
+	_retreated = _retreated.filter(
+		func(unit): return is_instance_valid(unit) and unit.is_inside_tree()
+	)
+	while not _retreated.is_empty() and _battlegroup_under_forming != null:
+		var unit = _retreated.pop_front()
+		_battlegroup_under_forming.attach_unit(unit)
+		if _battlegroup_under_forming.size() == _ai.expected_number_of_units_in_battlegroup:
+			_try_creating_new_battlegroup()
+
+
 func _on_battlegroup_died(battlegroup):
 	if not is_inside_tree():
 		return
@@ -341,8 +360,8 @@ func _on_refresh_timer_timeout():
 
 
 func _on_tier_reached(player, _tier):
-	if player != _player:
-		return
+	if player != _player or not _ai.tech_upgrades:
+		return  # easier AIs keep building their first units
 	for _i in range(2):
 		var primary_upgrade = UPGRADES.get(_primary_unit_scene.resource_path)
 		if primary_upgrade != null and _player.meets_tier_requirement(primary_upgrade):

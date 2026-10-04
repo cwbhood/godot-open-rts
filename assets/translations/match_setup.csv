@@ -1,0 +1,25 @@
+keys,en,pl
+AI_DIFFICULTY,AI difficulty,Poziom trudności SI
+PLAYER_COLOR,Colour,Kolor
+DIFFICULTY_VERY_EASY,Very easy,Bardzo łatwy
+DIFFICULTY_VERY_EASY_DESCRIPTION,"small economy, no turrets or raids, first attack after 12 minutes, never cheats","mała gospodarka, bez wieżyczek i najazdów, pierwszy atak po 12 minutach, nigdy nie oszukuje"
+DIFFICULTY_EASY,Easy,Łatwy
+DIFFICULTY_EASY_DESCRIPTION,"slower and smaller economy, small attacks from minute 8, no unit upgrades, never cheats","wolniejsza i mniejsza gospodarka, małe ataki od 8. minuty, bez ulepszeń jednostek, nigdy nie oszukuje"
+DIFFICULTY_NORMAL,Normal,Normalny
+DIFFICULTY_NORMAL_DESCRIPTION,"plays its style at full speed, no bonuses","gra swoim stylem z pełną prędkością, bez premii"
+DIFFICULTY_HARD,Hard,Trudny
+DIFFICULTY_HARD_DESCRIPTION,"reacts fast, expands wider, bigger attacks, pulls damaged units back, no bonuses","szybko reaguje, szerzej się rozbudowuje, większe ataki, wycofuje uszkodzone jednostki, bez premii"
+DIFFICULTY_BRUTAL,Brutal (cheats),Brutalny (oszukuje)
+DIFFICULTY_BRUTAL_DESCRIPTION,"plays like Hard with a bigger army, and CHEATS: +20% income and +15% build speed","gra jak Trudny z większą armią i OSZUKUJE: +20% dochodu i +15% szybkości budowy"
+COLOR_BLUE,Blue,Niebieski
+COLOR_RED,Red,Czerwony
+COLOR_GREEN,Green,Zielony
+COLOR_PURPLE,Purple,Fioletowy
+COLOR_ORANGE,Orange,Pomarańczowy
+COLOR_YELLOW,Yellow,Żółty
+COLOR_TEAL,Teal,Morski
+COLOR_WHITE,White,Biały
+COLOR_BLACK,Black,Czarny
+COLOR_PINK,Pink,Różowy
+COLOR_DARK_GREEN,Dark green,Ciemnozielony
+COLOR_NAVY,Navy,Granatowy

@@ -45,7 +45,7 @@ func setup(player):
 	var timer = Timer.new()
 	timer.timeout.connect(_refresh)
 	add_child(timer)
-	timer.start(REFRESH_INTERVAL_S)
+	timer.start(_ai.think_interval(REFRESH_INTERVAL_S))
 	_refresh()
 
 
@@ -163,7 +163,7 @@ func _next_structure():
 
 func _try_upgrading_a_road():
 	"""paves the longest route first, once the economy has goods to spare"""
-	_since_road_upgrade_s += REFRESH_INTERVAL_S
+	_since_road_upgrade_s += _ai.think_interval(REFRESH_INTERVAL_S)
 	var logistics = _player.logistics
 	if (
 		not _ai.upgrades_roads

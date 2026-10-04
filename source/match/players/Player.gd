@@ -19,6 +19,9 @@ signal changed
 		oil = value
 		emit_changed()
 @export var color = Color.WHITE
+# AI difficulty handicaps and bonuses (data/difficulties/); 1.0 for everybody else
+var gather_rate = 1.0  # share of hauled goods that reaches the stock
+var production_speed = 1.0  # speed of the factories' production queues
 
 var city:
 	get:
@@ -104,7 +107,7 @@ func can_produce(scene_path):
 
 
 func get_production_multiplier():
-	return city.production_multiplier if city != null else 1.0
+	return (city.production_multiplier if city != null else 1.0) * production_speed
 
 
 func get_color_material():

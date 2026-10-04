@@ -11,7 +11,9 @@ mods add to it or patch it (see [mods](#mods)).
 | `roads.json` | Road levels of supply routes and their cost and speed |
 | `units/*.json` | One file per unit or structure |
 | `maps/*.json` | One file per playable map |
-| `ai/*.json` | One file per rival AI personality |
+| `ai/*.json` | One file per rival AI personality (its play style) |
+| `difficulties/*.json` | One file per AI difficulty, applied on top of the play style |
+| `player_colors.json` | The colours players and AIs can pick in the Play menu |
 
 How-to guides:
 
@@ -149,6 +151,89 @@ offers pacts itself), `accepts_alliances` says whether it ever allies, and
 `attacks_neutrals` whether it attacks factions it is not at war with (which starts a war).
 
 Every personality shows up in the player list of the Play menu.
+
+## difficulties/*.json
+
+Each AI slot in the Play menu has a play style (the personality above) and, in its own
+dropdown, a difficulty. The difficulty scales the personality's numbers and decides how
+well the AI plays, so an Easy raider still raids, just later, less often and worse.
+
+```json
+{
+  "id": "easy",
+  "name": "DIFFICULTY_EASY",
+  "description": "DIFFICULTY_EASY_DESCRIPTION",
+  "order": 1,
+  "cheats": false,
+  "gather_rate": 0.85,
+  "production_speed": 0.85,
+  "think_interval_multiplier": 2.0,
+  "reaction_delay_s": 5.0,
+  "economy_scale": 0.75,
+  "defense_scale": 0.5,
+  "army_size_scale": 0.75,
+  "max_attack_groups": 1,
+  "first_attack_after_s": 480,
+  "raid_interval_scale": 2.0,
+  "scouting": false,
+  "tech_upgrades": false,
+  "retreat_below_hp": 0.0,
+  "focus_fire": false
+}
+```
+
+| Field | What it does | Normal |
+| --- | --- | --- |
+| `order` | Position in the dropdown, easiest first | |
+| `cheats` | Must be `true` for any bonus a human player cannot get (`gather_rate` or `production_speed` above 1). The validator refuses a bonus without it, and the name should say so, like "Brutal (cheats)" | `false` |
+| `gather_rate` | Share of hauled goods that reaches its stock and city. Below 1 is a handicap, above 1 a cheat | 1.0 |
+| `production_speed` | Speed of its factories and command center. Below 1 is a handicap, above 1 a cheat | 1.0 |
+| `think_interval_multiplier` | How often its economy, defense, army and raid planners look at the game: 2.0 means half as often, so its build order is slower | 1.0 |
+| `reaction_delay_s` | Seconds an attacking group waits before it picks a new target after its target dies or a faction becomes attackable | 0.5 |
+| `economy_scale` | Scales the personality's extractor targets, constructors and haulers (never down to 0) | 1.0 |
+| `defense_scale` | Scales its turrets (rounded down, so 0.5 of one turret is none) | 1.0 |
+| `army_size_scale` | Scales how many units an attack group waits for before it attacks | 1.0 |
+| `max_attack_groups` | Caps the personality's number of attack groups (0 keeps the personality's) | 0 |
+| `first_attack_after_s` | No attack group or raid leaves before this many seconds of the match | 0 |
+| `raid_interval_scale` | Scales the time between raids; 0 means it never raids | 1.0 |
+| `scouting` | Whether its drones scout the map | `true` |
+| `tech_upgrades` | Whether it switches to heavier tanks and gunships at higher city tiers | `true` |
+| `retreat_below_hp` | Micro: units below this share of their hit points drive home and join the next attack instead of dying (0 = never) | 0.0 |
+| `focus_fire` | Micro: the whole group shoots the same target. `false` spreads its fire, so targets live longer | `true` |
+
+The game ships with:
+
+| Difficulty | Cheats | How it plays |
+| --- | --- | --- |
+| Very easy | no | 70% gathering, 75% build speed, thinks 3x slower, half the extractors, no turrets, no raids, one small attack group from minute 12, no scouting, no unit upgrades, spreads its fire |
+| Easy | no | 85% gathering and build speed, thinks 2x slower, 3/4 of the extractors, half the turrets, one 3/4-size attack group from minute 8, raids half as often, no scouting, no unit upgrades, spreads its fire |
+| Normal | no | the play style as it is, no bonus and no handicap |
+| Hard | no | thinks 2x faster and reacts in a quarter second, 25% more extractors and bigger attack groups, 50% more turrets, raids more often, pulls units below 30% hit points back |
+| Brutal (cheats) | **yes** | everything Hard does with 50% more extractors and army, double turrets, and +20% gathering and +15% build speed |
+
+`normal` must exist: it is the default for new AI slots, for `PlayerSettings.ai_difficulty`
+and for older match setups. Play difficulties against each other with the same play style:
+
+```
+python3 tests/simulation/difficulty_ladder.py --style=balanced --seconds=1500 --jobs=4 \
+    --out=/tmp/ladder
+```
+
+## player_colors.json
+
+```json
+{"player_colors": [{"id": "blue", "name": "COLOR_BLUE", "color": "#66b1ff"}]}
+```
+
+Every slot of the Play menu, human or AI, has a colour dropdown with these colours.
+Two slots never share one: picking a colour another slot has swaps the two. The picked
+colour is `PlayerSettings.color` and becomes the player's team colour on every unit,
+structure and city building. The validator checks that there are enough colours for the
+biggest map and that no two are too alike.
+
+Team colour goes on the surfaces of a model whose material is named `TeamColor` (what the
+Blender scripts in `tools/blender/` export) or whose albedo is the key colour
+`(0.99, 0.81, 0.48)` of the older models, so any colour in this list works on both.
 
 ## Mods
 

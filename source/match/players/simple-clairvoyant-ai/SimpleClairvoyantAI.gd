@@ -36,6 +36,16 @@ const GameData = preload("res://source/data-model/GameData.gd")
 @export var peacefulness = 1.0
 @export var accepts_alliances = true
 @export var attacks_neutrals = true
+# the difficulty (data/difficulties/) is applied on top of the personality
+@export var difficulty_id = "normal"
+var think_interval_multiplier = 1.0
+var reaction_delay_s = 0.5
+var first_attack_after_s = 0.0
+var scouting = true
+var tech_upgrades = true
+var retreat_below_hp = 0.0
+var focus_fire = true
+var match_time_s = 0.0
 
 var _provisioning_ongoing = false
 var _resource_requests = {
@@ -62,6 +72,7 @@ func _ready():
 	await get_tree().physics_frame
 
 	_apply_personality()
+	_apply_difficulty()
 	changed.connect(_on_player_data_changed)
 	_economy_controller.resources_required.connect(
 		_on_resource_request.bind(_economy_controller, ResourceRequestPriority.HIGH)
@@ -126,7 +137,62 @@ func _apply_personality():
 			set(key, int(value) if value is float and key.begins_with("expected") else value)
 
 
-func _process(_delta):
+func think_interval(seconds):
+	"""how often a controller re-plans: easier AIs look at the game less often"""
+	return seconds * think_interval_multiplier
+
+
+func may_launch_attacks():
+	"""easier AIs leave the other factions alone for the first minutes"""
+	return match_time_s >= first_attack_after_s
+
+
+func _apply_difficulty():
+	var difficulty = GameData.ai_difficulty(difficulty_id)
+	if difficulty == null:
+		return
+	gather_rate = float(difficulty.get("gather_rate", 1.0))
+	production_speed = float(difficulty.get("production_speed", 1.0))
+	think_interval_multiplier = float(difficulty.get("think_interval_multiplier", 1.0))
+	reaction_delay_s = float(difficulty.get("reaction_delay_s", reaction_delay_s))
+	first_attack_after_s = float(difficulty.get("first_attack_after_s", 0.0))
+	scouting = difficulty.get("scouting", true)
+	tech_upgrades = difficulty.get("tech_upgrades", true)
+	retreat_below_hp = float(difficulty.get("retreat_below_hp", 0.0))
+	focus_fire = difficulty.get("focus_fire", true)
+	var economy = float(difficulty.get("economy_scale", 1.0))
+	expected_number_of_workers = _scaled_at_least_one(expected_number_of_workers, economy)
+	expected_number_of_haulers = _scaled_at_least_one(expected_number_of_haulers, economy)
+	var targets = {}
+	for kind in extractor_targets:
+		targets[kind] = _scaled_at_least_one(int(extractor_targets[kind]), economy)
+	extractor_targets = targets
+	var defense = float(difficulty.get("defense_scale", 1.0))
+	expected_number_of_ag_turrets = int(floor(expected_number_of_ag_turrets * defense))
+	expected_number_of_aa_turrets = int(floor(expected_number_of_aa_turrets * defense))
+	var army = float(difficulty.get("army_size_scale", 1.0))
+	expected_number_of_units_in_battlegroup = _scaled_at_least_one(
+		expected_number_of_units_in_battlegroup, army
+	)
+	var max_groups = int(difficulty.get("max_attack_groups", 0))
+	if max_groups > 0:
+		expected_number_of_battlegroups = min(expected_number_of_battlegroups, max_groups)
+	var raid_scale = float(difficulty.get("raid_interval_scale", 1.0))
+	if raid_scale <= 0.0:
+		raid_party_size = 0  # never raids
+	else:
+		raid_interval_s *= raid_scale
+
+
+static func _scaled_at_least_one(count, scale):
+	"""a count the difficulty scales, but never down to nothing when it was not nothing"""
+	if count <= 0:
+		return count
+	return max(1, int(round(count * scale)))
+
+
+func _process(delta):
+	match_time_s += delta
 	if _call_to_perform_during_process != null:
 		var call_to_perform = _call_to_perform_during_process
 		_call_to_perform_during_process = null

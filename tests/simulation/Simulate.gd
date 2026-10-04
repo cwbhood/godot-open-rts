@@ -13,6 +13,11 @@ extends Node
 #   harness keeps a party of raiders of player 2 parked on the busiest supply route of
 #   player 1 from --raid-start seconds on, so the two runs show what raiding costs.
 #
+# --difficulty=easy,normal gives each AI a difficulty from data/difficulties/ (default normal).
+# The summary records who was still standing at the end, military units killed and lost
+# per player and an army/economy score, so tests/simulation/difficulty_ladder.py can
+# compare difficulties with the same play style.
+#
 # Every --log-every seconds it prints one line per player; at the end it writes a JSON
 # summary to --out.
 
@@ -22,6 +27,7 @@ const Hauler = preload("res://source/match/units/Hauler.gd")
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
 const RaiderScene = preload("res://source/match/units/Raider.tscn")
+const Unit = preload("res://source/match/units/Unit.gd")
 
 var _args = {
 	"map": "res://source/match/maps/PlainAndSimple.tscn",
@@ -33,6 +39,7 @@ var _args = {
 	"raid-start": "240",
 	"raiders": "3",
 	"out": "user://simulation.json",
+	"difficulty": "",
 }
 var _match = null
 var _elapsed_s = 0.0
@@ -45,6 +52,8 @@ var _raid_spot = null
 var _raiders = []
 var _raiders_spawned = 0
 var _delivered_at_raid_start = {}
+var _kills = {}  # player index -> enemy units destroyed
+var _losses = {}  # player index -> own units destroyed
 
 
 func _ready():
@@ -54,8 +63,10 @@ func _ready():
 			_args[parts[0]] = parts[1]
 	Engine.time_scale = float(_args["time-scale"])
 	print(
-		"SIM start map=%s ai=%s scenario=%s seconds=%s"
-		% [_args["map"], _args["ai"], _args["scenario"], _args["seconds"]]
+		(
+			"SIM start map=%s ai=%s scenario=%s seconds=%s"
+			% [_args["map"], _args["ai"], _args["scenario"], _args["seconds"]]
+		)
 	)
 	var settings = MatchSettings.new()
 	var personalities = _args["ai"].split(",")
@@ -64,6 +75,9 @@ func _ready():
 		player_settings.controller = Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI
 		player_settings.ai_personality = personalities[index]
 		player_settings.color = Constants.Player.COLORS[index]
+		var difficulties = _args["difficulty"].split(",", false)
+		if index < difficulties.size():
+			player_settings.ai_difficulty = difficulties[index]
 		settings.players.append(player_settings)
 	settings.visibility = settings.Visibility.ALL_PLAYERS
 	settings.visible_player = 0
@@ -71,17 +85,27 @@ func _ready():
 	MatchSignals.diplomacy_changed.connect(
 		func(a, b, state):
 			print(
-				"SIM %.0fs diplomacy P%d-P%d -> %s"
-				% [_elapsed_s, _player_index(a), _player_index(b), ["war", "neutral", "pact", "alliance"][state]]
+				(
+					"SIM %.0fs diplomacy P%d-P%d -> %s"
+					% [
+						_elapsed_s,
+						_player_index(a),
+						_player_index(b),
+						["war", "neutral", "pact", "alliance"][state]
+					]
+				)
 			)
 	)
 	MatchSignals.treaty_signed.connect(
 		func(a, b, kind, offered, requested):
 			print(
-				"SIM %.0fs treaty %s P%d-P%d gives %s asks %s"
-				% [_elapsed_s, kind, _player_index(a), _player_index(b), offered, requested]
+				(
+					"SIM %.0fs treaty %s P%d-P%d gives %s asks %s"
+					% [_elapsed_s, kind, _player_index(a), _player_index(b), offered, requested]
+				)
 			)
 	)
+	get_tree().node_added.connect(_on_node_added)
 	_match = load("res://source/match/Match.tscn").instantiate()
 	_match.settings = settings
 	_match.map = load(_args["map"]).instantiate()
@@ -180,13 +204,33 @@ func _player_sample(player):
 	return {
 		"player": player.get_index(),
 		"personality": player.get("personality_id"),
+		"difficulty": player.get("difficulty_id"),
+		"kills": _kills.get(player.get_index(), 0),
+		"losses": _losses.get(player.get_index(), 0),
+		"army":
+		(
+			units
+			. filter(
+				func(unit):
+					return (
+						unit.get("attack_damage") != null
+						and unit.attack_damage > 0
+						and not unit is Structure
+					)
+			)
+			. size()
+		),
+		"structures":
+		units.filter(func(unit): return unit is Structure and unit.is_constructed()).size(),
 		"stock": player.get_stock(),
 		"units": units.size(),
 		"haulers": haulers.size(),
 		"haulers_busy": haulers.filter(func(unit): return unit.action != null).size(),
 		"hauler_distance_m": snapped(_hauler_distance_by_player.get(player.get_index(), 0.0), 0.1),
-		"extractors": units.filter(func(unit): return unit is Extractor and unit.is_constructed()).size(),
-		"sites": units.filter(func(unit): return unit is Structure and unit.is_under_construction()).size(),
+		"extractors":
+		units.filter(func(unit): return unit is Extractor and unit.is_constructed()).size(),
+		"sites":
+		units.filter(func(unit): return unit is Structure and unit.is_under_construction()).size(),
 		"delivered": player.logistics.delivered_total.duplicate(),
 		"lost": player.logistics.lost_total.duplicate(),
 		"looted": player.logistics.looted_total.duplicate(),
@@ -208,31 +252,33 @@ func _log():
 		sample["players"].append(data)
 		print(
 			(
-				"SIM t=%4d p%d %-8s units=%2d haulers=%d/%d dist=%6.0fm extr=%d sites=%d "
-				+ "delivered=%4d lost=%3d looted=%3d pop=%5.1f sci=%6.1f tier=%d sat=%.2f "
-				+ "power=%.0f/%.0f stock=%s"
+				(
+					"SIM t=%4d p%d %-8s units=%2d haulers=%d/%d dist=%6.0fm extr=%d sites=%d "
+					+ "delivered=%4d lost=%3d looted=%3d pop=%5.1f sci=%6.1f tier=%d sat=%.2f "
+					+ "power=%.0f/%.0f stock=%s"
+				)
+				% [
+					sample["t"],
+					data["player"],
+					data["personality"],
+					data["units"],
+					data["haulers_busy"],
+					data["haulers"],
+					data["hauler_distance_m"],
+					data["extractors"],
+					data["sites"],
+					Utils.Dict.sum(data["delivered"]),
+					Utils.Dict.sum(data["lost"]),
+					Utils.Dict.sum(data["looted"]),
+					data["population"],
+					data["science"],
+					data["tier"],
+					data["satisfaction"],
+					data["power_supply_mw"],
+					data["power_demand_mw"],
+					data["stock"],
+				]
 			)
-			% [
-				sample["t"],
-				data["player"],
-				data["personality"],
-				data["units"],
-				data["haulers_busy"],
-				data["haulers"],
-				data["hauler_distance_m"],
-				data["extractors"],
-				data["sites"],
-				Utils.Dict.sum(data["delivered"]),
-				Utils.Dict.sum(data["lost"]),
-				Utils.Dict.sum(data["looted"]),
-				data["population"],
-				data["science"],
-				data["tier"],
-				data["satisfaction"],
-				data["power_supply_mw"],
-				data["power_demand_mw"],
-				data["stock"],
-			]
 		)
 	_samples.append(sample)
 
@@ -254,6 +300,21 @@ func _finish():
 	file.close()
 	print("SIM done, summary written to ", ProjectSettings.globalize_path(_args["out"]))
 	get_tree().quit()
+
+
+func _on_node_added(node):
+	if node is Unit and node.get("player") != null:
+		node.tree_exiting.connect(_on_unit_exiting.bind(node))
+
+
+func _on_unit_exiting(unit):
+	if not is_instance_valid(unit) or unit.hp == null or unit.hp > 0 or unit.player == null:
+		return  # only units destroyed in battle count, not finished construction sites etc.
+	var owner_index = unit.player.get_index()
+	_losses[owner_index] = _losses.get(owner_index, 0) + 1
+	var killer = unit.last_attacker_player
+	if killer != null and is_instance_valid(killer):
+		_kills[killer.get_index()] = _kills.get(killer.get_index(), 0) + 1
 
 
 func _player_index(player):

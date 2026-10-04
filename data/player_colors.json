@@ -1,0 +1,64 @@
+{
+  "player_colors": [
+    {
+      "id": "blue",
+      "name": "COLOR_BLUE",
+      "color": "#66b1ff"
+    },
+    {
+      "id": "red",
+      "name": "COLOR_RED",
+      "color": "#ff5c73"
+    },
+    {
+      "id": "green",
+      "name": "COLOR_GREEN",
+      "color": "#a5ff99"
+    },
+    {
+      "id": "purple",
+      "name": "COLOR_PURPLE",
+      "color": "#ed85ff"
+    },
+    {
+      "id": "orange",
+      "name": "COLOR_ORANGE",
+      "color": "#ff9a2e"
+    },
+    {
+      "id": "yellow",
+      "name": "COLOR_YELLOW",
+      "color": "#ffe14d"
+    },
+    {
+      "id": "teal",
+      "name": "COLOR_TEAL",
+      "color": "#2ec4b6"
+    },
+    {
+      "id": "white",
+      "name": "COLOR_WHITE",
+      "color": "#f2f2f2"
+    },
+    {
+      "id": "black",
+      "name": "COLOR_BLACK",
+      "color": "#3a3a40"
+    },
+    {
+      "id": "pink",
+      "name": "COLOR_PINK",
+      "color": "#ff7ad9"
+    },
+    {
+      "id": "dark_green",
+      "name": "COLOR_DARK_GREEN",
+      "color": "#1f7a3a"
+    },
+    {
+      "id": "navy",
+      "name": "COLOR_NAVY",
+      "color": "#2a3fa8"
+    }
+  ]
+}
