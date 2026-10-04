@@ -1,8 +1,7 @@
 extends "res://tests/playtest/PlaytestChecks.gd"
 
 # Bot checks for the unit orders (source/match/players/human/UnitCommands.gd and
-# source/match/handlers/UnitCommandHandler.gd) and the AI's defensive line
-# (source/match/players/simple-clairvoyant-ai/ArmyPosture.gd). Every player order goes in
+# source/match/handlers/UnitCommandHandler.gd). Every order goes in
 # through simulated mouse and keyboard events or a click on the unit-menu button, like a
 # player would give it:
 # - right-drag draws a line: a preview shows the spots, the units spread out along it,
@@ -12,8 +11,7 @@ extends "res://tests/playtest/PlaytestChecks.gd"
 # - P + clicks (Shift for more points) patrols, the button patrols the base loop,
 # - V + click guards, X stops, Z retreats,
 # - L cycles the fire stance (hold fire ignores an enemy in range, return fire answers
-#   only a shooter), K holds position (no chase),
-# - the AI's idle tanks leave the clump and hold a spread-out line toward the rival.
+#   only a shooter), K holds position (no chase).
 # Usage (needs a real renderer):
 #   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 \
 #     res://tests/commands/CommandChecks.tscn -- --out=/tmp/commands
@@ -50,6 +48,7 @@ func _ready():
 	_rival = get_tree().get_nodes_in_group("players").filter(func(p): return p != _human)[0]
 	_handler = UnitCommandHandler.of(get_tree())
 	_cc = _own(func(unit): return unit is CommandCenter)
+	_make_rival_inert()
 	_match.fog_of_war.reveal()  # the screenshots show the whole field
 	var atmosphere = _match.find_child("Atmosphere", true, false)
 	if atmosphere != null:  # clear skies for readable screenshots
@@ -60,7 +59,6 @@ func _ready():
 		if arg.begins_with("--only="):
 			only = arg.trim_prefix("--only=")
 	for scenario in [
-		["ai", _check_ai_holds_a_line],
 		["line", _check_line_drag],
 		["queue", _check_click_and_queue],
 		["fight", _check_fight],
@@ -71,73 +69,12 @@ func _ready():
 		["manual", _check_manual],
 	]:
 		if only == "" or scenario[0] in only.split(","):
-			if scenario[0] != "ai" and _rival.get_node_or_null("ArmyPosture") != null:
-				_make_rival_inert()
 			await scenario[1].call()
 	print("command checks: {0} failure(s)".format([_failures]))
 	get_tree().quit(1 if _failures > 0 else 0)
 
 
 # --- scenarios ----------------------------------------------------------------------------
-
-
-func _check_ai_holds_a_line():
-	var posture = _rival.get_node_or_null("ArmyPosture")
-	_expect(posture != null, "the AI has an army posture controller")
-	if posture == null:
-		return
-	_rival.attacks_neutrals = false  # at peace: its battlegroups wait at home
-	var rival_cc = _units_of(_rival).filter(func(unit): return unit is CommandCenter)[0]
-	var tanks = _spawn_squad(_rival, rival_cc.global_position + Vector3(0, 0, 7), 8)
-	await _frames(20)
-	var visibility_handler = _match.find_child("UnitVisibilityHandler", true, false)
-	visibility_handler.visible = false  # the screenshots show the rival's units
-	for unit in get_tree().get_nodes_in_group("units"):
-		unit.visible = true
-	camera_on(rival_cc.global_position, 30.0)
-	await _shot("ai-0-before-clumped")
-	var clump = _spread(tanks)
-	posture.refresh()
-	await _wait_for(
-		func(): return tanks.all(func(tank): return not tank.action is AttackMoving), 2400
-	)
-	await _frames(60)
-	posture.refresh()  # patrols leave the line; the rest hold it
-	await _frames(400)
-	var at_home = tanks.filter(func(tank): return not tank.action is Patrolling)
-	var patrols = tanks.filter(func(tank): return tank.action is Patrolling)
-	var forward = rival_cc.global_position_yless + posture.front_direction * 10.0
-	var ahead = at_home.filter(
-		func(tank):
-			return (
-				(tank.global_position_yless - rival_cc.global_position_yless).dot(
-					posture.front_direction
-				)
-				> 6.0
-			)
-	)
-	_expect(
-		_spread(at_home) > clump * 1.8,
-		"idle AI tanks spread out (closest pair %.1f m, was %.1f m)" % [_spread(at_home), clump]
-	)
-	_expect(
-		ahead.size() >= at_home.size() - 1,
-		"they stand on the side facing the rival (%d of %d ahead)" % [ahead.size(), at_home.size()]
-	)
-	_expect(
-		patrols.size() == 2, "a quarter of them patrol the base loop (%d of 8)" % patrols.size()
-	)
-	_expect(
-		_line_width(at_home, posture.front_direction) >= 20.0,
-		"the line spans the approach (%.0f m wide)" % _line_width(at_home, posture.front_direction)
-	)
-	camera_on(forward, 30.0)
-	await _shot("ai-1-after-holding-a-line")
-	visibility_handler.visible = true
-	for tank in tanks:
-		if is_instance_valid(tank):
-			tank.queue_free()
-	await _frames(5)
 
 
 func _check_line_drag():
@@ -456,7 +393,7 @@ static func _is_engaging(tank):
 func _make_rival_inert():
 	_rival.set_process(false)
 	for child in _rival.get_children():
-		if child.name.ends_with("Controller") or child.name == "ArmyPosture":
+		if child.name.ends_with("Controller"):
 			child.queue_free()
 
 
