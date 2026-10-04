@@ -18,10 +18,7 @@ const KNOWN_UNIT_FIELDS = [
 	"icon", "icon_tint", "tier", "cost", "build_time_s", "produced_by", "built_by",
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
 	"model_scale", "model_offset", "model_rotation_y_deg", "unit_slots", "movement", "water_speed",
-	"placement"
-
-
-	"model_scale", "model_offset", "model_rotation_y_deg", "voice"
+	"placement", "voice"
 ]
 const CAPS_NUMBERS = [
 	"unit_slots_per_player", "unit_slots_per_match", "default_unit_slots", "time_limit_min",
