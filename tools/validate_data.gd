@@ -17,8 +17,13 @@ const KNOWN_UNIT_FIELDS = [
 	"id", "category", "scene", "base", "base_scene", "blueprint", "name", "description",
 	"icon", "icon_tint", "tier", "cost", "build_time_s", "produced_by", "built_by",
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
-	"model_scale", "model_offset", "model_rotation_y_deg", "voice"
+	"model_scale", "model_offset", "model_rotation_y_deg", "voice", "unit_slots"
 ]
+const CAPS_NUMBERS = [
+	"unit_slots_per_player", "unit_slots_per_match", "default_unit_slots", "time_limit_min",
+	"depletion_countdown_min"
+]
+const CAPS_SCORE_WEIGHTS = ["per_citizen", "per_unit_slot", "per_structure", "per_science"]
 const KNOWN_PROPERTIES = [
 	"sight_range", "hp", "hp_max", "attack_damage", "attack_interval", "attack_range",
 	"attack_domains", "cargo_capacity", "radius"
@@ -30,7 +35,11 @@ const KNOWN_AI_FIELDS = [
 	"expected_number_of_units_in_battlegroup", "raid_party_size", "raid_interval_s",
 	"trade_hoarding_factor", "trade_profit_margin", "trade_offer_interval_s",
 	"proposes_agreements", "upgrades_roads", "peacefulness", "accepts_alliances",
-	"attacks_neutrals"
+	"attacks_neutrals", "defence"
+]
+const KNOWN_DEFENCE_FIELDS = [
+	"shape", "front_m", "choke_search_m", "staging_share", "front", "flanks", "reserve",
+	"guards", "guard_routes", "max_guard_posts", "spacing_m", "ring_m", "react_m", "leash_m"
 ]
 
 # field -> [min, max] for numbers, or "bool"
@@ -80,6 +89,10 @@ func _run():
 	_check_player_colors(data["player_colors"], data["maps"])
 	_check_roads(data["roads"], resources, data["tiers"].size())
 	_check_voices(data["units"])
+	_check_caps("caps.json", data["caps"], true)
+	for entry in data["maps"]:
+		if "caps" in entry:
+			_check_caps("maps/{0}.json caps".format([entry.get("id", "?")]), entry["caps"], false)
 	print(
 		(
 			"validate_data: {0} units, {1} commodities, {2} maps, {3} AI personalities, "
@@ -146,8 +159,20 @@ func _check_tiers(entries):
 		return
 	if float(entries[0].get("science", -1)) != 0.0:
 		_error("tiers.json", "the first tier must start at science 0")
+	var previous_max = 0.0
 	for entry in entries:
-		_check_translation("tiers.json '{0}'".format([entry.get("name", "?")]), entry.get("name"))
+		var where = "tiers.json '{0}'".format([entry.get("name", "?")])
+		_check_translation(where, entry.get("name"))
+		if not "max_population" in entry:
+			_warn(where, "no max_population: the city grows to the built-in 130")
+			continue
+		var max_population = entry["max_population"]
+		if not (max_population is float or max_population is int) or max_population < 10:
+			_error(where, "max_population must be a number >= 10 (the starting population)")
+		elif max_population < previous_max:
+			_error(where, "max_population must not shrink from one tier to the next")
+		else:
+			previous_max = max_population
 
 
 func _check_units(entries, resources, tiers_count):
@@ -174,6 +199,14 @@ func _check_units(entries, resources, tiers_count):
 				_error(where, "produced_by/built_by names unknown unit '{0}'".format([producer]))
 		if entry.get("category") == "unit" and float(entry.get("build_time_s", 0.0)) < 0.0:
 			_error(where, "build_time_s must be >= 0")
+		if "unit_slots" in entry:
+			var slots = entry["unit_slots"]
+			if not (slots is float or slots is int) or slots < 0 or int(slots) != slots:
+				_error(where, "unit_slots must be a whole number >= 0")
+			elif entry.get("category") != "unit":
+				_warn(where, "unit_slots only counts for units, structures take none")
+		elif entry.get("category") == "unit":
+			_warn(where, "no unit_slots: it takes default_unit_slots from caps.json")
 		if "speed" in entry and float(entry["speed"]) <= 0.0:
 			_error(where, "speed must be > 0")
 		for kind in entry.get("extracts", []):
@@ -265,6 +298,15 @@ func _check_ai(entries, resources):
 		for field in entry:
 			if not field in KNOWN_AI_FIELDS:
 				_warn(where, "unknown field '{0}' is ignored".format([field]))
+		var defence = entry.get("defence", {})
+		if not defence is Dictionary:
+			_error(where, "defence must be an object like {\"front_m\": 16}")
+			defence = {}
+		for field in defence:
+			if not field in KNOWN_DEFENCE_FIELDS:
+				_warn(where, "unknown defence field '{0}' is ignored".format([field]))
+		if defence.get("shape", "groups") not in ["groups", "ring"]:
+			_error(where, "defence shape must be \"groups\" or \"ring\"")
 		for kind in entry.get("extractor_targets", {}):
 			if not kind in resources:
 				_error(where, "extractor_targets names unknown commodity '{0}'".format([kind]))
@@ -341,6 +383,36 @@ func _check_player_colors(entries, maps):
 						[entries[i].get("id"), entries[j].get("id")]
 					)
 				)
+
+
+func _check_caps(where, caps, complete):
+	if not caps is Dictionary:
+		_error(where, "must be an object like {\"unit_slots_per_player\": 150}")
+		return
+	for key in caps:
+		if key == "score":
+			continue
+		if not key in CAPS_NUMBERS:
+			_warn(where, "unknown field '{0}' is ignored".format([key]))
+		elif not (caps[key] is float or caps[key] is int) or caps[key] < 0:
+			_error(where, "'{0}' must be a number >= 0 (0 turns the limit off)".format([key]))
+	if complete:
+		for key in CAPS_NUMBERS:
+			if not key in caps:
+				_warn(where, "missing '{0}': that limit is off".format([key]))
+	var per_player = float(caps.get("unit_slots_per_player", 0))
+	var per_match = float(caps.get("unit_slots_per_match", 0))
+	if per_player > 0 and per_match > 0 and per_match < per_player:
+		_warn(where, "unit_slots_per_match is below unit_slots_per_player: even 1v1 gets less")
+	var score = caps.get("score", {})
+	if not score is Dictionary:
+		_error(where, "score must be an object of weights")
+		return
+	for key in score:
+		if not key in CAPS_SCORE_WEIGHTS:
+			_warn(where, "unknown score weight '{0}' is ignored".format([key]))
+		elif not (score[key] is float or score[key] is int):
+			_error(where, "score weight '{0}' must be a number".format([key]))
 
 
 func _check_roads(entries, resources, tiers_count):

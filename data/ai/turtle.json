@@ -22,6 +22,12 @@
   "accepts_alliances": true,
   "attacks_neutrals": false,
   "upgrades_roads": true,
+  "defence": {
+    "shape": "ring",
+    "ring_m": 4,
+    "react_m": 18,
+    "leash_m": 20
+  },
   "id": "turtle",
   "name": "AI_TURTLE",
   "description": "AI_TURTLE_DESCRIPTION"

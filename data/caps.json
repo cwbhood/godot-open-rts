@@ -1,0 +1,13 @@
+{
+  "unit_slots_per_player": 150,
+  "unit_slots_per_match": 400,
+  "default_unit_slots": 1,
+  "time_limit_min": 45,
+  "depletion_countdown_min": 5,
+  "score": {
+    "per_citizen": 1,
+    "per_unit_slot": 1,
+    "per_structure": 5,
+    "per_science": 0.1
+  }
+}

@@ -12,6 +12,9 @@ const RaidingController = preload(
 const DiplomacyController = preload(
 	"res://source/match/players/simple-clairvoyant-ai/DiplomacyController.gd"
 )
+const ArmyPositioningController = preload(
+	"res://source/match/players/simple-clairvoyant-ai/ArmyPositioningController.gd"
+)
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 
@@ -46,6 +49,7 @@ var tech_upgrades = true
 var retreat_below_hp = 0.0
 var focus_fire = true
 var match_time_s = 0.0
+@export var defence = {}  # where the army stands while home, see ArmyPositioningController
 
 var _provisioning_ongoing = false
 var _resource_requests = {
@@ -103,6 +107,10 @@ func _ready():
 	diplomacy_controller.name = "DiplomacyController"
 	add_child(diplomacy_controller)
 	diplomacy_controller.setup(self)
+	var army_positioning_controller = ArmyPositioningController.new()
+	army_positioning_controller.name = "ArmyPositioningController"
+	add_child(army_positioning_controller)
+	army_positioning_controller.setup(self)
 
 
 func wants_to_attack(player):

@@ -30,6 +30,9 @@ signal unit_production_finished(unit, producer_unit)
 signal unit_construction_finished(unit)
 signal not_enough_resources_for_production(player)
 signal not_enough_resources_for_construction(player)
+signal unit_cap_reached(player)  # production refused: no unit slots left
+signal resources_depleted  # the last deposit on the map ran dry
+signal match_limit_reached(reason, ranking)  # see MatchLimits
 signal trade_completed(proposer, partner, offered, requested)
 signal tier_reached(player, tier)
 signal goods_delivered(player, goods)

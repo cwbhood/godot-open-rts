@@ -19,6 +19,7 @@ signal alerted(text)
 signal alert_raised(kind)  # the same alert by kind ("on", "retreat", ...), for the advisor voice
 
 const Worker = preload("res://source/match/units/Worker.gd")
+const MatchLimits = preload("res://source/match/MatchLimits.gd")
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
@@ -674,6 +675,12 @@ func _manage_army():
 	if factories.is_empty():
 		_status["army"] = tr("HELPER_STATUS_ARMY_NO_FACTORY").format([soldiers, army_target])
 		return
+	var limits = MatchLimits.of(get_tree())
+	if limits != null and limits.slots_used(_player) >= limits.slots_cap():
+		_status["army"] = tr("HELPER_STATUS_ARMY_CAP").format(
+			[soldiers, limits.slots_used(_player), limits.slots_cap()]
+		)
+		return
 	for factory in factories:
 		if total >= army_target:
 			break
@@ -711,6 +718,9 @@ func _best_unit_for(factory):
 			continue
 		if not _player.can_produce(entry["scene"]):
 			continue
+		var limits = MatchLimits.of(get_tree())
+		if limits != null and not limits.has_room_for(_player, entry["scene"]):
+			continue  # a smaller unit may still fit under the unit cap
 		var cost = Constants.Match.Units.PRODUCTION_COSTS.get(entry["scene"], {})
 		if not spare(cost):
 			continue

@@ -9,6 +9,7 @@ mods add to it or patch it (see [mods](#mods)).
 | `resources.json` | Commodities: timber, iron, copper, oil |
 | `tiers.json` | City tiers and the science each one needs |
 | `roads.json` | Road levels of supply routes and their cost and speed |
+| `caps.json` | Unit cap, match-wide unit cap, match length and end-of-match score |
 | `units/*.json` | One file per unit or structure |
 | `maps/*.json` | One file per playable map |
 | `ai/*.json` | One file per rival AI personality (its play style) |
@@ -56,14 +57,41 @@ any of them is an error.
 
 ```json
 {"tiers": [
-  {"name": "TIER_FRONTIER", "science": 0},
-  {"name": "TIER_INDUSTRIAL", "science": 150},
-  {"name": "TIER_ELECTRIC", "science": 450}
+  {"name": "TIER_FRONTIER", "science": 0, "max_population": 60},
+  {"name": "TIER_INDUSTRIAL", "science": 150, "max_population": 100},
+  {"name": "TIER_ELECTRIC", "science": 450, "max_population": 130}
 ]}
 ```
 
 The city earns science on its own (population, how well it is supplied, power). It
 moves to the next tier once science passes the threshold. The first tier must be at 0.
+`max_population` is the largest the city can grow at that tier: it stops growing and
+building houses there until the next tier. It must not shrink from tier to tier.
+
+## caps.json
+
+```json
+{
+  "unit_slots_per_player": 150,   // the most unit slots one player can fill
+  "unit_slots_per_match": 400,    // all players together; split evenly between them
+  "default_unit_slots": 1,        // for units without "unit_slots"
+  "time_limit_min": 45,           // the match ends after this long (0: no limit)
+  "depletion_countdown_min": 5,   // ...or this long after the last deposit ran dry
+  "score": {"per_citizen": 1, "per_unit_slot": 1, "per_structure": 5, "per_science": 0.1}
+}
+```
+
+Every unit takes `unit_slots` (see units below); units in a production queue count as
+soon as they are ordered. A player's cap is `unit_slots_per_player`, or
+`unit_slots_per_match` divided by the number of players when that is lower (400 / 4
+players = 100 each). At the cap, factories refuse new units for everyone alike: the
+player, the helper and the AI. When the match runs out of time, the player with the best
+score wins: citizens + unit slots in use + finished structures + science, each times its
+weight. Destroying everyone else still wins at once. Sandbox matches have no time limit.
+
+A map can change any of these for itself with a `"caps"` object in its `maps/*.json`
+entry, e.g. `"caps": {"time_limit_min": 60, "unit_slots_per_match": 600}` for a big map.
+A mod's `caps.json` replaces just the keys it lists.
 
 ## roads.json
 
@@ -93,6 +121,7 @@ working that route drive `speed_multiplier` times faster.
 | `tier` | City tier needed to build it |
 | `cost` | Commodities, e.g. `{"iron": 6, "oil": 3}` |
 | `build_time_s` | Production time of units |
+| `unit_slots` | Units only: slots it takes under the unit cap (see [caps.json](#capsjson)); 0 for free units like militia |
 | `produced_by` | Ids of structures producing this unit, e.g. `["vehicle_factory"]` |
 | `built_by` | For structures: ids of units constructing it, normally `["worker"]` |
 | `speed` | Movement speed in m/s |
@@ -188,6 +217,28 @@ Diplomacy fields: `peacefulness` scales how cheaply the AI signs non-aggression 
 alliances (1.0 is average, below 1 it asks for more goods, above 1 it signs for free and
 offers pacts itself), `accepts_alliances` says whether it ever allies, and
 `attacks_neutrals` whether it attacks factions it is not at war with (which starts a war).
+
+`defence` says where the army stands while it is home (not attacking or raiding). Every
+field is optional; missing ones take the defaults shown:
+
+```json
+"defence": {
+  "shape": "groups",      // "groups" (front, flanks, reserve, guards) or "ring" around the city
+  "front_m": 16,          // front line distance beyond the edge of the city
+  "choke_search_m": 12,   // the front may move this much nearer or farther to a narrow pass
+  "staging_share": 0,     // above 0: front at this share of the way to the rival's city
+  "front": 0.5,           // shares of the army per group
+  "flanks": 0.2,          // a flank closed by the map edge or impassable ground joins the front
+  "reserve": 0.2,
+  "guards": 0.1,          // at the remote extractors nearest the threat
+  "guard_routes": false,  // guards stand halfway along the road instead of at the extractor
+  "max_guard_posts": 2,
+  "spacing_m": 4,         // between neighbours in a formation
+  "ring_m": 5,            // "ring": distance beyond the edge of the city
+  "react_m": 22,          // enemies this far beyond the city edge are fought by the nearest units
+  "leash_m": 30           // units dragged farther than this from their spot walk back
+}
+```
 
 Every personality shows up in the player list of the Play menu.
 

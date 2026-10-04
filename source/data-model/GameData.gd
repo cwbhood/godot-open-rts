@@ -236,6 +236,16 @@ static func player_colors():
 	)
 
 
+static func caps(map_scene_path = null):
+	"""match limits from data/caps.json; a map entry's "caps" object overrides single keys"""
+	var merged = get_data()["caps"].duplicate(true)
+	if map_scene_path != null:
+		for a_map in get_data()["maps"]:
+			if a_map.get("scene") == map_scene_path and a_map.get("caps") is Dictionary:
+				merged.merge(a_map["caps"], true)
+	return merged
+
+
 static func _convert(field, value):
 	match field:
 		"color", "icon_tint":
@@ -275,6 +285,7 @@ static func _load_all():
 		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
 		"voices": _parse_dict_file(BASE_DATA_DIR + "/sounds/voices.json"),
 		"voice_sets": _load_dir(BASE_DATA_DIR + "/sounds/voice_sets"),
+		"caps": _load_object_file(BASE_DATA_DIR + "/caps.json"),
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -293,6 +304,7 @@ static func _load_all():
 			data["roads"] = mod_roads
 		_merge_voices(data["voices"], _parse_dict_file(mod_dir + "/sounds/voices.json"))
 		_merge_voice_sets(data["voice_sets"], _load_dir(mod_dir + "/sounds/voice_sets"))
+		data["caps"].merge(_load_object_file(mod_dir + "/caps.json"), true)
 	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
@@ -400,6 +412,11 @@ static func _load_list_file(path, key):
 	if parsed == null:
 		return []
 	return parsed.get(key, [])
+
+
+static func _load_object_file(path):
+	var parsed = _parse_json_file(path)
+	return parsed if parsed is Dictionary else {}
 
 
 static func _load_dir(path):

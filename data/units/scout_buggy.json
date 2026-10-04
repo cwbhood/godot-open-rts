@@ -11,6 +11,7 @@
     "oil": 2
   },
   "build_time_s": 3.0,
+  "unit_slots": 1,
   "speed": 5.2,
   "properties": {
     "sight_range": 12.0,

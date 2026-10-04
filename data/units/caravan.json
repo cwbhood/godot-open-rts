@@ -11,6 +11,7 @@
   "tier": 1,
   "cost": {},
   "build_time_s": 0.0,
+  "unit_slots": 0,
   "speed": 3.2,
   "produced_by": [],
   "properties": {

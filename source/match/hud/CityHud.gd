@@ -334,6 +334,19 @@ func _refresh_city():
 	_population_label.text = tr("CITY_POPULATION").format(
 		[int(city.population), int(city.housing), "%+.2f" % city.growth_per_s]
 	)
+	_population_label.text += " " + tr("CITY_POPULATION_MAX").format([int(city.max_population)])
+	if city.is_at_population_cap():
+		var next_tier = city.tier + 1
+		_population_label.text += (
+			" "
+			+ (
+				tr("CITY_POPULATION_FULL").format(
+					[tr(city.get_tier_name(next_tier)), int(city.get_max_population(next_tier))]
+				)
+				if next_tier <= Constants.Match.Tech.TIERS.size()
+				else tr("CITY_POPULATION_FULL_LAST")
+			)
+		)
 	if city.trade_growth_boost > 0.0:
 		_population_label.text += " " + tr("CITY_TRADE_BOOST")
 	if not city.has_core():
