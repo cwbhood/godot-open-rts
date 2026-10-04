@@ -156,3 +156,4 @@ COMMAND_HOLD_OFF,Hold position: off
 COMMAND_PROMPT_FIGHT,"Fight: click where to go, or drag a line (Shift: queue, right-click: cancel)"
 COMMAND_PROMPT_PATROL,"Patrol: click a patrol point (Shift-click for more, right-click: cancel)"
 COMMAND_PROMPT_GUARD,"Guard: click one of your units or buildings (right-click: cancel)"
+CITY_BUILD_UP_SKIP,Building your city... press Space or click to skip
