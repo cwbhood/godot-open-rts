@@ -1,0 +1,26 @@
+{
+  "name": "line-orders",
+  "description": "Ported from tests/commands/CommandChecks.gd (line). Six tanks get a line order through the order handler, then a right-button drag with the virtual mouse, then a fight order across the map. They must spread out along each line, not clump.",
+  "map": "plain_and_simple",
+  "minutes": 2.5,
+  "speed": 2,
+  "fog": false,
+  "players": [{"type": "human"}, {"type": "ai", "personality": "turtle"}],
+  "setup": [
+    {"do": "spawn", "player": "own", "unit": "tank", "count": 6, "spot": {"of": "base", "offset": [10, 10]}, "expect_ok": true}
+  ],
+  "events": [
+    {"at": 2, "do": "line", "units": "own:tank", "from": {"of": "base", "offset": [7, 20]}, "to": {"of": "base", "offset": [25, 20]}, "expect_ok": true},
+    {"at": 40, "do": "screenshot", "name": "line-by-order"},
+    {"at": 45, "do": "line", "via": "mouse", "units": "own:tank", "from": {"of": "base", "offset": [7, 28]}, "to": {"of": "base", "offset": [25, 28]}, "expect_ok": true},
+    {"at": 85, "do": "screenshot", "name": "line-by-mouse-drag"},
+    {"at": 90, "do": "fight", "units": "own:tank", "to": {"of": "base", "offset": [16, 40]}, "expect_ok": true}
+  ],
+  "checks": [
+    {"at": 40, "name": "the line order spreads the tanks along the line", "expect": "on_line", "units": "own:tank", "from": {"of": "base", "offset": [7, 20]}, "to": {"of": "base", "offset": [25, 20]}, "within": 2.0, "min_spacing": 2.0},
+    {"at": 85, "name": "a right-button drag lines them up too", "expect": "on_line", "units": "own:tank", "from": {"of": "base", "offset": [7, 28]}, "to": {"of": "base", "offset": [25, 28]}, "within": 2.0, "min_spacing": 2.0},
+    {"at": 140, "name": "the fight order got them there", "expect": "near", "units": "own:tank", "to": {"of": "base", "offset": [16, 40]}, "radius": 8, "share": 0.8},
+    {"at": 140, "name": "and they did not end up in one clump", "expect": "spread", "units": "own:tank", "min_m": 1.2},
+    {"end": true, "expect": "no_errors"}
+  ]
+}

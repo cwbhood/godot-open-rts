@@ -1,0 +1,16 @@
+{
+  "name": "helper-never-attacks",
+  "description": "Ported from the playthrough bot's --helper=on mode and HelperChecks. The player's helper runs the economy and army against a raider for 10 minutes while the player does nothing. It must build up, and must never start a war or give an attack order.",
+  "map": "plain_and_simple",
+  "minutes": 10,
+  "speed": 4,
+  "players": [{"type": "human", "helper": true}, {"type": "ai", "personality": "raider"}],
+  "shots_every": 150,
+  "checks": [
+    {"always": true, "name": "the player's side never starts a war", "expect": "no_war_started_by", "player": "own"},
+    {"always": true, "name": "the helper never gives an attack order", "expect": "helper", "stat": "attack_orders", "max": 0},
+    {"at": 240, "name": "the helper put constructors to work", "expect": "helper", "stat": "constructors_ordered", "min": 1},
+    {"end": true, "name": "the helper built extractors", "expect": "built", "units": "own:structures", "min": 5},
+    {"end": true, "expect": "no_errors"}
+  ]
+}

@@ -29,6 +29,7 @@ const COLORS = {
 # action name -> what it does; the instant ones need no click on the map
 const MODES = ["fight", "patrol", "guard"]
 const INSTANT = ["patrol_base", "stop", "retreat", "fire_stance", "hold_position"]
+const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
 
 var mode = null  # "fight", "patrol" or "guard" while waiting for a click
 var last_preview_slots = []  # for tests: spots shown by the last drag preview
@@ -291,7 +292,7 @@ func _issued(command):
 
 func _process(_delta):
 	if _prompt.visible:
-		var mouse = get_viewport().get_mouse_position()
+		var mouse = VirtualPointer.get_position(get_viewport())
 		_prompt.position = mouse + Vector2(18, 14)
 	_mesh.clear_surfaces()
 	var drew = false

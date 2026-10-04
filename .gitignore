@@ -6,3 +6,4 @@ misc/
 build/
 build_info.json
 __pycache__/
+harness-out/

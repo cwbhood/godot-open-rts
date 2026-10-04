@@ -18,6 +18,7 @@ const TOPICS = [
 	"COMMANDS",
 	"AIRCRAFT",
 	"LIMITS",
+	"TESTING",
 ]
 
 var _topics = ItemList.new()

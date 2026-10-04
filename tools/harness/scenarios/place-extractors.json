@@ -1,0 +1,22 @@
+{
+  "name": "place-extractors",
+  "description": "Ported from the playthrough bot's opening and PlacementSurvey: hover each kind of deposit with a constructor selected and click, as the tooltip tells players. Guards the 'iron mines cannot be placed' bug (PR #9) on the map where it was found.",
+  "map": "oil_and_iron",
+  "minutes": 1.5,
+  "speed": 2,
+  "players": [{"type": "human"}, {"type": "ai", "personality": "balanced"}],
+  "setup": [
+    {"do": "give", "player": "own", "resources": {"timber": 200, "iron": 200, "copper": 200, "oil": 200}},
+    {"do": "extract", "resource": "iron", "expect_ok": true},
+    {"do": "extract", "resource": "iron", "expect_ok": true},
+    {"do": "extract", "resource": "copper", "expect_ok": true},
+    {"do": "extract", "resource": "timber", "expect_ok": true},
+    {"do": "extract", "resource": "oil", "expect_ok": true},
+    {"do": "build", "structure": "power_plant", "spot": {"of": "base", "offset": [9, -6]}, "expect_ok": true},
+    {"do": "screenshot", "name": "sites-placed"}
+  ],
+  "checks": [
+    {"at": 5, "name": "six sites were laid out", "expect": "timeline", "kind": "placement_refused", "max": 0},
+    {"end": true, "expect": "no_errors"}
+  ]
+}
