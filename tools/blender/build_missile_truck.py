@@ -22,8 +22,8 @@ import bpy  # noqa: E402
 import bmesh  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
 from mesh_kit import (  # noqa: E402
-    PALETTE, V, add, ellipsoid, export_glb, frame_from_dir, look_matrix, merge, parse_args,
-    pipe, rbox, render_views, rot_xyz, set_origin, stats, torus, tube,
+    GAME, PALETTE, V, add, ellipsoid, export_glb, extrude_x, frame_from_dir, look_matrix, merge,
+    parse_args, pipe, rbox, render_views, rot_xyz, set_origin, stats, torus, tube,
 )
 
 GAME_SCALE = 0.245
@@ -658,7 +658,8 @@ def launcher():
 # Front wheels
 # --------------------------------------------------------------------------
 
-def truck_tyre(group, centre, side, seg=56, prof=16, lugs=22):
+def tyre_carcass(group, centre, seg, prof):
+    """Superellipse-section tyre ring round the X axis."""
     rc, a, b, p = WHEEL_R - 0.17, 0.17, TYRE_W / 2, 4.0
     bm = bmesh.new()
     rings = []
@@ -679,6 +680,10 @@ def truck_tyre(group, centre, side, seg=56, prof=16, lugs=22):
             bm.faces.new((r0[j], r0[k], r1[k], r1[j]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     add(bm, "Tyre", group, True, Matrix.Translation(centre))
+
+
+def truck_tyre(group, centre, side, seg=56, prof=16, lugs=22):
+    tyre_carcass(group, centre, seg, prof)
     # chevron tread lugs, alternating sides
     for i in range(lugs * 2):
         th = 2 * math.pi * i / (lugs * 2)
@@ -702,24 +707,341 @@ def truck_tyre(group, centre, side, seg=56, prof=16, lugs=22):
                   rings=4)  # vent holes in the dish
 
 
+# --------------------------------------------------------------------------
+# Game mode: the same half-track in chunky, low-poly parts (about 4k tris, no decimation)
+# --------------------------------------------------------------------------
+
+def N(k):
+    """Segment count to pass to the kit so that it builds k segments after its game-mode cut."""
+    return int(math.ceil(k / GAME["segments"] - 1e-6))
+
+
+def g_cab():
+    rbox(V((0, (CAB_BACK + CAB_FRONT) / 2, (CAB_FLOOR + BELT) / 2)),
+         (2 * CAB_X, CAB_FRONT - CAB_BACK, BELT - CAB_FLOOR), "Olive", "body", bevel=0.06)
+    top_front = CAB_FRONT - 0.14
+    hull(sym([(CAB_X - 0.05, CAB_BACK + 0.04, BELT - 0.02), (CAB_X - 0.05, CAB_BACK + 0.04, ROOF),
+              (CAB_X - 0.05, CAB_FRONT - 0.02, BELT - 0.02), (CAB_X - 0.07, top_front, ROOF)]),
+         "Glass", "body")
+    fx = CAB_X - 0.03
+    for sx in (-1, 1):
+        x = sx * fx
+        a0, a1 = V((x, CAB_FRONT - 0.02, BELT)), V((sx * (fx - 0.02), top_front, ROOF))
+        rbox((a0 + a1) / 2, (0.13, 0.14, (a1 - a0).length), "Olive", "body",
+             rot=look_matrix(a0, a1))
+        for y in (0.35, CAB_BACK + 0.07):
+            rbox(V((x, y, (BELT + ROOF) / 2)), (0.13, 0.14, ROOF - BELT), "Olive", "body")
+        # chunky mirror on a stub arm
+        base = V((sx * (CAB_X + 0.02), CAB_FRONT - 0.05, BELT + 0.15))
+        rbox(base + V((sx * 0.12, 0, 0)), (0.26, 0.07, 0.07), "DarkMetal", "body")
+        rbox(base + V((sx * 0.27, 0.02, 0.15)), (0.08, 0.16, 0.32), "Olive", "body")
+    rake = math.degrees(math.atan2(CAB_FRONT - top_front, ROOF - BELT))
+    rbox(V((0, CAB_FRONT - 0.02, BELT + 0.04)), (2 * fx, 0.14, 0.1), "Olive", "body")
+    rbox(V((0, (CAB_FRONT + top_front) / 2 - 0.01, (BELT + ROOF) / 2)), (0.1, 0.11, ROOF - BELT),
+         "Olive", "body", rot=rot_xyz(rake, 0, 0))
+    rbox(V((0, CAB_BACK + 0.03, BELT + 0.12)), (2 * fx, 0.08, 0.26), "Olive", "body")
+    # big team-coloured roof cap overhanging the frame
+    rbox(V((0, (CAB_BACK + top_front) / 2 - 0.01, ROOF + 0.08)),
+         (2 * CAB_X + 0.12, top_front - CAB_BACK + 0.2, 0.22), "TeamColor", "body", bevel=0.4,
+         taper=0.95)
+
+
+def g_bonnet():
+    pts = []
+    for y in (CAB_FRONT - 0.02, NOSE_Y):
+        top = bonnet_z(y)
+        for x, z in ((0.84, 1.18), (0.84, top - 0.14), (0.76, top - 0.04), (0.5, top),
+                     (0.0, top + 0.01)):
+            pts += sym([(x, y, z)])
+    hull(pts, "Olive", "body", smooth=False)
+    # team-coloured panel over the bonnet top
+    pts = []
+    for y in (CAB_FRONT + 0.06, NOSE_Y - 0.06):
+        top = bonnet_z(y)
+        for x, z in ((0.7, top - 0.031), (0.5, top), (0.0, top + 0.01)):
+            pts += sym([(x, y, z + 0.03), (x, y, z - 0.05)])
+    hull(pts, "TeamColor", "body")
+    for sx in (-1, 1):  # louvre panel on each bonnet side
+        rbox(V((sx * 0.85, 1.72, 1.48)), (0.03, 0.42, 0.24), "Grille", "body")
+    # grille: frame, dark recess and three bold bars
+    gy = NOSE_Y + 0.03
+    rbox(V((0, gy, 1.36)), (1.24, 0.08, 0.84), "Olive", "body", bevel=0.12)
+    rbox(V((0, gy + 0.03, 1.36)), (1.0, 0.04, 0.66), "Grille", "body")
+    for i in range(3):
+        rbox(V((0, gy + 0.055, 1.14 + i * 0.22)), (0.98, 0.04, 0.07), "OliveDark", "body")
+    for sx in (-1, 1):
+        c = V((sx * 0.72, NOSE_Y, 1.6))
+        tube(c, c + V((0, 0.1, 0)), 0.13, 0.12, "OliveDark", "body", n=N(8), rings=1)
+        disc_y(c + V((0, 0.105, 0)), 0.095, "Lamp", "body")
+
+
+def disc_y(c, r, m, group, n=8):
+    """Flat n-gon facing +Y (a lamp lens)."""
+    bm = bmesh.new()
+    vs = [bm.verts.new((c.x + math.cos(2 * math.pi * k / n + math.pi / n) * r, c.y,
+                        c.z + math.sin(2 * math.pi * k / n + math.pi / n) * r)) for k in range(n)]
+    bm.faces.new(list(reversed(vs)))
+    return add(bm, m, group, False)
+
+
+def arch_band(hub, r0, r1, x0, x1, a0, a1, steps, m, group):
+    """Curved mudguard: an annulus sector round `hub` in the YZ plane, extruded from x0 to x1."""
+    outer = [(hub.y + math.cos(math.radians(a0 + (a1 - a0) * i / steps)) * r1,
+              hub.z + math.sin(math.radians(a0 + (a1 - a0) * i / steps)) * r1)
+             for i in range(steps + 1)]
+    inner = [(hub.y + math.cos(math.radians(a1 - (a1 - a0) * i / steps)) * r0,
+              hub.z + math.sin(math.radians(a1 - (a1 - a0) * i / steps)) * r0)
+             for i in range(steps + 1)]
+    return extrude_x(outer + inner, min(x0, x1), max(x0, x1), m, group)
+
+
+def g_fenders():
+    for sx in (-1, 1):
+        hub = V((sx * TRACK_X, FRONT_Y, WHEEL_R))
+        r_in = WHEEL_R + 0.1
+        x_in = sx * 0.72
+        arch_band(hub, r_in, r_in + 0.09, x_in, sx * 1.24, 8.0, 172.0, 7, "Olive", "body")
+        hull([V((x_in, FRONT_Y - 0.2, WHEEL_R + r_in)), V((x_in, FRONT_Y + 0.4, WHEEL_R + r_in - 0.1)),
+              V((x_in, FRONT_Y - 0.2, WHEEL_R + r_in + 0.06)),
+              V((sx * 0.84, CAB_FRONT, 1.25)), V((sx * 0.84, CAB_FRONT, 1.0)),
+              V((sx * CAB_X, CAB_FRONT, 1.0)), V((sx * CAB_X, CAB_FRONT, 1.15))], "Olive", "body")
+        rbox(V((sx * 1.08, 0.75, 0.68)), (0.34, 1.3, 0.08), "OliveDark", "body")
+        hull([V((sx * 0.75, CAB_FRONT, 0.68)), V((sx * 1.21, CAB_FRONT, 0.68)),
+              V((sx * 0.75, CAB_FRONT + 0.12, 0.68)), V((sx * 1.21, CAB_FRONT + 0.12, 0.68)),
+              V((sx * 0.75, CAB_FRONT, 1.05)), V((sx * 1.21, CAB_FRONT, 1.05))], "Olive", "body")
+
+
+def g_bumper():
+    by, bz = BUMPER_Y, 0.78
+    rbox(V((0, by, bz)), (2.3, 0.22, 0.28), "Olive", "body", bevel=0.15)
+    for sx in (-1, 1):
+        rbox(V((sx * 1.22, by - 0.12, bz)), (0.14, 0.3, 0.28), "Olive", "body",
+             rot=rot_xyz(0, 0, sx * 35), bevel=0)
+        rbox(V((sx * 0.45, (by + NOSE_Y) / 2 - 0.1, bz)), (0.14, by - NOSE_Y + 0.2, 0.18),
+             "OliveDark", "body", bevel=0)
+    rbox(V((0.35, by + 0.11, bz - 0.02)), (0.24, 0.05, 0.2), "DarkMetal", "body")
+
+
+def g_chassis():
+    for sx in (-1, 1):
+        rbox(V((sx * 0.45, (BUMPER_Y + BED_FRONT) / 2, 0.72)), (0.14, BUMPER_Y - BED_FRONT, 0.22),
+             "DarkMetal", "body", bevel=0)
+        rbox(V((sx * 0.62, FRONT_Y, 0.64)), (0.12, 1.0, 0.08), "DarkMetal", "body")
+    tube(V((-0.82, FRONT_Y, WHEEL_R)), V((0.82, FRONT_Y, WHEEL_R)), 0.08, 0.08, "DarkMetal",
+         "body", n=N(6), rings=1)
+    rbox(V((0.0, FRONT_Y, WHEEL_R)), (0.4, 0.36, 0.32), "DarkMetal", "body", bevel=0.2)
+    rbox(V((0, 2.1, 0.95)), (0.7, 1.1, 0.4), "DarkMetal", "body", bevel=0)
+    rbox(V((0, (CAB_BACK + CAB_FRONT) / 2, CAB_FLOOR - 0.04)), (2 * CAB_X - 0.1, CAB_FRONT -
+         CAB_BACK, 0.1), "DarkMetal", "body")
+
+
+def track_band(x, wheels, inner, outer, grouser, spacing, m, group):
+    """Continuous track round the wheels: one closed band with every other station raised
+    by `grouser`, so the flat-shaded outer face reads as chunky tread."""
+    bm = bmesh.new()
+    loops = []
+    for i, ((y, z), (ty, tz)) in enumerate(track_path(wheels, 0.0, spacing)):
+        p, out = V((0.0, y, z)), V((0.0, tz, -ty))
+        o = outer + (grouser if i % 2 else 0.0)
+        hw = TRK_W / 2
+        loops.append([bm.verts.new(V((x - hw, 0, 0)) + p + out * inner),
+                      bm.verts.new(V((x + hw, 0, 0)) + p + out * inner),
+                      bm.verts.new(V((x + hw - 0.03, 0, 0)) + p + out * o),
+                      bm.verts.new(V((x - hw + 0.03, 0, 0)) + p + out * o)])
+    for a, b in zip(loops, loops[1:] + loops[:1]):
+        for k in range(4):
+            j = (k + 1) % 4
+            bm.faces.new((a[k], a[j], b[j], b[k]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return add(bm, m, group, False)
+
+
+def g_road_wheel(c, r, sx):
+    axle_disc(c, r, 0.36, "Tyre", "body", n=N(8))
+    tube(c + V((sx * 0.16, 0, 0)), c + V((sx * 0.21, 0, 0)), r - 0.07, r - 0.1, "Olive", "body",
+         n=N(6), rings=1)
+
+
+def g_sprocket(c, r, sx, teeth=10):
+    prof = []
+    for i in range(teeth * 2):
+        a = 2 * math.pi * i / (teeth * 2)
+        rr = r + 0.03 if i % 2 else r - 0.07
+        prof.append((c.y + math.cos(a) * rr, c.z + math.sin(a) * rr))
+    extrude_x(prof, c.x - 0.15, c.x + 0.15, "Olive", "body")
+    tube(c + V((sx * 0.15, 0, 0)), c + V((sx * 0.24, 0, 0)), 0.13, 0.1, "OliveDark", "body",
+         n=N(8), rings=1)
+
+
+def g_tracks():
+    wheels = [SPROCKET, IDLER] + ROAD
+    for sx in (-1, 1):
+        x = sx * TRK_X
+        track_band(x, wheels, -0.005, 0.05, 0.03, 0.24, "Track", "body")
+        g_sprocket(V((x, SPROCKET[0], SPROCKET[1])), SPROCKET[2], sx)
+        g_road_wheel(V((x, IDLER[0], IDLER[1])), IDLER[2], sx)
+        for y, z, r in ROAD:
+            g_road_wheel(V((x, y, z)), r, sx)
+
+
+def g_bed():
+    rbox(V((0, (BED_BACK + BED_FRONT) / 2 + 0.05, 1.0)), (2 * 0.68, BED_FRONT - BED_BACK - 0.2,
+         0.6), "OliveDark", "body", bevel=0.1)
+    rbox(V((0, (BED_BACK + BED_FRONT) / 2, SKIRT_Z[1] - 0.03)),
+         (2 * SKIRT_X, BED_FRONT - BED_BACK, 0.08), "Olive", "body")
+    panels = [(-0.95, -0.35), (-1.95, -0.98), (-2.95, -1.98), (BED_BACK + 0.02, -2.98)]
+    z0, z1 = SKIRT_Z
+    for sx in (-1, 1):
+        for i, (y0, y1) in enumerate(panels):
+            rbox(V((sx * SKIRT_X, (y0 + y1) / 2, (z0 + z1) / 2)), (0.08, y1 - y0, z1 - z0),
+                 "Olive", "body")
+        hull([V((sx * (SKIRT_X - 0.04), -0.35, z1)), V((sx * (SKIRT_X + 0.04), -0.35, z1)),
+              V((sx * (SKIRT_X - 0.04), -0.35, z0 + 0.1)), V((sx * (SKIRT_X + 0.04), -0.35, z0 + 0.1)),
+              V((sx * (SKIRT_X - 0.04), 0.02, z1)), V((sx * (SKIRT_X + 0.04), 0.02, z1)),
+              V((sx * (SKIRT_X - 0.04), 0.08, 1.02)), V((sx * (SKIRT_X + 0.04), 0.08, 1.02))],
+             "Olive", "body")
+        hull([V((sx * 0.68, 0.02, z1)), V((sx * 0.68, 0.08, 1.02)), V((sx * SKIRT_X, 0.02, z1)),
+              V((sx * SKIRT_X, 0.08, 1.02)), V((sx * 0.68, -0.05, z1)),
+              V((sx * SKIRT_X, -0.05, z1))], "Olive", "body")
+        rbox(V((sx * 0.95, BED_BACK + 0.03, (z0 + z1) / 2)), (0.5, 0.08, z1 - z0), "Olive",
+             "body")
+    # raised bed box: open top, walls round a floor, dark rims
+    t = 0.09
+    yc, ly = (BED_BACK + BED_FRONT) / 2, BED_FRONT - BED_BACK
+    hz = BED_TOP - SKIRT_Z[1]
+    zc = SKIRT_Z[1] + hz / 2
+    for sx in (-1, 1):
+        rbox(V((sx * (BED_X - t / 2), yc, zc)), (t, ly, hz), "Olive", "body")
+        rbox(V((sx * BED_X, yc, BED_TOP)), (0.12, ly + 0.04, 0.06), "OliveDark", "body")
+        rbox(V((sx * 0.7, BED_BACK - 0.01, BED_TOP - 0.18)), (0.14, 0.05, 0.1), "Grille", "body")
+    for y in (BED_BACK + t / 2, BED_FRONT - t / 2):
+        rbox(V((0, y, zc)), (2 * BED_X, t, hz), "Olive", "body")
+        rbox(V((0, y, BED_TOP)), (2 * BED_X + 0.04, 0.12, 0.06), "OliveDark", "body")
+    rbox(V((0, BED_BACK - 0.06, 1.0)), (0.22, 0.16, 0.16), "DarkMetal", "body")
+    # tall stowage locker behind the cab with a team-coloured lid
+    rbox(V((0.48, BED_FRONT - 0.32, 2.12)), (0.72, 0.5, 0.6), "Olive", "body", bevel=0.08)
+    rbox(V((0.48, BED_FRONT - 0.32, 2.45)), (0.78, 0.56, 0.08), "TeamColor", "body")
+
+
+def g_stowage():
+    shelf = SKIRT_Z[1]
+    xs = (BED_X + SKIRT_X) / 2 + 0.02
+    for sx in (-1, 1):
+        for y, size in ((-1.25, (0.62, 0.44, 0.34)), (-2.05, (0.52, 0.42, 0.28)),
+                        (-2.7, (0.58, 0.44, 0.34))):  # ammo crates, world-axis sizes
+            rbox(V((sx * xs, y, shelf + size[2] / 2)), size, "AmmoBox", "body", bevel=0)
+        rbox(V((sx * xs, -2.05, shelf + 0.38)), (0.42, 0.36, 0.2), "AmmoBox", "body", bevel=0)
+        rbox(V((sx * (xs + 0.01), -0.58, shelf + 0.24)), (0.17, 0.35, 0.47), "Jerry",
+             "body", bevel=0)
+        rbox(V((sx * xs, BED_BACK + 0.32, shelf + 0.24)), (0.17, 0.35, 0.47), "Jerry",
+             "body", bevel=0)
+    rbox(V((-0.5, BED_FRONT - 0.3, shelf + 0.24)), (0.35, 0.17, 0.47), "Jerry", "body", bevel=0)
+
+
+def g_pedestal():
+    c = TT
+    tube(V((c.x, c.y, SKIRT_Z[1])), c - V((0, 0, 0.1)), 0.62, 0.6, "Olive", "body", n=N(12),
+         rings=1)
+    tube(c - V((0, 0, 0.12)), c, 0.72, 0.72, "OliveDark", "body", n=N(12), rings=1)
+
+
+def g_missile(tail, d, group):
+    d = d.normalized()
+    length, r = 2.75, 0.1
+    u = d.cross(V((1, 0, 0))).normalized()
+    v = d.cross(u).normalized()
+    nose0 = tail + d * (length - 0.5)
+    tube(tail, nose0, r, r, "Olive", group, n=N(8), rings=1, roll=math.pi / 8)
+    ellipsoid(nose0, (r, r, 0.5), "Olive", group, seg=N(8), rings=8,
+              rot=look_matrix(tail, nose0) @ rot_xyz(0, 0, 22.5), cut=0.0)
+    tube(tail - d * 0.1, tail, r * 0.75, r, "DarkMetal", group, n=N(6), rings=1)
+    p = tail + d * 1.0
+    tube(p, p + d * 0.12, r + 0.012, r + 0.012, "Band", group, n=N(8), rings=1,
+         roll=math.pi / 8)
+
+    def fins(at, root, tip_back, span, thick, sweep_back):
+        for k in range(4):
+            a = math.radians(45 + 90 * k)
+            out = u * math.cos(a) + v * math.sin(a)
+            side = d.cross(out).normalized() * thick / 2
+            root_f = at + out * r * 0.9
+            root_b = at - d * root + out * r * 0.9
+            tip_f = at - d * sweep_back + out * (r + span)
+            tip_b = at - d * (sweep_back + tip_back) + out * (r + span)
+            hull([q + s for q in (root_f, root_b, tip_f, tip_b) for s in (side, -side)], "Olive",
+                 group)
+
+    fins(tail + d * 1.62, 0.36, 0.06, 0.13, 0.04, 0.3)
+    fins(tail + d * 0.36, 0.32, 0.12, 0.16, 0.04, 0.18)
+
+
+def g_launcher():
+    g = "launcher"
+    c = TT
+    tube(c, c + V((0, 0, 0.18)), 0.55, 0.55, "OliveDark", g, n=N(12), rings=1)
+    tube(c + V((0, 0, 0.16)), V((c.x, c.y, DISK_Z)), 0.4, 0.4, "Olive", g, n=N(8), rings=1)
+    disk0 = V((c.x, c.y, DISK_Z))
+    tube(disk0, disk0 + V((0, 0, 0.1)), 0.98, 0.98, "Olive", g, n=N(16), rings=1)
+    # team-coloured top of the turntable under the cross ribs
+    tube(disk0 + V((0, 0, 0.09)), disk0 + V((0, 0, 0.12)), 0.88, 0.88, "TeamColor", g,
+         n=N(16), rings=1)
+    for yaw in (0, 90):
+        rbox(disk0 + V((0, 0, 0.14)), (1.7, 0.12, 0.06), "OliveDark", g, rot=rot_xyz(0, 0, yaw))
+    tube(disk0 + V((0, 0, 0.1)), disk0 + V((0, 0, 0.22)), 0.24, 0.22, "OliveDark", g, n=N(8),
+         rings=1)
+    a = math.radians(ELEV)
+    d = V((0, -math.cos(a), math.sin(a)))
+    n = V((0, math.sin(a), math.cos(a)))
+    for sx in (-1, 1):
+        x = sx * MISSILE_X
+        pivot = V((x, c.y + 0.1, DISK_Z + 0.62))
+        base = V((x, c.y + 0.1, DISK_Z + 0.1))
+        for dx in (-0.11, 0.11):
+            hull([base + V((dx + s, yy, 0)) for s in (-0.03, 0.03) for yy in (-0.24, 0.24)] +
+                 [pivot + V((dx + s, yy, zz)) for s in (-0.03, 0.03) for yy in (-0.08, 0.08)
+                  for zz in (-0.07, 0.07)], "Olive", g)
+        rbox(base + V((0, 0, 0.04)), (0.36, 0.58, 0.1), "OliveDark", g)
+        tube(pivot - V((0.17, 0, 0)), pivot + V((0.17, 0, 0)), 0.06, 0.06, "Steel", g, n=N(6),
+             rings=1)
+        rail_c = pivot - d * 0.05 + n * 0.08
+        rbox(rail_c, (0.14, 1.5, 0.12), "OliveDark", g, rot=frame_from_dir(d, n))
+        for t in (-0.55, 0.25):
+            rbox(rail_c + d * t + n * 0.1, (0.1, 0.1, 0.12), "OliveDark", g,
+                 rot=frame_from_dir(d, n))
+        ram0 = V((x, c.y + 0.75, DISK_Z + 0.1))
+        ram1 = rail_c + d * 0.55 - n * 0.04
+        tube(ram0, ram0 + (ram1 - ram0) * 0.55, 0.065, 0.065, "OliveDark", g, n=N(6), rings=1)
+        tube(ram0 + (ram1 - ram0) * 0.5, ram1, 0.04, 0.04, "Steel", g, n=N(6), rings=1)
+        rbox(ram0, (0.16, 0.16, 0.1), "OliveDark", g)
+        g_missile(rail_c - d * 0.75 + n * 0.21, d, g)
+
+
+def g_truck_tyre(group, centre, side):
+    tyre_carcass(group, centre, 12, 8)
+    out = V((side, 0, 0))
+    tube(centre - out * 0.12, centre + out * 0.12, 0.27, 0.27, "Olive", group, n=N(10), rings=1)
+    tube(centre + out * 0.12, centre + out * 0.19, 0.14, 0.1, "OliveDark", group, n=N(8),
+         rings=1)
+
+
 def main():
     args = parse_args({"out": "assets/models/ironbound/units/missile_truck.glb", "render": None})
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    cab()
-    bonnet()
-    fenders()
-    bumper()
-    chassis()
-    tracks()
-    bed()
-    stowage()
-    pedestal()
-    launcher()
+    if GAME["enabled"]:  # chunky low-poly parts
+        builders = (g_cab, g_bonnet, g_fenders, g_bumper, g_chassis, g_tracks, g_bed, g_stowage,
+                    g_pedestal, g_launcher)
+        build_tyre = g_truck_tyre
+    else:  # the original showcase model
+        builders = (cab, bonnet, fenders, bumper, chassis, tracks, bed, stowage, pedestal,
+                    launcher)
+        build_tyre = truck_tyre
+    for build in builders:
+        build()
     hubs = {}
     for side, tag in ((-1, "L"), (1, "R")):
         name = f"Wheel_F{tag}"
         hubs[name] = V((side * TRACK_X, FRONT_Y, WHEEL_R))
-        truck_tyre(name, hubs[name], side)
+        build_tyre(name, hubs[name], side)
     objects = []
     body, _ = merge("Body", groups={"body"})
     objects.append(body)

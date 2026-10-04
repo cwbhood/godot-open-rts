@@ -22,7 +22,7 @@ import bpy  # noqa: E402
 import bmesh  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
 from mesh_kit import (  # noqa: E402
-    PALETTE, V, add, ellipsoid, export_glb, extrude_x, frame_from_dir, merge, parse_args,
+    GAME, PALETTE, V, add, ellipsoid, export_glb, extrude_x, frame_from_dir, merge, parse_args,
     pipe, rbox, render_views, rot_xyz, set_origin, stats, torus, tube,
 )
 
@@ -300,7 +300,7 @@ def skirts():
 # Turret
 # --------------------------------------------------------------------------
 
-def turret_body():
+def turret_body(segments=2):
     """Angular turret prism from TURRET_PLAN with the roof inset; returns side quads."""
     z0, z1 = TURRET_Z
     cx = sum(p[0] for p in TURRET_PLAN) / len(TURRET_PLAN)
@@ -317,7 +317,7 @@ def turret_body():
         j = (i + 1) % n
         bm.faces.new((vb[i], vb[j], vt[j], vt[i]))
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=0.035, segments=2, affect="EDGES",
+    bmesh.ops.bevel(bm, geom=bm.edges[:], offset=0.035, segments=segments, affect="EDGES",
                     profile=0.5, clamp_overlap=True)
     add(bm, "Olive", "turret", False)
     centre = V((cx, cy, (z0 + z1) / 2))
@@ -526,17 +526,329 @@ def turret():
     gun()
     turret_details()
 
+# --------------------------------------------------------------------------
+# Game mode (Foundry League kit; the same block is in build_tank.py and
+# build_heavy_tank.py so the two tanks share palette, tracks and wheels)
+# --------------------------------------------------------------------------
+
+FOUNDRY_PALETTE = {
+    "TeamColor": ((0.22, 0.42, 0.78), 0.55, 0.0),
+    "Olive": ((0.27, 0.30, 0.18), 0.75, 0.0),
+    "OliveDark": ((0.19, 0.21, 0.13), 0.8, 0.0),
+    "OliveWorn": ((0.36, 0.38, 0.27), 0.85, 0.0),
+    "Track": ((0.14, 0.14, 0.14), 0.75, 0.4),
+    "Rubber": ((0.08, 0.08, 0.08), 0.9, 0.0),
+    "DarkMetal": ((0.12, 0.12, 0.13), 0.5, 0.6),
+    "Gunmetal": ((0.21, 0.22, 0.22), 0.45, 0.6),
+    "Bore": ((0.03, 0.03, 0.03), 0.9, 0.0),
+}
+
+
+def foundry_game_setup():
+    """Segment counts in the game builders are exact; colours stay olive drab, not lime."""
+    GAME.update({"segments": 1.0, "min_segments": 3, "saturate": 0.95})
+    PALETTE.update(FOUNDRY_PALETTE)
+
+
+def _unit2(v):
+    d = math.hypot(v[0], v[1]) or 1.0
+    return (v[0] / d, v[1] / d)
+
+
+def band_track(x, width, circles, thick, grouser, pitch, group, seg=12):
+    """One continuous track belt round the given (y, z, r) wheels: a closed band of
+    thickness `thick` plus grouser ridges every `pitch` (none on the hidden top run)."""
+    pts = []
+    for y, z, r in circles:
+        for k in range(seg):
+            a = 2 * math.pi * k / seg
+            pts.append((round(y + math.cos(a) * r, 5), round(z + math.sin(a) * r, 5)))
+    inner = convex_hull(pts)  # counter-clockwise in (y, z)
+    n = len(inner)
+    outer = []
+    for i in range(n):
+        a, b, c = inner[i - 1], inner[i], inner[(i + 1) % n]
+        n1 = _unit2((b[1] - a[1], -(b[0] - a[0])))
+        n2 = _unit2((c[1] - b[1], -(c[0] - b[0])))
+        m = _unit2((n1[0] + n2[0], n1[1] + n2[1]))
+        s = thick / max(0.5, m[0] * n1[0] + m[1] * n1[1])
+        outer.append((b[0] + m[0] * s, b[1] + m[1] * s))
+    bm = bmesh.new()
+    x0, x1 = x - width / 2, x + width / 2
+    rings = [[bm.verts.new((x0, *inner[i])), bm.verts.new((x1, *inner[i])),
+              bm.verts.new((x1, *outer[i])), bm.verts.new((x0, *outer[i]))] for i in range(n)]
+    for i in range(n):
+        A, B = rings[i], rings[(i + 1) % n]
+        for k in range(4):
+            bm.faces.new((A[k], A[(k + 1) % 4], B[(k + 1) % 4], B[k]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    add(bm, "Track", group, smooth=False)
+    segs = list(zip(outer, outer[1:] + outer[:1]))
+    total = sum(math.dist(a, b) for a, b in segs)
+    count = max(4, round(total / pitch))
+    step = total / count
+    i, acc = 0, 0.0
+    for k in range(count):
+        d = (k + 0.5) * step
+        while acc + math.dist(*segs[i]) < d:
+            acc += math.dist(*segs[i])
+            i += 1
+        a, b = segs[i]
+        ln = math.dist(a, b)
+        t = (d - acc) / ln
+        ty, tz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+        ny, nz = tz, -ty  # outward
+        if nz > 0.5:
+            continue  # top run, hidden under the fenders
+        p = (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+        c = V((x, p[0] + ny * (grouser / 2 - 0.005), p[1] + nz * (grouser / 2 - 0.005)))
+        rbox(c, (width - 0.06, 0.08, grouser + 0.01), "Track", group,
+             rot=rot_xyz(math.degrees(math.atan2(tz, ty)), 0, 0), bevel=0.0)
+
+
+def chunky_wheel(c, r, width, out, group, n=12, cap=True):
+    """Road wheel: a rubber drum, an olive hub disc proud of the outer face and a cap."""
+    tube(c - V((width / 2, 0, 0)), c + V((width / 2, 0, 0)), r, r, "Rubber", group, n=n)
+    face = c + V((out * (width / 2 - 0.01), 0, 0))
+    tube(face, face + V((out * 0.05, 0, 0)), r * 0.8, r * 0.74, "OliveDark", group, n=n)
+    if cap:
+        tube(face + V((out * 0.04, 0, 0)), face + V((out * 0.1, 0, 0)), r * 0.3, r * 0.24,
+             "Gunmetal", group, n=6)
+
+
+def chunky_sprocket(c, r, width, out, group, teeth=8):
+    """Drive sprocket: a dark drum with chunky teeth and the same hub as the wheels."""
+    tube(c - V((width / 2, 0, 0)), c + V((width / 2, 0, 0)), r - 0.03, r - 0.03, "DarkMetal",
+         group, n=teeth * 2)
+    xo = out * (width / 2 - 0.06)
+    for i in range(teeth):
+        a = 2 * math.pi * (i + 0.5) / teeth
+        q = c + V((xo, math.cos(a) * (r - 0.02), math.sin(a) * (r - 0.02)))
+        rbox(q, (0.12, 0.1, 0.14), "DarkMetal", group,
+             rot=rot_xyz(math.degrees(a) - 90, 0, 0), bevel=0.0)
+    face = c + V((out * (width / 2 - 0.01), 0, 0))
+    tube(face, face + V((out * 0.05, 0, 0)), r * 0.66, r * 0.6, "OliveDark", group, n=10)
+    tube(face + V((out * 0.04, 0, 0)), face + V((out * 0.1, 0, 0)), r * 0.3, r * 0.24,
+         "Gunmetal", group, n=6)
+
+
+def game_setup_heavy():
+    foundry_game_setup()
+    GAME["max_tris"] = 5200  # bigger unit, a little more budget; built to stay under it
+    PALETTE["Lamp"] = ((0.85, 0.82, 0.70), 0.4, 0.0)  # no emission: folds into Body
+    PALETTE["Glass"] = ((0.10, 0.13, 0.15), 0.3, 0.2)
+
+
+def game_running_gear():
+    for sx in (-1, 1):
+        x = sx * TRACK_X
+        circles = [(y, WHEEL_Z, WHEEL_R + 0.01) for y in (ROAD_WHEELS[0], ROAD_WHEELS[-1])]
+        circles += [(SPROCKET[0], SPROCKET[1], SPROCKET[2] + 0.01),
+                    (IDLER[0], IDLER[1], IDLER[2] + 0.01)]
+        band_track(x, TRACK_W, circles, 0.08, 0.035, 0.44, "hull")
+        for y in ROAD_WHEELS:
+            chunky_wheel(V((x, y, WHEEL_Z)), WHEEL_R, 0.48, sx, "hull", n=8, cap=False)
+        chunky_wheel(V((x, IDLER[0], IDLER[1])), IDLER[2], 0.48, sx, "hull", n=10)
+        chunky_sprocket(V((x, SPROCKET[0], SPROCKET[1])), SPROCKET[2], 0.5, sx, "hull")
+
+
+def game_hull():
+    extrude_x([(-3.7, 0.38), (3.15, 0.38), (3.95, 1.0), (3.95, 1.3), (-3.7, 1.3)], -1.2, 1.2,
+              "OliveDark", "hull", bevel=0.04)
+    extrude_x([(-3.88, 1.26), (3.72, 1.26), (3.98, 1.36), (2.75, DECK), (-3.88, DECK)],
+              -1.97, 1.97, "Olive", "hull", bevel=0.05)
+    glacis = -math.degrees(math.atan2(DECK - 1.36, 3.98 - 2.75))
+    rbox(V((0, 3.35, 1.55)), (1.6, 1.05, 0.1), "OliveWorn", "hull", rot=rot_xyz(glacis, 0, 0))
+    rbox(V((0, 3.62, 0.72)), (1.1, 0.06, 0.4), "Olive", "hull", rot=rot_xyz(-52, 0, 0))
+    for x in (-0.82, 0.82):
+        rbox(V((x, 3.98, 1.1)), (0.2, 0.16, 0.2), "DarkMetal", "hull", bevel=0.2)
+    tube(V((0, 2.25, DECK)), V((0, 2.25, DECK + 0.08)), 0.34, 0.32, "OliveDark", "hull", n=10)
+    rbox(V((0, 2.66, DECK + 0.07)), (0.5, 0.14, 0.14), "OliveDark", "hull")
+    for sx in (-1, 1):
+        lamp_c = V((sx * 1.6, 3.62, DECK + 0.1))
+        rbox(lamp_c, (0.3, 0.2, 0.2), "OliveDark", "hull", bevel=0.2)
+        rbox(lamp_c + V((0, 0.1, 0)), (0.18, 0.04, 0.12), "Lamp", "hull")
+        rbox(V((sx * 1.55, 2.55, DECK + 0.18)), (0.56, 0.64, 0.36), "OliveDark", "hull",
+             bevel=0.1)
+        for y in (-0.6, 0.9):
+            rbox(V((sx * 1.62, y, DECK + 0.1)), (0.42, 0.5, 0.2), "OliveDark", "hull",
+                 bevel=0.0)
+        rbox(V((sx * 1.4, -3.92, 1.45)), (0.42, 0.1, 0.28), "DarkMetal", "hull")
+    # engine deck: one dark grille, two access panels
+    rbox(V((0, -3.05, DECK + 0.01)), (2.2, 1.1, 0.03), "DarkMetal", "hull")
+    for x in (-0.6, 0.6):
+        rbox(V((x, -1.95, DECK + 0.025)), (0.9, 0.5, 0.05), "OliveDark", "hull")
+    rbox(V((0, -3.95, 1.1)), (1.4, 0.2, 0.4), "OliveDark", "hull", bevel=0.12)
+
+
+def game_skirts():
+    for sx in (-1, 1):
+        x = sx * 1.97
+        y0, y1 = -3.78, 1.9
+        n = 5
+        pw = (y1 - y0) / n
+        for i in range(n):
+            c = V((x, y0 + pw * (i + 0.5), 1.0 - 0.03 * (i % 2)))
+            rbox(c, (0.2, pw - 0.05, 1.0), "Olive", "hull", bevel=0.08)
+        rbox(V((x + sx * 0.115, (y0 + y1) / 2, 1.2)), (0.03, y1 - y0 - 0.12, 0.3),
+             "TeamColor", "hull")
+        rbox(V((x, -0.95, 1.53)), (0.24, 5.72, 0.1), "OliveDark", "hull")  # top rail
+        # front fender block over the idler, the team band carried along it
+        extrude_x([(1.9, 0.52), (3.3, 0.52), (3.85, 0.98), (3.85, 1.56), (1.9, 1.56)],
+                  min(x - sx * 0.42, x + sx * 0.04), max(x - sx * 0.42, x + sx * 0.04),
+                  "Olive", "hull", bevel=0.05)
+        rbox(V((x + sx * 0.055, 2.8, 1.2)), (0.03, 1.6, 0.3), "TeamColor", "hull")
+
+
+def game_plate(quad, nrm, shrink=0.12):
+    """Plain team-coloured armour plate with chamfered corners on a turret face."""
+    b0, b1, t1, t0 = quad
+    corners = [b0.lerp(t1, shrink * 0.7), b1.lerp(t0, shrink * 0.7),
+               t1.lerp(b0, shrink * 0.7), t0.lerp(b1, shrink * 0.7)]
+    pts = []
+    for i in range(4):
+        a, b, c = corners[i - 1], corners[i], corners[(i + 1) % 4]
+        pts.append(b + (a - b) * 0.14)
+        pts.append(b + (c - b) * 0.14)
+    bm = bmesh.new()
+    back = [bm.verts.new(p - nrm * 0.01) for p in pts]
+    front = [bm.verts.new(p + nrm * 0.05) for p in pts]
+    bm.faces.new(back)
+    bm.faces.new(front)
+    k = len(pts)
+    for i in range(k):
+        j = (i + 1) % k
+        bm.faces.new((back[i], back[j], front[j], front[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    add(bm, "TeamColor", "turret", False)
+
+
+def game_roof_plate(scale=0.72):
+    """Team-coloured plate covering most of the turret roof."""
+    z1 = TURRET_Z[1]
+    cx = sum(p[0] for p in TURRET_PLAN) / len(TURRET_PLAN)
+    cy = sum(p[1] for p in TURRET_PLAN) / len(TURRET_PLAN)
+    plan = [(cx + (x - cx) * 0.9 * scale, cy + (y - cy) * 0.92 * scale) for x, y in TURRET_PLAN]
+    bm = bmesh.new()
+    lo = [bm.verts.new((x, y, z1 - 0.01)) for x, y in plan]
+    hi = [bm.verts.new((x, y, z1 + 0.045)) for x, y in plan]
+    bm.faces.new(lo)
+    bm.faces.new(hi)
+    k = len(plan)
+    for i in range(k):
+        j = (i + 1) % k
+        bm.faces.new((lo[i], lo[j], hi[j], hi[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    add(bm, "TeamColor", "turret", False)
+
+
+def game_gun():
+    z = GUN_Z
+    rbox(V((0, 2.12, z)), (0.86, 0.5, 0.62), "Olive", "turret", bevel=0.12)  # mantlet
+    rbox(V((0, 2.4, z)), (0.62, 0.3, 0.46), "OliveDark", "turret", bevel=0.15)
+    tube(V((0, 2.5, z)), V((0, 3.35, z)), 0.25, 0.22, "Olive", "turret", n=10)
+    tube(V((0, 3.35, z)), V((0, 3.5, z)), 0.22, 0.19, "OliveDark", "turret", n=10)
+    tube(V((0, 3.5, z)), V((0, 7.0, z)), 0.17, 0.15, "Olive", "turret", n=10)
+    tube(V((0, 4.35, z)), V((0, 5.25, z)), 0.2, 0.2, "OliveDark", "turret", n=10, rings=2,
+         bulge=0.04)  # bore evacuator
+    rbox(V((0, 7.2, z)), (0.48, 0.5, 0.44), "Gunmetal", "turret", bevel=0.2)  # muzzle brake
+    tube(V((0, 7.44, z)), V((0, 7.52, z)), 0.2, 0.19, "Gunmetal", "turret", n=10)
+    tube(V((0, 7.5, z)), V((0, 7.525, z)), 0.12, 0.12, "Bore", "turret", n=8)
+    for sx in (-1, 1):
+        rbox(V((sx * 0.235, 7.2, z)), (0.03, 0.28, 0.26), "Bore", "turret", bevel=0.0)
+
+
+def game_turret_details():
+    top = TURRET_Z[1]
+    tube(V((RING.x, RING.y, DECK - 0.02)), V((RING.x, RING.y, DECK + 0.06)), 1.32, 1.3,
+         "OliveDark", "turret", n=12)
+    # commander's cupola with a pintle machine gun
+    cup = V((0.72, -0.75, top))
+    tube(cup, cup + V((0, 0, 0.2)), 0.37, 0.34, "OliveDark", "turret", n=10)
+    tube(cup + V((0, 0, 0.2)), cup + V((0, 0, 0.27)), 0.3, 0.27, "Olive", "turret", n=10)
+    mg = cup + V((-0.05, 0.3, 0.2))
+    tube(mg, mg + V((0, 0, 0.18)), 0.04, 0.04, "DarkMetal", "turret", n=6)
+    recv = mg + V((0, 0.05, 0.25))
+    rbox(recv, (0.14, 0.44, 0.15), "DarkMetal", "turret")
+    tube(recv + V((0, 0.2, 0)), recv + V((0, 0.85, 0)), 0.045, 0.04, "DarkMetal", "turret", n=6)
+    rbox(recv + V((-0.15, 0.02, -0.03)), (0.18, 0.24, 0.18), "OliveDark", "turret")
+    # gunner's sight: armoured box with a dark window
+    sight = V((-0.62, 0.75, top + 0.24))
+    rbox(sight, (0.5, 0.55, 0.48), "Olive", "turret", bevel=0.1)
+    rbox(sight + V((0, 0.28, 0.04)), (0.36, 0.03, 0.26), "Glass", "turret", bevel=0.0)
+    # loader's hatch
+    tube(V((-0.62, -1.05, top)), V((-0.62, -1.05, top + 0.09)), 0.3, 0.28, "OliveDark",
+         "turret", n=10)
+    # coax machine gun beside the mantlet
+    rbox(V((0.62, 2.0, GUN_Z + 0.22)), (0.2, 0.4, 0.18), "DarkMetal", "turret", bevel=0.15)
+    tube(V((0.62, 2.2, GUN_Z + 0.22)), V((0.62, 2.75, GUN_Z + 0.22)), 0.045, 0.04,
+         "DarkMetal", "turret", n=6)
+    # searchlight on the right cheek and antenna at the rear
+    sl = V((1.2, 0.65, top + 0.2))
+    tube(sl + V((0, 0, -0.22)), sl + V((0, 0, -0.08)), 0.05, 0.05, "DarkMetal", "turret", n=6)
+    tube(sl + V((0, -0.14, 0)), sl + V((0, 0.12, 0)), 0.15, 0.16, "OliveDark", "turret", n=10)
+    tube(sl + V((0, 0.12, 0)), sl + V((0, 0.14, 0)), 0.12, 0.12, "Lamp", "turret", n=10)
+    ant = V((-0.35, -1.75, top))
+    tube(ant, ant + V((0, 0, 0.14)), 0.08, 0.07, "DarkMetal", "turret", n=6)
+    tube(ant + V((0, 0, 0.14)), ant + V((0, 0, 1.15)), 0.03, 0.03, "DarkMetal", "turret", n=4)
+    # smoke dischargers on the rear corners of the cheeks
+    for sx in (-1, 1):
+        base = V((sx * 1.45, -1.55, top - 0.12))
+        rbox(base, (0.14, 0.44, 0.24), "OliveDark", "turret")
+        for i in range(2):
+            p = base + V((sx * 0.06, -0.1 + i * 0.2, 0.05))
+            tube(p, p + V((sx * 0.18, 0.06, 0.1)), 0.05, 0.05, "OliveDark", "turret", n=6)
+    # stowage on the bustle: a row of crates at the back, a stack on the left rear, one on top
+    for x in (-0.82, -0.27, 0.28, 0.83):
+        rbox(V((x, -2.55, 1.98)), (0.52, 0.44, 0.42), "OliveDark", "turret", bevel=0.08)
+    for x in (-0.82, -0.27, 0.28):
+        rbox(V((x, -2.55, 2.4)), (0.52, 0.44, 0.42), "Olive", "turret", bevel=0.08)
+    rbox(V((-1.72, -1.7, 2.21)), (0.38, 0.96, 0.84), "OliveDark", "turret", bevel=0.08)
+    rbox(V((0.95, -1.95, top + 0.2)), (0.46, 0.62, 0.4), "OliveDark", "turret",
+         rot=rot_xyz(0, 0, 8), bevel=0.08)
+
+
+def game_turret():
+    quads = turret_body(segments=1)
+    for i in (1, 2, 6, 7):  # cheeks and sides
+        q, nrm = quads[i]
+        game_plate(q, nrm)
+    game_roof_plate()
+    game_gun()
+    game_turret_details()
+
+
+def preview_sheet(render_dir, out):
+    try:
+        from PIL import Image
+    except ImportError:
+        return
+    names = ["three_quarter", "side", "front", "back"]
+    ims = [Image.open(os.path.join(render_dir, f"{n}.png")).convert("RGB") for n in names]
+    w, h = ims[0].size
+    sheet = Image.new("RGB", (w * 2, h * 2), (235, 235, 235))
+    for i, im in enumerate(ims):
+        sheet.paste(im, ((i % 2) * w, (i // 2) * h))
+    sheet.save(out)
+
 
 def main():
     args = parse_args({"out": "assets/models/ironbound/units/heavy_tank.glb", "render": None})
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    running_gear()
-    hull()
-    skirts()
-    for _ in range(14):
-        scratch(V((rng.uniform(-1.8, 1.8), rng.uniform(-3.6, 2.6), DECK)), (0, 0, 1), "hull",
-                rng.uniform(0.15, 0.4))
-    turret()
+    if GAME["enabled"]:
+        game_setup_heavy()
+        game_running_gear()
+        game_hull()
+        game_skirts()
+        game_turret()
+    else:
+        running_gear()
+        hull()
+        skirts()
+        for _ in range(14):
+            scratch(V((rng.uniform(-1.8, 1.8), rng.uniform(-3.6, 2.6), DECK)), (0, 0, 1),
+                    "hull", rng.uniform(0.15, 0.4))
+        turret()
     body, _ = merge("Hull", groups={"hull"})
     top, _ = merge("Turret", groups={"turret"})
     set_origin(top, RING)
@@ -556,6 +868,7 @@ def main():
             ("front", 0, 10, 2.4, wide), ("back", 215, 28, 3.0, wide),
             ("game_angle", 35, 50, 3.0, (800, 800)),
         ], target=(0, 0.35, 0.35))
+        preview_sheet(args["render"], os.path.join(args["render"], "heavy_tank-preview.png"))
 
 
 main()

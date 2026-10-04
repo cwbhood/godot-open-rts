@@ -22,7 +22,7 @@ import bpy  # noqa: E402
 import bmesh  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
 from mesh_kit import (  # noqa: E402
-    PALETTE, V, add, ellipsoid, export_glb, extrude_x, merge, parse_args, pipe, rbox,
+    GAME, PALETTE, V, add, ellipsoid, export_glb, extrude_x, merge, parse_args, pipe, rbox,
     render_views, rot_xyz, set_origin, stats, torus, tube,
 )
 
@@ -151,8 +151,8 @@ def t_at(st, y, z, side=1):
     return t if side > 0 else math.pi - t
 
 
-def loft(st, m, group, n=40, step=0.25, grow=0.0, y0=None, y1=None):
-    """Closed shell through the stations (or a slice of it between y0 and y1)."""
+def loft_rings(st, step, y0=None, y1=None):
+    """The y of every ring loft() makes, nose to tail."""
     top, bot = st[0][0], st[-1][0]
     ya = top if y0 is None else y0
     yb = bot if y1 is None else y1
@@ -162,6 +162,12 @@ def loft(st, m, group, n=40, step=0.25, grow=0.0, y0=None, y1=None):
         if yb < s[0] < ya and all(abs(s[0] - y) > 1e-3 for y in ys):
             ys.append(s[0])
     ys.sort(reverse=True)
+    return ys
+
+
+def loft(st, m, group, n=40, step=0.25, grow=0.0, y0=None, y1=None):
+    """Closed shell through the stations (or a slice of it between y0 and y1)."""
+    ys = loft_rings(st, step, y0, y1)
     bm = bmesh.new()
     rings = []
     for y in ys:
@@ -182,17 +188,27 @@ def loft(st, m, group, n=40, step=0.25, grow=0.0, y0=None, y1=None):
     return add(bm, m, group, True)
 
 
-def patch(st, ya, yb, t0, t1, m, group, lift=0.015, thick=0.03, ny=None, nt=None, smooth=True):
+def patch(st, ya, yb, t0, t1, m, group, lift=0.015, thick=0.03, ny=None, nt=None, smooth=True,
+          back=True, rows=None):
     """A thin slab lying on a shell: windows, stripes, access panels. t0/t1 are angles or
-    functions of y, so a patch can slant (the stripe climbing the rear pylon)."""
+    functions of y, so a patch can slant (the stripe climbing the rear pylon). back=False
+    leaves out the underside, which the shell hides anyway. rows: extra y values to put
+    rows at (the shell's ring positions), so a coarse patch still follows the shell."""
     f0 = t0 if callable(t0) else (lambda y, v=t0: v)
     f1 = t1 if callable(t1) else (lambda y, v=t1: v)
     ny = ny or max(2, int(abs(ya - yb) / 0.25) + 2)
+    ylist = [ya + (yb - ya) * i / (ny - 1) for i in range(ny)]
+    if rows:
+        lo_, hi_ = min(ya, yb), max(ya, yb)
+        ylist += [y for y in rows if lo_ + 0.02 < y < hi_ - 0.02 and
+                  all(abs(y - q) > 0.05 for q in ylist)]
+        ylist.sort(reverse=ya > yb)
+        ny = len(ylist)
     nt = nt or max(2, int(abs(f1(ya) - f0(ya)) / 0.12) + 2)
     bm = bmesh.new()
     outer, inner = [], []
     for i in range(ny):
-        y = ya + (yb - ya) * i / (ny - 1)
+        y = ylist[i]
         ro, ri = [], []
         for j in range(nt):
             t = f0(y) + (f1(y) - f0(y)) * j / (nt - 1)
@@ -204,7 +220,9 @@ def patch(st, ya, yb, t0, t1, m, group, lift=0.015, thick=0.03, ny=None, nt=None
     for i in range(ny - 1):
         for j in range(nt - 1):
             bm.faces.new((outer[i][j], outer[i][j + 1], outer[i + 1][j + 1], outer[i + 1][j]))
-            bm.faces.new((inner[i][j], inner[i + 1][j], inner[i + 1][j + 1], inner[i][j + 1]))
+            if back:
+                bm.faces.new((inner[i][j], inner[i + 1][j], inner[i + 1][j + 1],
+                              inner[i][j + 1]))
     edges = ([(i, 0) for i in range(ny)] + [(ny - 1, j) for j in range(nt)] +
              [(i, nt - 1) for i in reversed(range(ny))] + [(0, j) for j in reversed(range(nt))])
     for (i0, j0), (i1, j1) in zip(edges, edges[1:]):
@@ -433,16 +451,148 @@ def rotor(hub, group, phase):
              rot=r @ rot_xyz(4, 0, 0), bevel=0.45, segments=3)  # tip cap
 
 
+# --------------------------------------------------------------------------
+# Game mode: the same silhouette in ~3,500 triangles. Coarse lofts, big windows, bold
+# blades and large team-colour areas that read from above (spine, hub caps, side stripes).
+# --------------------------------------------------------------------------
+
+def game_fuselage():
+    loft(FUSELAGE, "Khaki", "body", n=20, step=2.5)
+    rows = loft_rings(FUSELAGE, 2.5)
+    loft(FRONT_PYLON, "Khaki", "body", n=14, step=1.0)
+    loft(REAR_PYLON, "Khaki", "body", n=14, step=1.0)
+    # the spine fairing between the pylons is the team-colour stripe seen from above
+    loft(SPINE, "TeamColor", "body", n=10, step=2.0)
+    # and a team panel over the top of the rear pylon, the highest point seen from above
+    patch(REAR_PYLON, -4.4, -6.9, math.radians(55), math.radians(125), "TeamColor", "body",
+          lift=0.0, thick=0.04, ny=2, nt=4, back=False, rows=loft_rings(REAR_PYLON, 1.0))
+    # windscreen: dark frame wrapping the nose with four big panes
+    # (patches get rows at the shell's rings so the coarse shell never pokes through them)
+    patch(FUSELAGE, 8.05, 6.75, math.radians(18), math.radians(162), "KhakiDark", "body",
+          lift=0.0, thick=0.05, ny=3, nt=9, back=False, rows=rows)
+    for a, b in ((22, 52), (57, 86), (94, 123), (128, 158)):
+        patch(FUSELAGE, 8.0, 6.8, math.radians(a), math.radians(b), "Glass", "body",
+              lift=0.04, thick=0.04, ny=3, nt=3, back=False, rows=rows)
+    patch(FUSELAGE, 8.38, 7.45, math.radians(205), math.radians(335), "Glass", "body",
+          lift=0.0, thick=0.05, ny=3, nt=6, back=False, rows=rows)
+    for sx in (-1, 1):
+        # big cockpit and cabin windows (no frames)
+        side_patch(FUSELAGE, 6.5, 5.75, 2.5, 3.45, "Glass", "body", side=sx, lift=0.0,
+                   thick=0.06, ny=2, nt=3, back=False, rows=rows)
+        for y in (3.0, 1.2, -0.6, -2.4):
+            side_patch(FUSELAGE, y + 0.48, y - 0.48, 2.75, 3.6, "Glass", "body", side=sx,
+                       lift=0.0, thick=0.05, ny=2, nt=3, back=False, rows=rows)
+
+        # wide team stripe along the cabin, from the nose to the tail taper
+        for ya, yb, ny in ((7.0, 5.6, 3), (5.6, -4.2, 2)):
+            side_patch(FUSELAGE, ya, yb, 1.95, 2.55, "TeamColor", "body", side=sx, lift=0.0,
+                       thick=0.04, ny=ny, nt=2, back=False, rows=rows)
+        # access panel on the rear pylon, louvre block low on the tail
+        side_patch(REAR_PYLON, -4.7, -6.3, 4.4, 5.6, "KhakiLight", "body", side=sx,
+                   lift=0.0, thick=0.03, ny=2, nt=2, back=False)
+        side_patch(FUSELAGE, -4.55, -5.3, 1.75, 2.2, "Grille", "body", side=sx, lift=0.0,
+                   thick=0.03, ny=2, nt=2, back=False, rows=rows)
+        # roof fairing humps beside the spine
+        tube(V((sx * 0.95, 1.6, 4.0)), V((sx * 0.95, -0.4, 4.0)), 0.28, 0.28, "Khaki", "body",
+             n=8, rings=1)
+    # rear loading ramp seam and the grille above the rear pylon slope
+    patch(FUSELAGE, -4.6, -7.3, math.radians(225), math.radians(315), "KhakiDark", "body",
+          lift=0.0, thick=0.03, ny=3, nt=3, back=False, rows=rows)
+    rbox(V((0, -3.9, 5.15)), (0.9, 0.08, 0.45), "Grille", "body", rot=rot_xyz(-40, 0, 0),
+         bevel=0.0)
+
+
+def game_sponsons():
+    for sx in (-1, 1):
+        st = sponson(sx)
+        loft(st, "Khaki", "body", n=12, step=2.0)
+        loft(st, "KhakiDark", "body", n=12, grow=0.03, y0=-1.0, y1=-1.15, step=1.0)
+        # team roundel: a flat disc on the outer face
+        c = V((sx * 2.45, -2.3, 1.68))
+        tube(c - V((sx * 0.02, 0, 0)), c + V((sx * 0.04, 0, 0)), 0.45, 0.45, "TeamColor",
+             "body", n=26, rings=1)
+
+
+def game_engines():
+    x, z, yf, yb = ENGINE
+    for sx in (-1, 1):
+        cx = sx * x
+        tube(V((cx, yb, z)), V((cx, yf, z)), ENGINE_R * 0.82, ENGINE_R, "Khaki", "body", n=20,
+             rings=1)
+        tube(V((cx, yf, z)), V((cx, yf + 0.3, z)), ENGINE_R * 1.02, ENGINE_R * 1.02, "Steel",
+             "body", n=20, rings=1)  # intake lip
+        tube(V((cx, yf + 0.3, z)), V((cx, yf + 0.45, z)), ENGINE_R * 0.75, ENGINE_R * 0.75,
+             "Grille", "body", n=20, rings=1)
+        ellipsoid(V((cx, yf + 0.45, z)), (0.3, 0.4, 0.3), "Khaki", "body", seg=16, rings=8)
+        tube(V((cx, yb + 0.02, z)), V((cx, yb - 0.4, z)), ENGINE_R * 0.6, ENGINE_R * 0.66,
+             "DarkMetal", "body", n=20, rings=1)
+        rbox(V((sx * 1.05, (yf + yb) / 2, z)), (0.55, 1.8, 0.4), "Khaki", "body", bevel=0.0)
+
+
+def game_gear():
+    for sx in (-1, 1):
+        for y, x, top in ((4.4, 1.2, V((sx * 1.05, 4.5, 1.15))),
+                          (-3.75, 1.85, V((sx * 1.85, -3.75, 1.1)))):
+            hub = V((sx * x, y, 0.43))
+            tube(top, hub + V((-sx * 0.12, 0, 0.1)), 0.1, 0.09, "Gunmetal", "body", n=6,
+                 rings=1)
+            tube(hub - V((0.15, 0, 0)), hub + V((0.15, 0, 0)), 0.43, 0.43, "Tyre", "body",
+                 n=20, rings=1)
+            tube(hub + V((sx * 0.15, 0, 0)), hub + V((sx * 0.18, 0, 0)), 0.24, 0.24, "Rim",
+                 "body", n=8, rings=1)
+
+
+def game_rotor(hub, group, phase):
+    # mast stays on the body; head and blades spin
+    tube(hub - V((0, 0, 0.75)), hub - V((0, 0, 0.1)), 0.22, 0.2, "Gunmetal", "body", n=8,
+         rings=1)
+    tube(hub - V((0, 0, 0.12)), hub + V((0, 0, 0.3)), 0.42, 0.36, "DarkMetal", group, n=10,
+         rings=1)
+    ellipsoid(hub + V((0, 0, 0.3)), (0.55, 0.55, 0.22), "TeamColor", group, seg=16, rings=4,
+              cut=0.0)  # team-coloured hub cap
+    for i in range(3):
+        a = math.radians(phase + i * 120)
+        r = rot_xyz(0, 0, math.degrees(a))
+        d = V((math.cos(a), math.sin(a), 0))
+        rbox(hub + d * 0.75 + V((0, 0, 0.1)), (1.0, 0.4, 0.3), "DarkMetal", group, rot=r,
+             bevel=0.0)  # hinge and cuff
+        # bold blade: wide, thick paddle with chamfered edges and a light tip
+        mid = (1.2 + ROTOR_R - 0.9) / 2
+        tilt = r @ rot_xyz(4, 0, 0)
+        rbox(hub + d * mid + V((0, 0, 0.1)), (ROTOR_R - 0.9 - 1.2, 1.3, 0.26), "Blade",
+             group, rot=tilt, bevel=0.3)
+        rbox(hub + d * (ROTOR_R - 0.45) + V((0, 0, 0.1)), (0.9, 1.3, 0.26), "KhakiLight",
+             group, rot=tilt, bevel=0.0)
+
+
+
+def preview_team_colour():
+    """Previews only (after export): show team colour as blue so its areas stand out."""
+    m = bpy.data.materials.get("TeamColor")
+    if m is not None and GAME["enabled"]:
+        m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = \
+            (0.03, 0.13, 0.55, 1.0)
+
+
 def main():
     args = parse_args({"out": "assets/models/ironbound/units/helicopter.glb", "render": None})
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    fuselage()
-    details()
-    sponsons()
-    engines()
-    gear()
-    rotor(FRONT_HUB, "rotor_f", 0)
-    rotor(REAR_HUB, "rotor_r", 60)
+    if GAME["enabled"]:
+        GAME["drop_size"] = 0.15  # real metres here: a 15 m airframe
+        game_fuselage()
+        game_sponsons()
+        game_engines()
+        game_gear()
+        game_rotor(FRONT_HUB, "rotor_f", 0)
+        game_rotor(REAR_HUB, "rotor_r", 60)
+    else:
+        fuselage()
+        details()
+        sponsons()
+        engines()
+        gear()
+        rotor(FRONT_HUB, "rotor_f", 0)
+        rotor(REAR_HUB, "rotor_r", 60)
     objects = []
     body, _ = merge("Body", groups={"body"})
     objects.append(body)
@@ -459,6 +609,7 @@ def main():
     verts, tris = stats(objects)
     print(f"exported {out}: {verts} verts, {tris} tris, {len(objects)} nodes")
     if args["render"]:
+        preview_team_colour()
         wide = (1200, 750)
         render_views(args["render"], [
             ("three_quarter", 62, 18, 2.9, wide), ("side", 90, 0, 2.7, wide),

@@ -24,9 +24,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bpy  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
+import bmesh  # noqa: E402
 from mesh_kit import (  # noqa: E402
-    PALETTE, V, ellipsoid, export_glb, extrude_x, frame_from_dir, merge, parse_args, pipe,
-    rbox, render_views, rot_xyz, set_origin, stats, torus, tube,
+    GAME, PALETTE, V, add, ellipsoid, export_glb, extrude_x, frame_from_dir, merge, parse_args,
+    pipe, rbox, render_views, rot_xyz, set_origin, stats, torus, tube,
 )
 
 GAME_SCALE = 0.245
@@ -69,7 +70,7 @@ def bolt(c, m="OliveDark", s=0.045):
     rbox(c, (s, s, s), m, "body", bevel=0.3, segments=1)
 
 
-def arch_profile(y0, y1, z0, z1, arches, front_slope=None):
+def arch_profile(y0, y1, z0, z1, arches, front_slope=None, steps=12):
     """Side profile from y0 (back) to y1 (front) between z0 and z1 with wheel arches cut out
     of the bottom edge. arches: wheel centre y values."""
     pts = [(y0, z0)]
@@ -77,8 +78,8 @@ def arch_profile(y0, y1, z0, z1, arches, front_slope=None):
         dz = z0 - WHEEL_R
         half = math.sqrt(max(ARCH_R ** 2 - dz ** 2, 0.0))
         lo = math.degrees(math.atan2(dz, half))
-        for i in range(13):
-            a = math.radians(180 - lo - (180 - 2 * lo) * i / 12)
+        for i in range(steps + 1):
+            a = math.radians(180 - lo - (180 - 2 * lo) * i / steps)
             pts.append((y + math.cos(a) * ARCH_R, WHEEL_R + math.sin(a) * ARCH_R))
     pts.append((y1, z0))
     if front_slope:
@@ -449,23 +450,255 @@ def wheel(group, centre, side):
     tube(centre + out * 1.3, centre + out * 1.5, 0.07, 0.05, "OliveDark", group, n=10, rings=1)
 
 
+# --------------------------------------------------------------------------
+# Game mode: the same truck in chunky, low-poly parts (about 4k tris before any decimation)
+# --------------------------------------------------------------------------
+
+def N(k):
+    """Segment count to pass to the kit so that it builds k segments after its game-mode cut."""
+    return int(math.ceil(k / GAME["segments"] - 1e-6))
+
+
+def lathe(centre, prof, n, m, group, smooth=True):
+    """Solid of revolution about X through `centre`: prof is (x offset, radius) pairs; a radius
+    of 0 closes that end with a fan."""
+    bm = bmesh.new()
+    rings = []
+    for x, r in prof:
+        if r <= 1e-6:
+            rings.append([bm.verts.new((x, 0.0, 0.0))])
+            continue
+        rings.append([bm.verts.new((x, math.cos(2 * math.pi * k / n) * r,
+                                    math.sin(2 * math.pi * k / n) * r)) for k in range(n)])
+    for a, b in zip(rings, rings[1:]):
+        if len(a) == 1 and len(b) == 1:
+            continue
+        for k in range(n):
+            j = (k + 1) % n
+            if len(a) == 1:
+                bm.faces.new((a[0], b[k], b[j]))
+            elif len(b) == 1:
+                bm.faces.new((a[k], b[0], a[j]))
+            else:
+                bm.faces.new((a[k], b[k], b[j], a[j]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return add(bm, m, group, smooth, Matrix.Translation(Vector(centre)))
+
+
+def disc_y(c, r, m, group, n=8):
+    """Flat n-gon facing +Y (a tube mouth or a lamp lens)."""
+    bm = bmesh.new()
+    vs = [bm.verts.new((c.x + math.cos(2 * math.pi * k / n + math.pi / n) * r, c.y,
+                        c.z + math.sin(2 * math.pi * k / n + math.pi / n) * r)) for k in range(n)]
+    bm.faces.new(list(reversed(vs)))
+    return add(bm, m, group, False)
+
+
+def g_chassis():
+    for sx in (-1, 1):
+        rbox(V((sx * 0.5, -0.2, 1.12)), (0.18, 7.4, 0.32), "DarkMetal", "body", bevel=0.1)
+    for y in AXLES.values():
+        tube(V((-TRACK + 0.2, y, WHEEL_R)), V((TRACK - 0.2, y, WHEEL_R)), 0.09, 0.09,
+             "DarkMetal", "body", n=N(6), rings=1)
+        rbox(V((0.0, y, WHEEL_R + 0.02)), (0.44, 0.4, 0.34), "DarkMetal", "body", bevel=0.2)
+
+
+def g_cab():
+    y0, y1 = CAB
+    hw = BODY_W / 2
+    front = [(y1, 2.15), (y1 - 0.2, ROOF - 0.08), (y1 - 0.3, ROOF)]
+    prof = arch_profile(y0, y1, CAB_FLOOR, ROOF, [AXLES["F"]], front_slope=front, steps=6)
+    extrude_x(prof, -hw, hw, "Olive", "body", bevel=0.06)
+    # one big team-coloured roof slab and a visor over the windshield
+    rbox(V((0, (y0 + y1) / 2 - 0.12, ROOF + 0.11)), (BODY_W + 0.06, y1 - y0 - 0.1, 0.24),
+         "TeamColor", "body", bevel=0.25, taper=0.94)
+    rbox(V((0, y1 - 0.22, ROOF + 0.05)), (BODY_W + 0.1, 0.42, 0.16), "TeamColor", "body",
+         bevel=0.25, rot=rot_xyz(-8, 0, 0))
+    # split windshield in a dark frame
+    tilt = math.degrees(math.atan2(0.2, ROOF - 0.08 - 2.15))
+    rbox(V((0, y1 - 0.11, 2.6)), (BODY_W - 0.16, 0.04, 0.84), "DarkMetal", "body",
+         rot=rot_xyz(tilt, 0, 0))
+    for sx in (-1, 1):
+        rbox(V((sx * 0.57, y1 - 0.09, 2.6)), (1.0, 0.04, 0.7), "Glass", "body",
+             rot=rot_xyz(tilt, 0, 0))
+        x = sx * (hw + 0.015)
+        # door window and rear quarter window
+        for wy0, wy1 in ((2.2, 3.15), (1.6, 2.05)):
+            rbox(V((x, (wy0 + wy1) / 2, 2.55)), (0.04, wy1 - wy0, 0.62), "Glass", "body")
+        # chunky mirror on a stub arm
+        rbox(V((sx * (hw + 0.14), y1 - 0.1, 2.38)), (0.3, 0.08, 0.08), "DarkMetal", "body")
+        rbox(V((sx * (hw + 0.3), y1 - 0.08, 2.55)), (0.1, 0.1, 0.42), "DarkMetal", "body")
+        # boarding step and the locker on the cab's rear quarter
+        rbox(V((sx * (hw - 0.1), y0 + 0.25, 0.72)), (0.34, 0.4, 0.1), "DarkMetal", "body")
+        rbox(V((sx * (hw + 0.1), y0 + 0.2, 1.65)), (0.22, 0.42, 0.46), "OliveDark", "body",
+             bevel=0.15)
+
+
+def g_cab_front():
+    y1 = CAB[1]
+    for sx in (-1, 1):
+        tube(V((sx * 0.92, y1 - 0.02, 1.55)), V((sx * 0.92, y1 + 0.08, 1.55)), 0.16, 0.15,
+             "OliveDark", "body", n=N(8), rings=1)
+        disc_y(V((sx * 0.92, y1 + 0.085, 1.55)), 0.12, "Lamp", "body")
+        rbox(V((sx * 1.05, y1 + 0.25, 1.14)), (0.14, 0.03, 0.08), "TailRed", "body")
+    rbox(V((0, y1 + 0.03, 1.52)), (1.0, 0.06, 0.42), "OliveDark", "body")
+    rbox(V((0, y1 + 0.05, 1.52)), (0.86, 0.04, 0.32), "Grille", "body")
+    rbox(V((0, y1 + 0.12, 1.12)), (BODY_W + 0.1, 0.26, 0.3), "OliveDark", "body", bevel=0.15)
+
+
+def g_behind_cab():
+    y0, y1 = 0.62, CAB[0] - 0.02
+    rbox(V((0, (y0 + y1) / 2, 2.15)), (2.1, y1 - y0, 1.3), "Olive", "body", bevel=0.06)
+    for sx in (-1, 1):
+        rbox(V((sx * 1.06, (y0 + y1) / 2 + 0.05, 2.35)), (0.04, 0.5, 0.36), "Grille", "body")
+    # air intake snorkel with a big team-coloured hood, exhaust stack
+    base = V((-0.75, CAB[0] + 0.12, ROOF + 0.05))
+    tube(V((-0.75, CAB[0] - 0.1, 2.6)), base + V((0, -0.22, 0.45)), 0.1, 0.1, "OliveDark",
+         "body", n=N(6), rings=1)
+    rbox(base + V((0, -0.22, 0.58)), (0.34, 0.4, 0.3), "TeamColor", "body", bevel=0.3)
+    tube(V((0.8, y0 + 0.1, 2.5)), V((0.8, y0 + 0.1, 3.1)), 0.09, 0.09, "DarkMetal", "body",
+         n=N(6), rings=1)
+
+
+def g_deck():
+    y0, y1 = -3.85, 0.6
+    hw = BODY_W / 2
+    rbox(V((0, (y0 + y1) / 2, DECK - 0.12)), (BODY_W, y1 - y0, 0.24), "Olive", "body",
+         bevel=0.12)
+    for sx in (-1, 1):
+        rbox(V((sx * (hw + 0.02), (y0 + y1) / 2, DECK - 0.3)), (0.08, y1 - y0, 0.18),
+             "OliveDark", "body")
+        rbox(V((sx * (hw - 0.1), (AXLES["M"] + AXLES["R"]) / 2, WHEEL_R + ARCH_R + 0.02)),
+             (0.56, AXLES["M"] - AXLES["R"] + 1.2, 0.06), "OliveDark", "body")
+        rbox(V((sx * 1.05, y0 - 0.02, DECK - 0.15)), (0.18, 0.06, 0.14), "TailRed", "body")
+        rbox(V((sx * 1.0, y0 + 0.15, 0.95)), (0.4, 0.04, 0.66), "Rubber", "body")
+    rbox(V((0, y0 - 0.1, 1.15)), (BODY_W - 0.2, 0.2, 0.22), "OliveDark", "body", bevel=0.2)
+    # turntable, ram pedestals and hinge brackets
+    tube(V((0, -2.1, DECK)), V((0, -2.1, DECK + 0.2)), 0.95, 0.9, "OliveDark", "body", n=N(12),
+         rings=1)
+    rbox(V((0, -2.3, DECK + 0.32)), (1.7, 1.9, 0.3), "Olive", "body", bevel=0.12)
+    for sx in (-1, 1):
+        rbox(V((sx * RAM_X, RAM_BASE_Y, (DECK + RAM_BASE_Z) / 2 + 0.05)), (0.34, 0.44, 0.45),
+             "Olive", "body", bevel=0.15)
+        rbox(V((sx * 1.0, PIVOT.y, (DECK + PIVOT.z) / 2 + 0.1)),
+             (0.2, 0.66, PIVOT.z - DECK + 0.3), "Olive", "body", bevel=0.15, taper=0.7)
+        tube(V((sx * 0.88, PIVOT.y, PIVOT.z)), V((sx * 1.14, PIVOT.y, PIVOT.z)), 0.14, 0.14,
+             "Steel", "body", n=N(8), rings=1)
+
+
+def g_stowage():
+    hw = BODY_W / 2
+    for sx in (-1, 1):
+        # fuel tank and battery box between the front and middle wheels
+        tube(V((sx * 1.0, -0.2, 0.95)), V((sx * 1.0, 1.15, 0.95)), 0.28, 0.28, "Olive", "body",
+             n=N(8), rings=1, flat=(0.9, 1.0), roll=math.pi / 8)
+        rbox(V((sx * 1.08, 1.32, 1.05)), (0.36, 0.24, 0.42), "OliveDark", "body", bevel=0.12)
+        # deck locker and a team-coloured fuel can pack, rear locker
+        rbox(V((sx * 0.85, 0.15, DECK + 0.3)), (0.7, 0.6, 0.6), "Olive", "body", bevel=0.1)
+        rbox(V((sx * 0.85, 0.15, DECK + 0.62)), (0.74, 0.64, 0.06), "OliveDark", "body")
+        rbox(V((sx * (hw - 0.24), -0.38, DECK + 0.29)), (0.5, 0.46, 0.58), "TeamColor", "body",
+             bevel=0.12)
+        rbox(V((sx * 0.9, -3.55, DECK + 0.22)), (0.6, 0.5, 0.44), "Olive", "body", bevel=0.1)
+    rbox(V((-0.12, -0.8, DECK + 0.22)), (0.8, 0.5, 0.44), "Crate", "body", bevel=0.12)
+
+
+def g_launcher():
+    g = "launcher"
+    y0, y1, z0, z1, w = BOX["y0"], BOX["y1"], BOX["z0"], BOX["z1"], BOX["w"]
+    yc, zc, h = (y0 + y1) / 2, (z0 + z1) / 2, z1 - z0
+    rbox(L(0, yc, zc), (w, y1 - y0, h), "Olive", g, bevel=0.03)
+    # four armour plates down each side and four team-coloured plates across the top
+    seg = [(y0 + 0.1, 1.4), (1.5, 2.85), (3.05, 4.35), (4.45, y1 - 0.45)]
+    for i, (a, b) in enumerate(seg):
+        for sx in (-1, 1):
+            rbox(L(sx * (w / 2 + 0.03), (a + b) / 2, zc), (0.06, b - a, h - 0.2),
+                 "OliveLight" if i % 2 else "Olive", g)
+        rbox(L(0, (a + b) / 2, z1 + 0.03), (w - 0.18, b - a, 0.06), "TeamColor", g)
+    # reinforcing bands: rear and middle
+    for yy, depth in ((y0 + 0.05, 0.22), (2.95, 0.2)):
+        rbox(L(0, yy, zc), (w + 0.14, depth, h + 0.14), "OliveDark", g, bevel=0.15)
+    # front collar framing the tube pack
+    fw, fh, t = w + 0.14, h + 0.14, 0.2
+    fy = y1 + 0.02
+    rbox(L(0, fy, z1 + 0.07 - t / 2), (fw, 0.42, t), "OliveDark", g, bevel=0.15)
+    rbox(L(0, fy, z0 - 0.07 + t / 2), (fw, 0.42, t), "OliveDark", g, bevel=0.15)
+    for sx in (-1, 1):
+        rbox(L(sx * (fw / 2 - t / 2), fy, zc), (t, 0.42, fh), "OliveDark", g, bevel=0.15)
+    # recessed face with a 5 x 4 grid of tube mouths
+    rbox(L(0, y1 - 0.02, zc), (fw - 2 * t + 0.02, 0.06, fh - 2 * t + 0.02), "Olive", g)
+    face = y1 + 0.012
+    cols, rows = 5, 4
+    sx_, sz_ = (fw - 2 * t) / cols, (fh - 2 * t) / rows
+    for i in range(cols):
+        for j in range(rows):
+            c = L((i - (cols - 1) / 2) * sx_, face, zc + (j - (rows - 1) / 2) * sz_)
+            disc_y(c, min(sx_, sz_) * 0.42, "OliveDark", g)
+            disc_y(c + V((0, 0.006, 0)), min(sx_, sz_) * 0.3, "TubeDark", g)
+    # rear cap, cradle beams, hinge eye and ram lugs underneath
+    rbox(L(0, y0 - 0.05, zc), (w - 0.3, 0.08, h - 0.3), "OliveDark", g)
+    for sx in (-1, 1):
+        rbox(L(sx * 0.65, 2.0, z0 - 0.07), (0.22, 4.6, 0.16), "OliveDark", g, bevel=0.15)
+        rbox(L(sx * RAM_X, RAM_LUG, z0 - 0.1), (0.28, 0.34, 0.2), "OliveDark", g, bevel=0.2)
+    tube(L(-0.88, 0, 0), L(0.88, 0, 0), 0.16, 0.16, "OliveDark", g, n=N(8), rings=1)
+    rbox(L(0, 0.12, z0 / 2), (1.5, 0.32, 0.22), "OliveDark", g, bevel=0.15)
+
+
+def g_rams():
+    global RAM_LEN
+    em = elevation_matrix()
+    ends = {}
+    for sx, tag in ((-1, "L"), (1, "R")):
+        g = f"Ram_{tag}"
+        p0 = V((sx * RAM_X, RAM_BASE_Y, RAM_BASE_Z))
+        p1 = em @ L(sx * RAM_X, RAM_LUG, BOX["z0"] - 0.17)
+        d = p1 - p0
+        RAM_LEN = d.length
+        u = d.normalized()
+        tube(p0 - u * 0.08, p0 + u * RAM_LEN * 0.56, 0.15, 0.15, "Olive", g, n=N(8), rings=1)
+        tube(p0 + u * RAM_LEN * 0.5, p1, 0.085, 0.085, "Steel", g, n=N(6), rings=1)
+        tube(p0 - V((0.11, 0, 0)), p0 + V((0.11, 0, 0)), 0.11, 0.11, "DarkMetal", g, n=N(6),
+             rings=1)
+        ends[g] = (p0, u)
+    return ends
+
+
+def g_wheel(group, centre, side):
+    """Chunky tyre (a chamfered 10-sided drum), an olive disc rim and a hub cap."""
+    hw, c = WHEEL_W / 2, 0.09
+    lathe(centre, [(-hw, 0.0), (-hw, WHEEL_R - c), (-hw + c, WHEEL_R), (hw - c, WHEEL_R),
+                   (hw, WHEEL_R - c), (hw, 0.0)], 10, "Rubber", group)
+    out = V((side, 0, 0))
+    tube(centre + out * (hw - 0.03), centre + out * (hw + 0.03), 0.37, 0.35, "Olive", group,
+         n=N(10), rings=1)
+    tube(centre + out * (hw + 0.03), centre + out * (hw + 0.12), 0.17, 0.13, "OliveDark", group,
+         n=N(8), rings=1)
+
+
 def main():
     args = parse_args({"out": "assets/models/ironbound/units/artillery.glb", "render": None})
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    chassis()
-    cab()
-    cab_front()
-    behind_cab()
-    deck()
-    stowage()
-    launcher()
-    ram_ends = rams()
+    if GAME["enabled"]:  # chunky low-poly parts
+        # Foundry League olive, the same as build_tank.py / build_heavy_tank.py
+        GAME["saturate"] = 0.95
+        PALETTE.update({
+            "Olive": ((0.27, 0.30, 0.18), 0.75, 0.0),
+            "OliveDark": ((0.19, 0.21, 0.13), 0.8, 0.0),
+            "OliveLight": ((0.36, 0.38, 0.27), 0.85, 0.0),
+        })
+        builders = (g_chassis, g_cab, g_cab_front, g_behind_cab, g_deck, g_stowage, g_launcher)
+        build_rams, build_wheel = g_rams, g_wheel
+    else:  # the original showcase model
+        builders = (chassis, cab, cab_front, behind_cab, deck, stowage, launcher)
+        build_rams, build_wheel = rams, wheel
+    for build in builders:
+        build()
+    ram_ends = build_rams()
     hubs = {}
     for axle, y in AXLES.items():
         for side, tag in ((-1, "L"), (1, "R")):
             name = f"Wheel_{axle}{tag}"
             hubs[name] = V((side * TRACK, y, WHEEL_R))
-            wheel(name, hubs[name], side)
+            build_wheel(name, hubs[name], side)
     objects = []
     body, _ = merge("Body", groups={"body"})
     objects.append(body)

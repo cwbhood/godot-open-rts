@@ -1,12 +1,18 @@
-"""Builds a single detailed infantry soldier (desert fatigues, team-coloured helmet band and
-shoulder guards, carbine at the low ready) with a simple skeleton, and exports it as a GLB.
+"""Builds an infantry rifleman (desert fatigues, team-coloured helmet, shoulder guards and
+chest plate, carbine at the low ready) and exports it as a GLB.
 
 Run with the pip `bpy` module (or `blender -b -P`):
     python3 tools/blender/build_soldier.py -- --out assets/models/ironbound/units/rifleman.glb \
-        [--render /tmp/previews]
+        [--render /tmp/previews] [--squad] [--detail full]
 
 Real-world scale: 1.8 m tall, feet on z=0, facing +Y (the convention build_assets.py uses).
-Every part is rigidly bound to one bone, so the model can be posed or animated later.
+Game mode (the default) builds a chunky static figure of about 1,000 triangles, readable at
+15 pixels tall. `--detail full` builds the detailed showcase soldier, every part rigidly
+bound to one bone of a simple skeleton so it can be posed or animated later.
+
+`--squad` builds the Militia squad instead: three riflemen merged into one mesh object
+"MilitiaSquad" (default output assets/models/ironbound/units/rifleman_squad.glb), laid out
+like the old militia_squad.glb: two men abreast in front, one behind between them.
 """
 
 import os
@@ -16,10 +22,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import bpy  # noqa: E402
 from mesh_kit import (  # noqa: E402
-    PALETTE, V, ellipsoid, export_glb, frame_from_dir, look_matrix, merge, parse_args, rbox,
+    GAME, PALETTE, PARTS, V, ellipsoid, export_glb, frame_from_dir, look_matrix, merge, parse_args, rbox,
     render_views, rot_xyz, stats, torus, tube,
 )
 import math  # noqa: E402
+
+import bmesh  # noqa: E402
+from mathutils import Matrix  # noqa: E402
 
 PALETTE.update({
     "TeamColor": ((0.22, 0.42, 0.78), 0.6, 0.0),
@@ -279,6 +288,104 @@ def rifle():
 
 
 
+# --------------------------------------------------------------------------
+# Game mode: a chunky static figure, ~1,000 triangles
+# --------------------------------------------------------------------------
+
+G_SHOULDER = {+1: V((0.235, 0.0, 1.42)), -1: V((-0.235, 0.0, 1.42))}
+G_ELBOW = {+1: V((0.33, -0.02, 1.13)), -1: V((-0.19, 0.14, 1.09))}
+G_HIP = {+1: V((0.11, 0.0, 0.98)), -1: V((-0.11, 0.0, 0.98))}
+G_KNEE = {+1: V((0.125, 0.025, 0.52)), -1: V((-0.125, 0.025, 0.52))}
+G_ANKLE = {+1: V((0.14, -0.005, 0.15)), -1: V((-0.14, -0.005, 0.15))}
+G_HEAD = V((0, 0.015, 1.63))
+
+
+def game_body():
+    for side in (+1, -1):
+        h, k, a = G_HIP[side], G_KNEE[side], G_ANKLE[side]
+        tube(h, k, 0.105, 0.088, "Fatigue", "body", n=18)
+        tube(k, a, 0.088, 0.08, "Fatigue", "body", n=18)
+        ellipsoid(k + V((0, 0.075, 0)), (0.08, 0.05, 0.085), "KneePad", "body", seg=12,
+                  rings=8)
+        rbox(V((a.x, a.y + 0.05, 0.08)), (0.14, 0.29, 0.16), "Boot", "body", taper=0.85)
+        rbox(V((a.x, a.y + 0.055, 0.018)), (0.15, 0.31, 0.036), "Sole", "body")
+        # cargo pocket on the outer thigh
+        rbox(h + (k - h) * 0.45 + V((side * 0.1, 0, 0)), (0.04, 0.14, 0.16), "FatigueDark",
+             "body")
+    # hips, belt, jacket, shoulder line
+    tube(V((0, 0, 0.86)), V((0, 0, 1.02)), 0.2, 0.205, "Fatigue", "body", n=20,
+         flat=(1.0, 0.68))
+    tube(V((0, 0, 1.0)), V((0, 0, 1.07)), 0.215, 0.215, "Webbing", "body", n=20,
+         flat=(1.0, 0.7))
+    tube(V((0, 0, 1.06)), V((0, 0, 1.44)), 0.205, 0.225, "Fatigue", "body", n=24,
+         flat=(1.0, 0.64))
+    # ammo pouches on the belt
+    for x in (-0.11, 0.11):
+        rbox(V((x, 0.15, 1.0)), (0.11, 0.07, 0.11), "Pouch", "body")
+    ellipsoid(V((0, 0, 1.43)), (0.235, 0.145, 0.075), "Fatigue", "body", seg=14, rings=8)
+    # team-coloured chest plate and a pack on the back
+    rbox(V((0, 0.13, 1.28)), (0.3, 0.05, 0.25), "TeamColor", "body", taper=1.08,
+         rot=rot_xyz(-6, 0, 0))
+    rbox(V((0, -0.2, 1.24)), (0.32, 0.15, 0.34), "Pouch", "body", bevel=0.2)
+    tube(V((-0.19, -0.2, 1.46)), V((0.19, -0.2, 1.46)), 0.075, 0.075, "Scarf", "body",
+         n=14)  # bedroll on the pack
+    # neck scarf, head, team-coloured helmet with a khaki brim
+    tube(V((0, 0, 1.44)), V((0, 0.005, 1.54)), 0.095, 0.08, "Scarf", "body", n=14)
+    ellipsoid(G_HEAD, (0.09, 0.1, 0.11), "Skin", "body", seg=14, rings=13)
+    dome = G_HEAD + V((0, -0.005, 0.035))
+    ellipsoid(dome, (0.155, 0.17, 0.145), "TeamColor", "body", seg=22, rings=14, cut=-0.1)
+    tube(dome + V((0, 0, -0.035)), dome + V((0, 0, -0.005)), 0.17, 0.17, "Helmet", "body",
+         n=20, flat=(1.0, 1.1))
+
+
+def game_arms():
+    for side in (+1, -1):
+        s, e, h = G_SHOULDER[side], G_ELBOW[side], HAND[side]
+        tube(s, e, 0.08, 0.072, "Fatigue", "body", n=14)
+        ellipsoid(e, (0.072, 0.072, 0.072), "Fatigue", "body", seg=12, rings=6)
+        tube(e, h - (h - e).normalized() * 0.04, 0.072, 0.062, "Fatigue", "body", n=14)
+        ellipsoid(h, (0.055, 0.06, 0.055), "Skin", "body", seg=12, rings=6,
+                  rot=look_matrix(e, h))
+        # big team-coloured shoulder guard
+        out = V((side, 0, 0))
+        ellipsoid(s + out * 0.04 + V((0, 0, -0.01)), (0.14, 0.13, 0.1), "TeamColor", "body",
+                  rot=rot_xyz(0, side * 30, 0), cut=-0.2, seg=16, rings=12)
+
+
+def game_rifle():
+    frame = frame_from_dir(GUN_DIR)
+
+    def at(dist, up=0.0):
+        return STOCK + GUN_DIR * dist + (frame @ V((0, 0, up)).to_4d()).to_3d()
+
+    def piece(d0, d1, sx, sz, up=0.0, m="Gun"):
+        rbox(at((d0 + d1) / 2, up), (sx, d1 - d0, sz), m, "body", rot=frame)
+
+    piece(-0.02, 0.16, 0.06, 0.11, up=-0.01, m="GunPolymer")  # stock
+    piece(0.16, 0.44, 0.065, 0.085)  # receiver
+    piece(0.44, 0.66, 0.07, 0.075, m="GunPolymer")  # handguard
+    tube(at(0.66), at(GUN_LEN), 0.022, 0.022, "Gun", "body", n=12)  # barrel
+    mag_top, mag_bot = at(0.36, -0.03), at(0.39, -0.21)
+    rbox((mag_top + mag_bot) / 2, (0.04, 0.18, 0.075), "GunPolymer", "body",
+         rot=frame_from_dir((mag_bot - mag_top).normalized(), up=GUN_DIR))
+
+
+def place(parts, matrix):
+    """Copies built parts into PARTS moved by `matrix`."""
+    for bm, m, group, smooth in parts:
+        c = bm.copy()
+        bmesh.ops.transform(c, matrix=matrix, verts=c.verts)
+        PARTS.append((c, m, group, smooth))
+
+
+# Militia squad layout, after the old militia_squad.glb: two men abreast in front 1.5 m
+# apart (1.4 m there, its 0.42-tall figures scaled x4.3 to real metres), the third behind
+# them and to the right of centre. The old model also had a sandbag row in front, so the
+# rear man stands 2 m back to keep its overall footprint ratio (0.70 wide by 0.84 deep).
+# (x, y, yaw degrees); everyone faces +Y; the group is centred on the origin afterwards.
+SQUAD = [(-0.75, 1.0, 6.0), (0.75, 0.9, -4.0), (0.3, -1.15, 10.0)]
+
+
 def build_armature():
     arm = bpy.data.armatures.new("RiflemanSkeleton")
     ob = bpy.data.objects.new("Skeleton", arm)
@@ -297,28 +404,77 @@ def build_armature():
     return ob
 
 
+def preview_team_colour():
+    """Previews only (after export): show team colour as blue so its areas stand out."""
+    m = bpy.data.materials.get("TeamColor")
+    if m is not None and GAME["enabled"]:
+        m.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = \
+            (0.03, 0.13, 0.55, 1.0)
+
+
 def main():
-    args = parse_args({"out": "assets/models/ironbound/units/rifleman.glb", "render": None})
+    squad = "--squad" in sys.argv
+    if squad:
+        sys.argv.remove("--squad")  # a bare flag; parse_args wants --key value pairs
+    default = "rifleman_squad.glb" if squad else "rifleman.glb"
+    args = parse_args({"out": f"assets/models/ironbound/units/{default}", "render": None})
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    legs()
-    torso()
-    arms()
-    head()
-    rifle()
-    body, _groups = merge("Rifleman", as_vertex_groups=True)
-    skel = build_armature()
-    body.parent = skel
-    body.modifiers.new("Skeleton", "ARMATURE").object = skel
-    out = export_glb(args["out"], skins=True)
+    if GAME["enabled"]:
+        game_body()
+        game_arms()
+        game_rifle()
+    else:
+        legs()
+        torso()
+        arms()
+        head()
+        rifle()
+    if squad:
+        one = PARTS[:]
+        PARTS.clear()
+        for x, y, yaw in SQUAD:
+            place(one, Matrix.Translation(V((x, y, 0))) @ rot_xyz(0, 0, yaw))
+        for bm, *_ in one:
+            bm.free()
+        lo = V((min(v.co.x for bm, *_ in PARTS for v in bm.verts),
+                min(v.co.y for bm, *_ in PARTS for v in bm.verts), 0))
+        hi = V((max(v.co.x for bm, *_ in PARTS for v in bm.verts),
+                max(v.co.y for bm, *_ in PARTS for v in bm.verts), 0))
+        for bm, *_ in PARTS:  # centre the footprint on the origin
+            bmesh.ops.translate(bm, vec=-(lo + hi) / 2, verts=bm.verts)
+        body, _groups = merge("MilitiaSquad")
+        out = export_glb(args["out"])
+        skel = None
+    elif GAME["enabled"]:
+        body, _groups = merge("Rifleman")
+        out = export_glb(args["out"])
+        skel = None
+    else:
+        body, _groups = merge("Rifleman", as_vertex_groups=True)
+        skel = build_armature()
+        body.parent = skel
+        body.modifiers.new("Skeleton", "ARMATURE").object = skel
+        out = export_glb(args["out"], skins=True)
     verts, tris = stats([body])
-    print(f"exported {out}: {verts} verts, {tris} tris, {len(BONES)} bones, "
+    bones = f"{len(BONES)} bones, " if skel else ""
+    print(f"exported {out}: {verts} verts, {tris} tris, {bones}"
           f"{len(body.data.materials)} materials")
     if args["render"]:
+        preview_team_colour()
+        if squad:
+            render_views(args["render"], [
+                ("front", 0, 0, 3.6, (1000, 800)), ("three_quarter", 35, 15, 3.8, (1000, 800)),
+                ("top", 0, 90, 3.8, (900, 900)),
+                ("game_angle", 35, 48, 4.2, (800, 800)),
+                ("game_angle_back", 135, 48, 4.2, (800, 800)),
+            ], target=(0, 0, 0.8))
+            return
         tall = (700, 1100)
         render_views(args["render"], [
             ("front", 0, 0, 2.0, tall), ("three_quarter", 35, 0, 2.0, tall),
             ("side", 90, 0, 2.0, tall), ("back", 180, 0, 2.0, tall),
             ("game_angle", 135, 48, 2.4, (700, 700)),
+            ("game_angle_front", 35, 48, 2.4, (700, 700)),
         ], target=(0, 0, 0.95))
 
 

@@ -16,7 +16,8 @@ const KNOWN_UNIT_FIELDS = [
 	"id", "category", "scene", "base", "base_scene", "blueprint", "name", "description",
 	"icon", "icon_tint", "tier", "cost", "build_time_s", "produced_by", "built_by",
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
-	"model_scale", "model_offset", "model_rotation_y_deg"
+	"model_scale", "model_offset", "model_rotation_y_deg", "classic_model", "classic_model_scale",
+	"classic_model_offset", "classic_model_rotation_y_deg"
 ]
 const KNOWN_PROPERTIES = [
 	"sight_range", "hp", "hp_max", "attack_damage", "attack_interval", "attack_range",
@@ -153,7 +154,7 @@ func _check_units(entries, resources, tiers_count):
 				where,
 				"projectile must be one of {0}".format([GameData.PROJECTILES.keys()])
 			)
-		for field in ["icon", "model", "blueprint"]:
+		for field in ["icon", "model", "classic_model", "blueprint"]:
 			if field in entry and not ResourceLoader.exists(entry[field]):
 				_error(where, "{0} '{1}' does not exist".format([field, entry[field]]))
 		_check_translation(where, entry.get("name"))
