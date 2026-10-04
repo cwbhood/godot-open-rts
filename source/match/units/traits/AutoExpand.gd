@@ -10,7 +10,9 @@ extends Node
 #      and the smallest stock of, close to a command center, away from enemies,
 #   6. a road upgrade on the longest dirt supply route.
 # It pays from the bank like the player would, but never spends below the reserve the
-# player chose (see AutoExpandPanel). A manual order pauses it until the order is done.
+# player chose (see AutoExpandPanel, or per commodity in the helper's panel while the
+# helper is on). A manual order pauses it until the order is done. With the helper on it
+# also avoids every enemy the player's units have seen, and builds the helper's factory.
 # It also queues a hauler at a command center when extractors outnumber haulers.
 
 enum Job { NONE, FLEEING, HELPING, BUILDING, PAUSED, WAITING }
@@ -23,6 +25,7 @@ const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const Constructing = preload("res://source/match/units/actions/Constructing.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
+const Helper = preload("res://source/match/players/human/Helper.gd")
 
 const NODE_NAME = "AutoExpand"
 const DEFAULT_RESERVE = 10
@@ -130,7 +133,9 @@ func _pick_a_job():
 
 func _next_plan():
 	"""{scene, position, reason} or {road, cost}; null when there is nothing to do"""
-	var plans = [_power_plant_plan(), _pylon_plan(), _extractor_plan(), _road_plan()]
+	var plans = [
+		_power_plant_plan(), _helper_plan(), _pylon_plan(), _extractor_plan(), _road_plan()
+	]
 	var short_of = null
 	for plan in plans:
 		if plan == null:
@@ -147,7 +152,7 @@ func _next_plan():
 		_set_status(
 			Job.WAITING,
 			tr("AUTO_STATUS_SAVING").format(
-				[short_of[0]["label"], ", ".join(parts), get_reserve(_player())]
+				[short_of[0]["label"], ", ".join(parts), _reserve_shown(short_of[1].keys()[0])]
 			)
 		)
 	else:
@@ -169,6 +174,21 @@ func _power_plant_plan():
 	if position == null:
 		return null
 	return _plan(scene_path, position, tr("AUTO_REASON_POWER"))
+
+
+func _helper_plan():
+	"""the structure the helper asks for (a factory for its army), near a command center"""
+	var helper = Helper.active_for(_player())
+	var scene_path = helper.wanted_structure() if helper != null else null
+	if scene_path == null or _site_of_scene_exists(scene_path):
+		return null
+	var depot = _closest_depot(_unit.global_position)
+	if depot == null:
+		return null
+	var position = _find_position_near(depot.global_position, scene_path, 8.0)
+	if position == null:
+		return null
+	return _plan(scene_path, position, tr("AUTO_REASON_HELPER"))
 
 
 func _pylon_plan():
@@ -371,12 +391,20 @@ func _site_of_scene_exists(scene_path):
 
 func _missing_beyond_reserve(cost):
 	var missing = {}
+	var helper = Helper.active_for(_player())
 	var reserve = get_reserve(_player())
 	for resource in cost:
+		if helper != null:
+			reserve = helper.keep_of(resource)
 		var short = int(cost[resource]) + reserve - int(_player().get(resource))
 		if short > 0:
 			missing[resource] = short
 	return missing
+
+
+func _reserve_shown(resource):
+	var helper = Helper.active_for(_player())
+	return helper.keep_of(resource) if helper != null else get_reserve(_player())
 
 
 func _count_spent(cost):
@@ -438,6 +466,9 @@ func _closest_enemy(position, radius):
 
 
 func _spot_is_safe(position):
+	var helper = Helper.active_for(_player())
+	if helper != null and helper.is_unsafe(position):
+		return false
 	return _closest_enemy(position, DANGER_RADIUS_M) == null
 
 
