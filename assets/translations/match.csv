@@ -204,3 +204,16 @@ DIPLOMACY_TOAST_OTHERS_WAR,{0} and {1} are at war.,{0} i {1} są w stanie wojny.
 DIPLOMACY_TOAST_OTHERS_ALLIANCE,{0} and {1} are now allies.,{0} i {1} zawarły sojusz.
 DIPLOMACY_TOAST_PROTECTED,"You have a treaty with {0} ({1}), so your units won't attack them.","Masz traktat z {0} ({1}), więc twoje jednostki ich nie zaatakują."
 CITY_PANEL_COLLAPSE_TOOLTIP,Fold the city and trade panel away (incoming offers still show),Zwiń panel miasta i handlu (oferty nadal się pojawią)
+CITY_POPULATION_MAX,[max {0}],[maks. {0}]
+CITY_POPULATION_FULL,[city full: {0} raises it to {1}],[miasto pełne: {0} podnosi limit do {1}]
+CITY_POPULATION_FULL_LAST,[city full: largest size],[miasto pełne: największy rozmiar]
+UNITS_BAR,Units {0}/{1},Jednostki {0}/{1}
+UNITS_BAR_TOOLTIP,"Unit slots in use / your cap. Every unit takes slots (light units 1, tanks 2-5), queued units too. At the cap factories refuse new orders until you lose units. All players together share a match cap of {0}, so with {1} players yours is {2}.","Zajęte miejsca jednostek / twój limit. Każda jednostka zajmuje miejsca (lekkie 1, czołgi 2-5), także te w kolejce. Przy limicie fabryki nie przyjmują zamówień, dopóki nie stracisz jednostek. Wszyscy gracze dzielą limit meczu {0}, więc przy {1} graczach twój wynosi {2}."
+MATCH_CLOCK,Ends in {0},Koniec za {0}
+MATCH_CLOCK_DEPLETED,Map dry: ends in {0},Mapa wyczerpana: koniec za {0}
+MATCH_CLOCK_TOOLTIP,The match ends when this clock runs out (or {3} minutes after the last deposit runs dry). The best score wins: citizens + unit slots in use + 5 per building + science / 10. Your score now: {0} ({1} of {2}).,"Mecz kończy się, gdy zegar dobiegnie końca (lub {3} min po wyczerpaniu ostatniego złoża). Wygrywa najlepszy wynik: mieszkańcy + zajęte miejsca jednostek + 5 za budynek + nauka / 10. Twój wynik teraz: {0} ({1}. z {2})."
+MATCH_END_TIME,Time is up,Koniec czasu
+MATCH_END_DEPLETION,Every deposit ran dry,Wszystkie złoża wyczerpane
+MATCH_END_DRAW,Draw,Remis
+MATCH_END_SCORE_ROW,"{0}. {1}: {2} (citizens {3}, army {4}, buildings {5}, science {6})","{0}. {1}: {2} (mieszkańcy {3}, armia {4}, budynki {5}, nauka {6})"
+MATCH_END_YOU,You,Ty

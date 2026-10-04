@@ -17,6 +17,7 @@ const SandboxPanel = preload("res://source/match/hud/SandboxPanel.gd")
 const Guide = preload("res://source/match/hud/Guide.gd")
 const UnitCommandHandler = preload("res://source/match/handlers/UnitCommandHandler.gd")
 const Keybinds = preload("res://source/match/Keybinds.gd")
+const MatchLimits = preload("res://source/match/MatchLimits.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
@@ -81,6 +82,10 @@ func _ready():
 		$HUD.add_child(sandbox_panel)
 	if $HUD.get_node_or_null("Guide") == null:
 		$HUD.add_child(Guide.new())  # tutorial, hints, auto-expand overview and manual
+	if get_node_or_null("MatchLimits") == null:  # unit, population and match-length caps
+		var limits = MatchLimits.new()
+		limits.name = "MatchLimits"
+		add_child(limits)
 	if get_node_or_null("Market") == null:
 		var market = Market.new()
 		market.name = "Market"

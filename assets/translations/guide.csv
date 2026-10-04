@@ -106,6 +106,7 @@ HELPER_STATUS_ECONOMY,Economy: {0} of {1} constructors on auto-expand
 HELPER_STATUS_ARMY,"Army: {0} ready, {1} in production, target {2}"
 HELPER_STATUS_ARMY_FULL,"Army: {0} ready, target {1} reached"
 HELPER_STATUS_ARMY_OFF,"Army: {0} units, not building more (army size 0)"
+HELPER_STATUS_ARMY_CAP,"Army: {0} ready, unit cap reached ({1}/{2} slots)"
 HELPER_STATUS_ARMY_NO_FACTORY,"Army: {0} of {1}, waiting for a vehicle factory"
 HELPER_STATUS_SCOUT,Scouting: {0}% of the map seen
 HELPER_STATUS_SCOUT_WAITING,Scouting: waiting for a scout buggy (needs a vehicle factory)
@@ -156,3 +157,9 @@ COMMAND_HOLD_OFF,Hold position: off
 COMMAND_PROMPT_FIGHT,"Fight: click where to go, or drag a line (Shift: queue, right-click: cancel)"
 COMMAND_PROMPT_PATROL,"Patrol: click a patrol point (Shift-click for more, right-click: cancel)"
 COMMAND_PROMPT_GUARD,"Guard: click one of your units or buildings (right-click: cancel)"
+ALERT_UNIT_CAP,Unit cap reached ({0}/{1} slots). Factories take new orders again when you lose units.
+ALERT_RESOURCES_DEPLETED,The last deposit on the map ran dry. The match ends in {0} minutes; the best score wins.
+ALERT_CITY_FULL,Your city is full ({0} citizens). Reaching {1} raises the cap to {2}.
+ALERT_CITY_FULL_LAST,Your city reached its largest size ({0} citizens).
+HELP_LIMITS_TITLE,Limits and match end
+HELP_LIMITS_BODY,"Matches have caps so nobody can build up forever.\n\n[b]Unit cap.[/b] Every unit takes unit slots: constructors, haulers, scouts, raiders and drones 1, tanks and missile trucks 2, artillery and helicopters 3, heavy tanks and gunships 4, battle tanks 5. Militia and trade caravans are free. The top bar shows [b]Units used/cap[/b]. Units in a factory queue count as soon as they are ordered. At the cap, factories refuse new orders (yours, the helper's and the AI's alike) until you lose units. Your cap is 150 slots, but all players share a match cap of 400, so in a 4-player match everyone gets 100.\n\n[b]City population cap.[/b] Each tier has a largest city size: Frontier 60, Industrial 100, Electric 130 citizens. The city panel shows [b][max N][/b]; when it is full it stops growing and building houses until the next tier.\n\n[b]Match end.[/b] The clock in the top bar counts down 45 minutes. When the last resource deposit on the map runs dry, a 5-minute countdown starts instead if that is sooner. When time runs out the best score wins (equal scores are a draw). Score = citizens + unit slots in use + 5 per finished building + science / 10; hover the clock to see yours. Destroying every enemy still wins at once.\n\nModders and map makers change these numbers in data/caps.json (a map can override them) and data/tiers.json."

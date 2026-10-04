@@ -22,10 +22,12 @@ const HelpWindow = preload("res://source/match/hud/HelpWindow.gd")
 const HelperPanel = preload("res://source/match/hud/HelperPanel.gd")
 const Helper = preload("res://source/match/players/human/Helper.gd")
 const MatchRules = preload("res://source/data-model/MatchRules.gd")
+const MatchLimits = preload("res://source/match/MatchLimits.gd")
 
 const SETTINGS_PATH = "user://guide.cfg"
 const REFRESH_INTERVAL_S = 0.5
 const HINT_DURATION_S = 12.0
+const CAP_ALERT_INTERVAL_S = 20.0
 const PANEL_WIDTH = 520
 const DONE_COLOR = Color(0.55, 1.0, 0.55)
 # tutorial steps in order: translation key suffix and the help topic that explains it
@@ -60,6 +62,8 @@ var _hints_shown = {}
 var _hint_queue = []
 var _hint_time_left_s = 0.0
 var _since_refresh_s = REFRESH_INTERVAL_S
+var _last_cap_alert_ms = -100000
+var _city_full_alerted_tiers = {}
 
 var _tutorial = PanelContainer.new()
 var _tutorial_title = Label.new()
@@ -110,6 +114,8 @@ func _ready():
 	MatchSignals.unit_command_issued.connect(func(_command): _commanded = true)
 	MatchSignals.unit_selected.connect(_on_unit_selected)
 	MatchSignals.cargo_destroyed.connect(_on_cargo_destroyed)
+	MatchSignals.unit_cap_reached.connect(_on_unit_cap_reached)
+	MatchSignals.resources_depleted.connect(_on_resources_depleted)
 	_on_match_started()
 
 
@@ -189,9 +195,11 @@ func _unhandled_key_input(event):
 
 func _process(delta):
 	_since_refresh_s += delta
-	if _since_refresh_s >= REFRESH_INTERVAL_S and tutorial_on:
+	if _since_refresh_s >= REFRESH_INTERVAL_S:
 		_since_refresh_s = 0.0
-		_refresh_tutorial()
+		if tutorial_on:
+			_refresh_tutorial()
+		_check_city_cap()  # a limit alert, shown under Raw rules too
 	_update_hint(delta)
 	_layout()
 
@@ -212,11 +220,16 @@ func _layout():
 		round((screen.x - _hint_panel.size.x) / 2.0), _tutorial.position.y + _tutorial.size.y + 6
 	)
 	var minimap_top = screen.y - 225
-	var below_helper = 60.0
+	# below the resources bar (two lines, or one bar per player with full visibility)
+	var top_left = 60.0
+	var resources = get_parent().get_node_or_null("MarginContainer2")
+	if resources != null and resources.is_visible_in_tree():
+		top_left = max(top_left, resources.global_position.y + resources.size.y + 4.0)
+	var below_helper = top_left
 	if helper_panel != null:
 		if helper_panel.size.y > helper_panel.get_combined_minimum_size().y + 1.0:
 			helper_panel.reset_size()
-		helper_panel.position = Vector2(5, 60)
+		helper_panel.position = Vector2(5, top_left)
 		if helper_panel.visible:
 			below_helper = helper_panel.position.y + helper_panel.size.y + 6.0
 	if auto_expand_panel == null:
@@ -225,8 +238,8 @@ func _layout():
 		5,
 		clamp(
 			max(round((screen.y - auto_expand_panel.size.y) / 2.0), below_helper),
-			60,
-			max(60, minimap_top - auto_expand_panel.size.y)
+			top_left,
+			max(top_left, minimap_top - auto_expand_panel.size.y)
 		)
 	)
 	var unit_menus = get_parent().find_child("UnitMenus", true, false)
@@ -438,6 +451,50 @@ func _on_tier_reached(a_player, tier):
 					)
 				)
 			]
+		)
+
+
+func _on_unit_cap_reached(a_player):
+	"""said again at most every CAP_ALERT_INTERVAL_S: the helper and auto-expand may keep
+	asking factories for units while the player is at the cap"""
+	if (
+		a_player != player
+		or Time.get_ticks_msec() - _last_cap_alert_ms < CAP_ALERT_INTERVAL_S * 1000
+	):
+		return
+	_last_cap_alert_ms = Time.get_ticks_msec()
+	var limits = MatchLimits.of(get_tree())
+	if limits != null:
+		show_alert(tr("ALERT_UNIT_CAP").format([limits.slots_used(player), limits.slots_cap()]))
+
+
+func _on_resources_depleted():
+	var limits = MatchLimits.of(get_tree())
+	if player != null and limits != null and limits.has_time_limit():
+		show_alert(
+			tr("ALERT_RESOURCES_DEPLETED").format(
+				[int(limits.config.get("depletion_countdown_min", 0))]
+			)
+		)
+
+
+func _check_city_cap():
+	var city = player.city if player != null and is_instance_valid(player) else null
+	if city == null or not city.is_at_population_cap() or city.tier in _city_full_alerted_tiers:
+		return
+	_city_full_alerted_tiers[city.tier] = true
+	var next_tier = city.tier + 1
+	if next_tier > Constants.Match.Tech.TIERS.size():
+		show_alert(tr("ALERT_CITY_FULL_LAST").format([int(city.max_population)]))
+	else:
+		show_alert(
+			tr("ALERT_CITY_FULL").format(
+				[
+					int(city.max_population),
+					tr(city.get_tier_name(next_tier)),
+					int(city.get_max_population(next_tier))
+				]
+			)
 		)
 
 

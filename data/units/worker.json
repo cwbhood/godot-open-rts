@@ -13,6 +13,7 @@
     "oil": 2
   },
   "build_time_s": 4.0,
+  "unit_slots": 1,
   "speed": 2.5,
   "produced_by": [
     "command_center"

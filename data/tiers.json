@@ -2,15 +2,18 @@
   "tiers": [
     {
       "name": "TIER_FRONTIER",
-      "science": 0
+      "science": 0,
+      "max_population": 60
     },
     {
       "name": "TIER_INDUSTRIAL",
-      "science": 150
+      "science": 150,
+      "max_population": 100
     },
     {
       "name": "TIER_ELECTRIC",
-      "science": 450
+      "science": 450,
+      "max_population": 130
     }
   ]
 }

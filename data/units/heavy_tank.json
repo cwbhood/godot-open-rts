@@ -15,6 +15,7 @@
     "oil": 5
   },
   "build_time_s": 9.0,
+  "unit_slots": 4,
   "speed": 2.2,
   "produced_by": [
     "vehicle_factory"
