@@ -6,9 +6,11 @@ extends PanelContainer
 
 const Worker = preload("res://source/match/units/Worker.gd")
 const AutoExpand = preload("res://source/match/units/traits/AutoExpand.gd")
+const HudStyle = preload("res://source/match/hud/HudStyle.gd")
 
 const REFRESH_INTERVAL_S = 0.5
 const RESERVE_CHOICES = [0, 10, 25, 50]
+const WIDTH = 280
 
 var _player = null
 var _title = Label.new()
@@ -24,27 +26,18 @@ var _since_refresh_s = REFRESH_INTERVAL_S
 
 func _ready():
 	name = "AutoExpandPanel"
-	custom_minimum_size = Vector2(300, 0)
-	var margin = MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 6)
-	add_child(margin)
+	custom_minimum_size = Vector2(WIDTH, 0)
+	var margin = HudStyle.margin(self, 8, 5)
 	var box = VBoxContainer.new()
 	margin.add_child(box)
-	var header = HBoxContainer.new()
-	box.add_child(header)
-	_title.add_theme_font_size_override("font_size", 16)
-	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title.tooltip_text = tr("AUTO_EXPAND_TOOLTIP")
 	_title.mouse_filter = Control.MOUSE_FILTER_PASS
-	header.add_child(_title)
-	_collapse.flat = true
-	_collapse.focus_mode = Control.FOCUS_NONE
 	_collapse.pressed.connect(func(): _set_collapsed(_details.visible))
-	header.add_child(_collapse)
+	box.add_child(HudStyle.header("expand", _title, _collapse))
 	box.add_child(_details)
 	_details.add_child(_lines)
 	_spent_label.add_theme_font_size_override("font_size", 12)
+	_spent_label.theme_type_variation = "MutedLabel"
 	_spent_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details.add_child(_spent_label)
 	var reserve_row = HBoxContainer.new()
@@ -71,7 +64,7 @@ func _ready():
 	_all_off.pressed.connect(_set_all.bind(false))
 	buttons.add_child(_all_off)
 	_details.add_child(buttons)
-	_set_collapsed(false)
+	_set_collapsed(true)  # the tutorial opens it at its step (see Guide)
 
 
 func setup(player):
@@ -101,7 +94,12 @@ func _refresh():
 		return
 	var constructors = _constructors()
 	var enabled = constructors.filter(func(unit): return AutoExpand.is_enabled_on(unit))
-	_title.text = tr("AUTO_EXPAND_TITLE").format([enabled.size(), constructors.size()])
+	_title.text = tr("HUD_AUTO_EXPAND_SHORT").format([enabled.size(), constructors.size()])
+	_title.tooltip_text = (
+		tr("AUTO_EXPAND_TITLE").format([enabled.size(), constructors.size()])
+		+ "\n"
+		+ tr("AUTO_EXPAND_TOOLTIP")
+	)
 	# rows are reused rather than rebuilt, so that a click is not lost to a refresh
 	var rows = _lines.get_children()
 	for index in range(max(enabled.size(), 1), rows.size()):
@@ -137,7 +135,7 @@ func _make_line():
 	line.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	line.clip_text = true
-	line.custom_minimum_size = Vector2(290, 0)
+	line.custom_minimum_size = Vector2(WIDTH - 16, 0)
 	line.add_theme_font_size_override("font_size", 12)
 	line.pressed.connect(func(): _select(line.get_meta("unit", null)))
 	_lines.add_child(line)
@@ -146,7 +144,12 @@ func _make_line():
 
 func _set_collapsed(collapsed):
 	_details.visible = not collapsed
-	_collapse.text = "+" if collapsed else "–"
+	HudStyle.set_folded_icon(_collapse, collapsed)
+	reset_size()
+
+
+func set_collapsed(collapsed):
+	_set_collapsed(collapsed)
 
 
 func _set_all(enabled):

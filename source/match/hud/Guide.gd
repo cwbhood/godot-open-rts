@@ -23,13 +23,17 @@ const HelperPanel = preload("res://source/match/hud/HelperPanel.gd")
 const Helper = preload("res://source/match/players/human/Helper.gd")
 const MatchRules = preload("res://source/data-model/MatchRules.gd")
 const MatchLimits = preload("res://source/match/MatchLimits.gd")
+const HudStyle = preload("res://source/match/hud/HudStyle.gd")
 
 const SETTINGS_PATH = "user://guide.cfg"
 const REFRESH_INTERVAL_S = 0.5
 const HINT_DURATION_S = 12.0
 const CAP_ALERT_INTERVAL_S = 20.0
-const PANEL_WIDTH = 520
-const DONE_COLOR = Color(0.55, 1.0, 0.55)
+const PANEL_WIDTH = 500
+const DONE_COLOR = Color("#8fbf5a")
+const GAP = 6.0
+# the panel a tutorial step is about opens when the step starts (all start folded)
+const STEP_PANELS = {"AUTO_EXPAND": "AutoExpandPanel", "TRADE": "CityHud"}
 # tutorial steps in order: translation key suffix and the help topic that explains it
 const STEPS = [
 	["SELECT_CONSTRUCTOR", "CONSTRUCTORS"],
@@ -77,6 +81,7 @@ var _hint_panel = PanelContainer.new()
 var _hint_label = Label.new()
 var _surplus_shown = 0
 var _full_extractors_hinted = false
+var _opened_for_step = -1
 
 
 func _ready():
@@ -126,41 +131,42 @@ func _build_tutorial():
 	_tutorial.name = "Tutorial"
 	_tutorial.custom_minimum_size = Vector2(PANEL_WIDTH, 0)
 	add_child(_tutorial)
-	var margin = MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 8)
-	_tutorial.add_child(margin)
+	var margin = HudStyle.margin(_tutorial, 12, 8)
 	var box = VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
 	margin.add_child(box)
-	var header = HBoxContainer.new()
-	box.add_child(header)
+	var header = HudStyle.header("tutorial", _tutorial_title, null)
 	_tutorial_title.add_theme_font_size_override("font_size", 17)
-	_tutorial_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(_tutorial_title)
+	box.add_child(header)
 	var help_button = Button.new()
 	help_button.text = tr("GUIDE_HELP_BUTTON")
 	help_button.tooltip_text = tr("GUIDE_HELP_TOOLTIP")
 	help_button.focus_mode = Control.FOCUS_NONE
+	help_button.add_theme_font_size_override("font_size", 13)
 	help_button.pressed.connect(func(): toggle_help())
 	header.add_child(help_button)
-	_fold_button.focus_mode = Control.FOCUS_NONE
+	HudStyle.style_fold_button(_fold_button)
 	_fold_button.pressed.connect(func(): _set_folded(_tutorial_details.visible))
 	header.add_child(_fold_button)
 	box.add_child(_tutorial_details)
+	_tutorial_details.add_theme_constant_override("separation", 8)
 	_tutorial_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_tutorial_body.custom_minimum_size = Vector2(PANEL_WIDTH - 20, 0)
-	_tutorial_body.add_theme_font_size_override("font_size", 14)
+	_tutorial_body.custom_minimum_size = Vector2(PANEL_WIDTH - 26, 0)
+	_tutorial_body.add_theme_font_size_override("font_size", 15)
 	_tutorial_details.add_child(_tutorial_body)
 	var buttons = HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 8)
 	_tutorial_details.add_child(buttons)
 	_more_button.text = tr("GUIDE_MORE")
 	_more_button.focus_mode = Control.FOCUS_NONE
+	_more_button.add_theme_font_size_override("font_size", 13)
 	_more_button.pressed.connect(func(): toggle_help(STEPS[min(_step, STEPS.size() - 1)][1], true))
 	buttons.add_child(_more_button)
 	var skip = _skip_button
 	skip.text = tr("GUIDE_SKIP")
 	skip.tooltip_text = tr("GUIDE_SKIP_TOOLTIP")
 	skip.focus_mode = Control.FOCUS_NONE
+	skip.add_theme_font_size_override("font_size", 13)
 	skip.pressed.connect(_skip_step)
 	buttons.add_child(skip)
 	_set_folded(_load_setting("tutorial_folded", false))
@@ -169,22 +175,28 @@ func _build_tutorial():
 func _build_hint():
 	_hint_panel.name = "Hint"
 	_hint_panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0)
-	_hint_panel.self_modulate = Color(1.0, 0.92, 0.6)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(HudStyle.SURFACE, 0.94)
+	style.border_color = HudStyle.ACCENT
+	style.border_width_left = 4
+	style.set_corner_radius_all(4)
+	style.shadow_color = Color(0, 0, 0, 0.35)
+	style.shadow_size = 6
+	_hint_panel.add_theme_stylebox_override("panel", style)
 	add_child(_hint_panel)
-	var margin = MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 8)
-	_hint_panel.add_child(margin)
+	var margin = HudStyle.margin(_hint_panel, 12, 8)
 	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
 	margin.add_child(row)
 	_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_hint_label.custom_minimum_size = Vector2(PANEL_WIDTH - 60, 0)
+	_hint_label.custom_minimum_size = Vector2(PANEL_WIDTH - 90, 0)
 	_hint_label.add_theme_font_size_override("font_size", 14)
 	row.add_child(_hint_label)
 	var close = Button.new()
 	close.text = "OK"
 	close.focus_mode = Control.FOCUS_NONE
+	close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	close.pressed.connect(func(): _hint_time_left_s = 0.0)
 	row.add_child(close)
 	_hint_panel.hide()
@@ -209,59 +221,70 @@ func _process(delta):
 
 
 func _layout():
-	"""positions are set by hand: the HUD layer gives this control no size to anchor to"""
+	"""positions are set by hand: the HUD layer gives this control no size to anchor to.
+	The top strip runs along the top; under it the helper and auto-expand panels make a
+	column on the left, the city panel one on the right, and the diplomacy bar, the
+	tutorial and hints share the middle."""
 	var screen = get_viewport_rect().size
 	for panel in [_tutorial, _hint_panel]:
 		if panel.size.y > panel.get_combined_minimum_size().y + 1.0:
 			panel.reset_size()  # shrink back after shorter text
-	# the diplomacy bar sits at the top centre too, so the tutorial goes right under it
-	var top = 6.0
-	var diplomacy_hud = get_parent().get_node_or_null("DiplomacyHud")
-	if diplomacy_hud != null and diplomacy_hud.is_visible_in_tree():
-		top = diplomacy_hud.position.y + diplomacy_hud.size.y + 6.0
-	# centred, but kept left of the city panel (long translations make these wide)
-	var city = get_parent().get_node_or_null("CityHud")
-	var right_edge = screen.x - 4.0
-	if city != null and city.is_visible_in_tree():
-		right_edge = city.get_global_rect().position.x - 6.0
-	_tutorial.position = Vector2(_centred_x(_tutorial, screen.x, right_edge), top)
-	_hint_panel.position = Vector2(
-		_centred_x(_hint_panel, screen.x, right_edge), _tutorial.position.y + _tutorial.size.y + 6
-	)
-	var minimap_top = screen.y - 225
-	# below the resources bar (two lines, or one bar per player with full visibility)
-	var top_left = 60.0
+	var top_left = 40.0
 	var resources = get_parent().get_node_or_null("MarginContainer2")
 	if resources != null and resources.is_visible_in_tree():
-		top_left = max(top_left, resources.global_position.y + resources.size.y + 4.0)
+		top_left = resources.global_position.y + resources.size.y + GAP
+	var left_edge = 4.0
 	var below_helper = top_left
 	if helper_panel != null:
 		if helper_panel.size.y > helper_panel.get_combined_minimum_size().y + 1.0:
 			helper_panel.reset_size()
-		helper_panel.position = Vector2(5, top_left)
+		helper_panel.position = Vector2(GAP, top_left)
 		if helper_panel.visible:
-			below_helper = helper_panel.position.y + helper_panel.size.y + 6.0
-	if auto_expand_panel == null:
-		return
-	auto_expand_panel.position = Vector2(
-		5,
-		clamp(
-			max(round((screen.y - auto_expand_panel.size.y) / 2.0), below_helper),
-			top_left,
-			max(top_left, minimap_top - auto_expand_panel.size.y)
+			below_helper = helper_panel.position.y + helper_panel.size.y + GAP
+			left_edge = max(left_edge, helper_panel.position.x + helper_panel.size.x + GAP)
+	var minimap_top = screen.y - 225
+	if auto_expand_panel != null:
+		if auto_expand_panel.size.y > auto_expand_panel.get_combined_minimum_size().y + 1.0:
+			auto_expand_panel.reset_size()
+		auto_expand_panel.position = Vector2(
+			GAP,
+			clamp(below_helper, top_left, max(top_left, minimap_top - auto_expand_panel.size.y))
 		)
-	)
+		if auto_expand_panel.visible:
+			left_edge = max(
+				left_edge, auto_expand_panel.position.x + auto_expand_panel.size.x + GAP
+			)
+	# the diplomacy bar sits at the top centre too, so the tutorial goes right under it
+	var top = top_left
+	var diplomacy_hud = get_parent().get_node_or_null("DiplomacyHud")
+	if diplomacy_hud != null and diplomacy_hud.is_visible_in_tree():
+		top = diplomacy_hud.position.y + diplomacy_hud.size.y + GAP
+	# centred, but kept between the side columns (long translations make these wide)
+	var city = get_parent().get_node_or_null("CityHud")
+	var right_edge = screen.x - 4.0
+	if city != null and city.is_visible_in_tree():
+		right_edge = city.get_global_rect().position.x - GAP
+	_tutorial.position = Vector2(_centred_x(_tutorial, left_edge, right_edge), top)
+	var hint_top = _tutorial.position.y + _tutorial.size.y + GAP if _tutorial.visible else top
+	_hint_panel.position = Vector2(_centred_x(_hint_panel, left_edge, right_edge), hint_top)
+	if auto_expand_bar == null:
+		return
 	var unit_menus = get_parent().find_child("UnitMenus", true, false)
 	var right = screen.x - 5
 	if unit_menus != null and unit_menus.is_visible_in_tree():
-		right = unit_menus.global_position.x - 6
+		right = unit_menus.global_position.x - GAP
 	auto_expand_bar.position = Vector2(
 		right - auto_expand_bar.size.x, screen.y - 5 - auto_expand_bar.size.y
 	)
 
 
-func _centred_x(panel, screen_width, right_edge):
-	return round(max(4.0, min((screen_width - panel.size.x) / 2.0, right_edge - panel.size.x)))
+func _centred_x(panel, left_edge, right_edge):
+	"""centred on the screen when it fits there, else in the room between the columns"""
+	var screen_width = get_viewport_rect().size.x
+	var x = (screen_width - panel.size.x) / 2.0
+	if x < left_edge or x + panel.size.x > right_edge:
+		x = left_edge + (right_edge - left_edge - panel.size.x) / 2.0
+	return round(max(4.0, x))
 
 
 func toggle_help(topic = null, force_show = false):
@@ -316,14 +339,28 @@ func _refresh_tutorial():
 			# fold it once so it stops covering the middle of the screen; Show brings it back
 			_folded_when_done = true
 			_tutorial_details.visible = false
-			_fold_button.text = tr("GUIDE_SHOW")
+			HudStyle.set_folded_icon(_fold_button, true)
 			_tutorial.reset_size()
 		return
 	var key = STEPS[_step][0]
+	if _opened_for_step != _step:
+		_opened_for_step = _step
+		_open_panel_for(key)
 	_tutorial_title.text = tr("GUIDE_TITLE").format(
 		[_step + 1, STEPS.size(), tr("GUIDE_STEP_{0}_TITLE".format([key]))]
 	)
 	_tutorial_body.text = tr("GUIDE_STEP_{0}".format([key]))
+
+
+func _open_panel_for(key):
+	"""unfolds the panel the step talks about, once, when the step starts"""
+	var panel = get_parent().find_child(STEP_PANELS.get(key, "-"), true, false)
+	if panel == null:
+		return
+	if panel.has_method("open_trade"):
+		panel.open_trade()
+	elif panel.has_method("set_collapsed"):
+		panel.set_collapsed(false)
 
 
 func _step_done(key):
@@ -375,7 +412,8 @@ func _skip_step():
 
 func _set_folded(folded):
 	_tutorial_details.visible = not folded
-	_fold_button.text = tr("GUIDE_SHOW") if folded else tr("GUIDE_HIDE")
+	HudStyle.set_folded_icon(_fold_button, folded)
+	_fold_button.tooltip_text = tr("GUIDE_SHOW") if folded else tr("GUIDE_HIDE")
 	_save_setting("tutorial_folded", folded)
 	_tutorial.reset_size()
 

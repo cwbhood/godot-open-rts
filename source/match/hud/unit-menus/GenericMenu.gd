@@ -21,12 +21,14 @@ const COMMANDS = [
 var units = []
 
 var _command_buttons = {}  # command -> button
+var _cancel_button = null
 
 
 func _ready():
 	for entry in COMMANDS:
 		_command_buttons[entry[0]] = _replace_padding(entry[1], entry[0])
 	var cancel = find_child("CancelActionButton")
+	_cancel_button = cancel
 	cancel.tooltip_text = "{0} ({1})".format(
 		[tr("CANCEL_CURRENT_ACTION"), Keybinds.key_label("command_stop")]
 	)
@@ -36,6 +38,7 @@ func _replace_padding(padding_name, command):
 	var padding = get_node(padding_name)
 	var button = Button.new()
 	button.name = "Command_" + command
+	button.theme_type_variation = "SlotButton"
 	button.custom_minimum_size = padding.custom_minimum_size
 	button.focus_mode = Control.FOCUS_NONE
 	button.toggle_mode = command in UnitCommandHandler.MODES
@@ -66,6 +69,9 @@ func _process(_delta):
 	var armed = movable.filter(func(unit): return unit.attack_range != null)
 	# a single constructor shows its build menu in the same slots
 	var show = not movable.is_empty() and not (units.size() == 1 and units[0] is Worker)
+	# under a single constructor's build menu the cancel button would peek between the
+	# build buttons without being clickable; X (stop) still cancels
+	_cancel_button.visible = not (units.size() == 1 and units[0] is Worker)
 	for command in _command_buttons:
 		var button = _command_buttons[command]
 		button.visible = show
