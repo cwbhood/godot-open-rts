@@ -1,5 +1,7 @@
 extends Node3D
 
+const ShotEffects = preload("res://source/match/units/projectiles/ShotEffects.gd")
+
 var target_unit = null
 
 @onready var _unit = get_parent()
@@ -31,3 +33,5 @@ func _setup_unit_particles():
 	)
 	_unit_particles.global_transform = a_global_transform
 	_unit_particles.emitting = true
+	if is_instance_valid(target_unit) and is_instance_valid(_unit):
+		ShotEffects.cannon_shot(_unit, a_global_transform, target_unit)

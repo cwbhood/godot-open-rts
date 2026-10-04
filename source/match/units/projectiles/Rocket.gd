@@ -1,5 +1,7 @@
 extends Node3D
 
+const ShotEffects = preload("res://source/match/units/projectiles/ShotEffects.gd")
+
 var target_unit = null
 
 @onready var _unit = get_parent()
@@ -36,9 +38,13 @@ func _setup_path():
 	)
 	_path.curve.add_point(projectile_origin)
 	_path.curve.add_point(target_unit.global_position)
+	if _visuals.visible:
+		ShotEffects.rocket_launch(_unit, projectile_origin)
 
 
 func _perform_hit():
 	if not is_instance_valid(target_unit) or not is_instance_valid(_unit):
 		return
+	if _visuals.visible or target_unit.visible:
+		ShotEffects.rocket_impact(target_unit, _path.curve.get_point_position(1))
 	target_unit.take_damage(_unit.attack_damage, _unit)
