@@ -162,9 +162,20 @@ class City:
 	const FIRST_BUILDING_RING_RADIUS_M = 5.5
 	const BUILDING_RING_SPACING_M = 2.5
 	const BUILDING_RINGS = 4
+	# each city building picks one of its kind's models at random
 	const BUILDING_MODELS = {
-		"house": "res://assets/models/kenney-spacekit/hangar_roundA.glb",
-		"workshop": "res://assets/models/kenney-spacekit/machine_generator.glb",
+		"house":
+		[
+			"res://assets/models/ironbound/buildings/house_a.glb",
+			"res://assets/models/ironbound/buildings/house_b.glb",
+			"res://assets/models/ironbound/buildings/apartment.glb",
+		],
+		"workshop":
+		[
+			"res://assets/models/ironbound/buildings/workshop.glb",
+			"res://assets/models/ironbound/buildings/market.glb",
+			"res://assets/models/ironbound/buildings/depot.glb",
+		],
 	}
 	# share of every delivery that goes into the city warehouse instead of the player stock
 	const DELIVERY_SHARE = 0.25

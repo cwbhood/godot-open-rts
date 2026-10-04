@@ -2,6 +2,8 @@
   "id": "aa_turret",
   "category": "structure",
   "scene": "res://source/match/units/AntiAirTurret.tscn",
+  "model": "res://assets/models/ironbound/buildings/defense_aa.glb",
+  "model_scale": 1.0,
   "blueprint": "res://source/match/units/structure-geometries/AntiAirTurret.tscn",
   "name": "AA_TURRET",
   "description": "AA_TURRET_DESCRIPTION",

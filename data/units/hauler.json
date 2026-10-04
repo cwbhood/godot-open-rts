@@ -3,7 +3,7 @@
   "category": "unit",
   "scene": "res://source/match/units/Hauler.tscn",
   "model": "res://assets/models/ironbound/units/hauler.glb",
-  "model_scale": 0.75,
+  "model_scale": 1.0,
   "name": "HAULER",
   "description": "HAULER_DESCRIPTION",
   "icon": "res://assets/ui/icons/Worker.png",

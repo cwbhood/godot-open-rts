@@ -3,7 +3,7 @@
   "category": "unit",
   "scene": "res://source/match/units/Helicopter.tscn",
   "model": "res://assets/models/ironbound/units/helicopter_transport.glb",
-  "model_scale": 0.7,
+  "model_scale": 1.0,
   "name": "HELICOPTER",
   "description": "HELICOPTER_DESCRIPTION",
   "icon": "res://assets/ui/icons/Helicopter.png",

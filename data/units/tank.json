@@ -3,7 +3,7 @@
   "category": "unit",
   "scene": "res://source/match/units/Tank.tscn",
   "model": "res://assets/models/ironbound/units/tank_light.glb",
-  "model_scale": 1.3,
+  "model_scale": 1.667,
   "name": "TANK",
   "description": "TANK_DESCRIPTION",
   "icon": "res://assets/ui/icons/Tank.png",

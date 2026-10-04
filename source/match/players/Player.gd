@@ -112,7 +112,7 @@ func get_color_material():
 		_color_material = StandardMaterial3D.new()
 		_color_material.vertex_color_use_as_albedo = true
 		_color_material.albedo_color = color
-		_color_material.metallic = 1
+		_color_material.roughness = 0.55
 	return _color_material
 
 

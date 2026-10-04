@@ -11,8 +11,10 @@ static func traverse_node_tree_and_replace_materials_matching_albedo(
 ):
 	if starting_node == null:
 		return
-	for child in starting_node.find_children("*"):
-		if not "mesh" in child:
+	# owned = false: meshes inside a model instantiated at runtime (GameData.apply_model)
+	# belong to that model's root, not to the unit scene
+	for child in starting_node.find_children("*", "", true, false):
+		if not "mesh" in child or child.mesh == null:
 			continue
 		for surface_id in range(child.mesh.get_surface_count()):
 			var surface_material = child.mesh.get("surface_{0}/material".format([surface_id]))

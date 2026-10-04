@@ -1,18 +1,20 @@
 extends "res://source/match/units/Unit.gd"
 
-const ROTOR_SPEED = 800.0  # degrees/s
-
+const RotorSpin = preload("res://source/match/units/RotorSpin.gd")
 const WaitingForTargets = preload("res://source/match/units/actions/WaitingForTargets.gd")
+
+var _rotors = []
 
 
 func _ready():
 	await super()
+	_rotors = RotorSpin.collect(self)
 	action_changed.connect(_on_action_changed)
 	action = WaitingForTargets.new()
 
 
 func _physics_process(delta):
-	find_child("Rotor").rotation_degrees.y += ROTOR_SPEED * delta
+	RotorSpin.spin(_rotors, delta)
 
 
 func _on_action_changed(new_action):

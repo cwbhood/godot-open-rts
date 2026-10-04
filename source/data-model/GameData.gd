@@ -120,12 +120,13 @@ static func apply_model(root, unit):
 	"""swaps the visible model under the unit's Geometry node for the entry's "model";
 	returns the added model node or null"""
 	var model_scene = load(unit["model"]) if ResourceLoader.exists(unit["model"]) else null
-	var geometry = root.find_child("Geometry", false)
+	# turrets keep their Geometry under a DetachTransform node, hence the deep search
+	var geometry = root.find_child("Geometry", true, false)
 	if model_scene == null or geometry == null:
 		push_error("GameData: cannot use model '{0}'".format([unit.get("model")]))
 		return null
 	for child in geometry.get_children():
-		if child is VisualInstance3D or child.scene_file_path != "":
+		if child is Node3D:
 			child.visible = false  # kept so that scripts referring to them keep working
 	var model = model_scene.instantiate()
 	model.name = "Model"

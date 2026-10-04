@@ -3,7 +3,7 @@
   "category": "structure",
   "scene": "res://source/match/units/CommandCenter.tscn",
   "model": "res://assets/models/ironbound/buildings/command_center.glb",
-  "model_scale": 0.85,
+  "model_scale": 1.0,
   "blueprint": "res://source/match/units/structure-geometries/CommandCenter.tscn",
   "name": "CC",
   "description": "CC_DESCRIPTION",
