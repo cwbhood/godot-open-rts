@@ -15,6 +15,7 @@ const GameData = preload("res://source/data-model/GameData.gd")
 const ReplayRecorder = preload("res://source/match/ReplayRecorder.gd")
 const SandboxPanel = preload("res://source/match/hud/SandboxPanel.gd")
 const Guide = preload("res://source/match/hud/Guide.gd")
+const CityBuildUp = preload("res://source/match/city/CityBuildUp.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
@@ -22,6 +23,8 @@ const Worker = preload("res://source/match/units/Worker.tscn")
 const Hauler = preload("res://source/match/units/Hauler.tscn")
 
 @export var settings: Resource = null
+# shows the starter city being built before play starts (set by the Play menu, see CityBuildUp)
+@export var play_city_build_up = false
 
 var map:
 	set = _set_map,
@@ -92,6 +95,11 @@ func _ready():
 		diplomacy_hud.name = "DiplomacyHud"
 		$HUD.add_child(diplomacy_hud)
 	MatchSignals.setup_and_spawn_unit.connect(_setup_and_spawn_unit)
+	var city_build_up = null
+	if play_city_build_up and get_node_or_null("CityBuildUp") == null:
+		city_build_up = CityBuildUp.new()
+		city_build_up.name = "CityBuildUp"
+		add_child(city_build_up)
 	_setup_subsystems_dependent_on_map()
 	_setup_players()
 	_setup_player_units()
@@ -100,6 +108,8 @@ func _ready():
 	if settings.visibility == settings.Visibility.FULL:
 		fog_of_war.reveal()
 	MatchSignals.match_started.emit()
+	if city_build_up != null:
+		city_build_up.start()
 
 
 func _unhandled_input(event):
@@ -206,7 +216,8 @@ func _setup_player_units():
 
 
 func _spawn_player_units(player, spawn_transform):
-	_setup_and_spawn_unit(CommandCenter.instantiate(), spawn_transform, player, false)
+	var command_center = CommandCenter.instantiate()
+	_setup_and_spawn_unit(command_center, spawn_transform, player, false)
 	_setup_and_spawn_unit(
 		Drone.instantiate(), spawn_transform.translated(Vector3(-2, 0, -2)), player
 	)
@@ -222,6 +233,7 @@ func _spawn_player_units(player, spawn_transform):
 	_setup_and_spawn_unit(
 		Hauler.instantiate(), spawn_transform.translated(Vector3(3, 0, -3)), player
 	)
+	MatchSignals.starter_city_spawned.emit(player, command_center)
 
 
 func _setup_and_spawn_unit(unit, a_transform, player, mark_structure_under_construction = true):
