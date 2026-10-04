@@ -768,6 +768,8 @@ func _steer_scout():
 	var moving = _scout.action is Moving and is_instance_valid(_scout.action)
 	if moving and _scout_target != null and not is_dangerous(_scout_target, SCOUT_EXTRA_M):
 		return
+	if _scout_target != null and _scout_target.distance_to(_scout.global_position_yless) < 6.0:
+		_scout_cells[_cell_of(_scout_target)] = _clock_s  # as close as it gets to that cell
 	_scout_target = _next_scout_target()
 	if _scout_target != null:
 		_scout.action = Moving.new(_scout_target)
