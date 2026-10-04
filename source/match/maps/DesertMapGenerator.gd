@@ -13,6 +13,7 @@ extends "res://source/match/Map.gd"
 # layout, features are placed from the seed.
 
 enum ResourceLayout { SYMMETRIC, ASYMMETRIC }
+enum Symmetry { POINT, ROTATIONAL }
 
 const TerrainMaterial = preload(
 	"res://source/match/resources/materials/desert_terrain.material.tres"
@@ -32,6 +33,7 @@ const FOREST_KINDS = [&"acacia", &"pine", &"mixed"]
 const RESOURCE_LAYOUTS = {
 	"symmetric": ResourceLayout.SYMMETRIC, "asymmetric": ResourceLayout.ASYMMETRIC
 }
+const SYMMETRIES = {"point": Symmetry.POINT, "rotational": Symmetry.ROTATIONAL}
 
 ## JSON map definition; its settings override the exports below
 @export_file("*.json") var map_definition = "":
@@ -47,6 +49,23 @@ const RESOURCE_LAYOUTS = {
 @export_range(0, 4) var extra_lake_pairs = 2
 @export_range(0, 6) var forest_pairs = 3
 @export_range(0, 8) var outcrop_pairs = 4
+## start zones the map is made for; 4 on a square map gives 4-fold rotational symmetry
+@export_range(2, 8) var players = 4
+## POINT mirrors everything through the center; ROTATIONAL turns it 4 ways (square maps)
+@export var symmetry = Symmetry.ROTATIONAL
+## start zones sit this far in from the corners, as a fraction of the map size
+@export var spawn_inset = 0.16
+@export var center_lake = true
+## commodities placed next to every start zone
+@export var home_deposits = ["iron", "oil"]
+## commodities placed anywhere in the open (each one copied for every start zone)
+@export var contested_deposits = ["oil", "oil", "copper", "copper", "iron", "iron"]
+@export var contested_richness = 1.5
+## commodities placed near the middle, the richest deposits on the map
+@export var middle_deposits = []
+@export var middle_richness = 2.5
+## how far from the center the middle deposits may be, as a fraction of half the map size
+@export var middle_reach = 0.35
 ## spawns the harvestable deposit units (data/resources.json "deposit_scene") at deposit sites
 @export var spawn_deposits = true
 @export var regenerate_in_editor = false:
@@ -99,6 +118,19 @@ func load_definition():
 	extra_lake_pairs = int(settings.get("lake_pairs", extra_lake_pairs))
 	forest_pairs = int(settings.get("forest_pairs", forest_pairs))
 	outcrop_pairs = int(settings.get("outcrop_pairs", outcrop_pairs))
+	players = int(definition.get("players", players))
+	var default_symmetry = "rotational" if players == 4 else "point"
+	symmetry = SYMMETRIES.get(settings.get("symmetry", default_symmetry), symmetry)
+	spawn_inset = float(settings.get("spawn_inset", spawn_inset))
+	center_lake = bool(settings.get("center_lake", center_lake))
+	home_deposits = settings.get("home_deposits", home_deposits)
+	contested_deposits = settings.get("contested_deposits", contested_deposits)
+	contested_richness = float(settings.get("contested_richness", contested_richness))
+	middle_deposits = settings.get("middle_deposits", middle_deposits)
+	middle_richness = float(settings.get("middle_richness", middle_richness))
+	middle_reach = float(settings.get("middle_reach", middle_reach))
+	start_zone_radius = float(definition.get("start_zone_radius", start_zone_radius))
+	start_pick_seconds = float(definition.get("start_pick_seconds", start_pick_seconds))
 	layout = definition.get("layout", null)
 
 
@@ -165,7 +197,8 @@ func is_obstructed(pos: Vector2, margin = 0.0) -> bool:
 func is_reserved(pos: Vector2, margin = 0.0) -> bool:
 	"""true near spawns and deposits - places that must stay clear of props"""
 	for spawn in spawns:
-		if pos.distance_to(spawn) < SPAWN_CLEARANCE * 0.6 + margin:
+		var clearance = max(SPAWN_CLEARANCE * 0.6, start_zone_radius + 4.0)
+		if pos.distance_to(spawn) < clearance + margin:
 			return true
 	for deposit in deposits:
 		if pos.distance_to(deposit.center) < DEPOSIT_CLEARANCE + margin:
@@ -175,7 +208,7 @@ func is_reserved(pos: Vector2, margin = 0.0) -> bool:
 
 func get_spawn_resource_bias(spawn_index: int) -> StringName:
 	"""in ASYMMETRIC layouts one side is oil-rich and the other metal-rich"""
-	if resource_layout != ResourceLayout.ASYMMETRIC:
+	if resource_layout != ResourceLayout.ASYMMETRIC or _symmetry() != 2:
 		return &"balanced"
 	return &"oil" if spawn_index % 2 == 0 else &"metal"
 
@@ -218,17 +251,35 @@ func _mirror(pos: Vector2) -> Vector2:
 	return size - pos
 
 
+func _copies(pos: Vector2) -> Array:
+	"""pos and its symmetric copies, one per start zone. Copy i of anything placed for
+	start zone 0 ends up in the same spot relative to start zone i."""
+	if _symmetry() == 2:
+		return [pos, _mirror(pos)]
+	var center = size / 2.0
+	var offset = pos - center
+	var quarter = Vector2(-offset.y, offset.x)
+	return [pos, center - offset, center + quarter, center - quarter]
+
+
+func _symmetry() -> int:
+	"""4-fold rotation needs a square map; anything else mirrors through the center"""
+	return 4 if symmetry == Symmetry.ROTATIONAL and is_equal_approx(size.x, size.y) else 2
+
+
 func _plan_layout():
-	var corner = Vector2(0.16, 0.16) * size
-	spawns = [corner, _mirror(corner), Vector2(size.x - corner.x, corner.y)]
-	spawns.append(_mirror(spawns[2]))
-	lakes.append({"center": size / 2.0, "radius": min(size.x, size.y) * 0.065, "phase": 0.0})
+	var corner = Vector2(spawn_inset, spawn_inset) * size
+	spawns = _copies(corner)
+	if _symmetry() == 2 and players > 2:
+		spawns.append_array(_copies(Vector2(size.x - corner.x, corner.y)))
+	if center_lake:
+		lakes.append({"center": size / 2.0, "radius": min(size.x, size.y) * 0.065, "phase": 0.0})
 	for _i in range(extra_lake_pairs):
-		_place_mirrored_feature(lakes, _rng.randf_range(4.0, 6.5), 9.0, true)
+		_place_symmetric_feature(lakes, _rng.randf_range(4.0, 6.5), 9.0, true)
 	for _i in range(forest_pairs):
-		_place_mirrored_forest()
+		_place_symmetric_forest()
 	for _i in range(outcrop_pairs):
-		_place_mirrored_feature(outcrops, _rng.randf_range(1.5, 3.0), 5.0, false)
+		_place_symmetric_feature(outcrops, _rng.randf_range(1.5, 3.0), 5.0, false)
 	_plan_deposits()
 
 
@@ -238,8 +289,16 @@ func _random_point(margin: float) -> Vector2:
 	)
 
 
+func _copies_apart(pos: Vector2, distance: float) -> bool:
+	var copies = _copies(pos)
+	for i in range(1, copies.size()):
+		if pos.distance_to(copies[i]) < distance:
+			return false
+	return true
+
+
 func _is_free(pos: Vector2, radius: float, gap: float) -> bool:
-	if pos.distance_to(_mirror(pos)) < (radius + gap) * 2.0:
+	if not _copies_apart(pos, (radius + gap) * 2.0):
 		return false
 	var blockers = []  # [center, clearance]
 	for spawn in spawns:
@@ -256,17 +315,17 @@ func _is_free(pos: Vector2, radius: float, gap: float) -> bool:
 	return blockers.all(func(blocker): return pos.distance_to(blocker[0]) >= blocker[1] + gap)
 
 
-func _place_mirrored_feature(target, radius, gap, is_lake):
+func _place_symmetric_feature(target, radius, gap, is_lake):
 	for _attempt in range(200):
 		var pos = _random_point(radius * 1.5 + 4.0)
 		if _is_free(pos, radius * (LAKE_SHORE_RATIO if is_lake else 1.0), gap):
 			var phase = _rng.randf() * 100.0
-			target.append({"center": pos, "radius": radius, "phase": phase})
-			target.append({"center": _mirror(pos), "radius": radius, "phase": phase})
+			for copy in _copies(pos):
+				target.append({"center": copy, "radius": radius, "phase": phase})
 			return
 
 
-func _place_mirrored_forest():
+func _place_symmetric_forest():
 	var kind = [&"acacia", &"pine", &"mixed"][_rng.randi() % 3]
 	for _attempt in range(200):
 		var center = _random_point(14.0)
@@ -275,71 +334,113 @@ func _place_mirrored_forest():
 			var offset = Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(2.5, 4.5)
 			circles.append({"center": center + offset, "radius": _rng.randf_range(1.8, 3.0)})
 		if circles.all(func(circle): return _is_free(circle.center, circle.radius, 4.0)):
-			forests.append({"circles": circles, "kind": kind})
-			var mirrored = circles.map(
-				func(circle): return {"center": _mirror(circle.center), "radius": circle.radius}
-			)
-			forests.append({"circles": mirrored, "kind": kind})
+			for copy_index in range(_symmetry()):
+				var copied = circles.map(
+					func(circle):
+						return {
+							"center": _copies(circle.center)[copy_index], "radius": circle.radius
+						}
+				)
+				forests.append({"circles": copied, "kind": kind})
 			return
 
 
 func _plan_deposits():
-	var asymmetric = resource_layout == ResourceLayout.ASYMMETRIC
-	# deposits close to each spawn, a safe-ish start economy
-	for spawn_index in range(spawns.size()):
-		var spawn = spawns[spawn_index]
+	var asymmetric = resource_layout == ResourceLayout.ASYMMETRIC and _symmetry() == 2
+	# deposits close to each start zone, a safe-ish start economy. They are planned around
+	# zone 0 and copied, so every zone gets the same kinds at the same distances.
+	var home_spawns = spawns.size() / _symmetry()
+	for spawn_index in range(home_spawns):
+		var spawn = spawns[spawn_index * _symmetry()]
 		var towards_center = (size / 2.0 - spawn).angle()
-		var kinds = [&"iron", &"oil"]
-		if asymmetric:
-			kinds = [&"oil", &"oil"] if spawn_index % 2 == 0 else [&"iron", &"copper"]
-		var angles = [towards_center - 0.9, towards_center + 0.9]
+		var kinds = home_deposits
 		for i in range(kinds.size()):
-			for _attempt in range(50):
-				var angle = angles[i] + _rng.randf_range(-0.35, 0.35)
-				var pos = spawn + Vector2.from_angle(angle) * _rng.randf_range(11.0, 14.0)
+			var spread = 0.0 if kinds.size() == 1 else lerp(-0.9, 0.9, i / (kinds.size() - 1.0))
+			for _attempt in range(80):
+				var angle = towards_center + spread + _rng.randf_range(-0.3, 0.3)
+				var distance = start_zone_radius + _rng.randf_range(7.0, 9.0)
+				var pos = spawn + Vector2.from_angle(angle) * distance
 				if _deposit_spot_ok(pos):
-					_add_deposit(kinds[i], pos, 1.0, spawn_index)
+					var copy_kinds = []
+					for copy_index in range(_symmetry()):
+						copy_kinds.append(_home_kind(kinds[i], copy_index, asymmetric, i))
+					_add_symmetric_deposits(copy_kinds, pos, 1.0)
 					break
-	# contested deposits in the open, each mirrored for fairness
-	var contested = [&"oil", &"oil", &"copper", &"copper", &"iron", &"iron"]
-	for kind in contested:
-		for _attempt in range(200):
-			var pos = _random_point(8.0)
-			if spawns.any(func(spawn): return pos.distance_to(spawn) < 24.0):
-				continue
-			if pos.distance_to(_mirror(pos)) < 12.0 or not _deposit_spot_ok(pos):
-				continue
-			var mirrored_kind = kind
-			if asymmetric:
-				var oil_side = pos.distance_to(spawns[0]) < pos.distance_to(spawns[1])
-				kind = &"oil" if oil_side else [&"iron", &"copper"][_rng.randi() % 2]
-				mirrored_kind = [&"iron", &"copper"][_rng.randi() % 2] if oil_side else &"oil"
-			_add_deposit(kind, pos, 1.5, -1)
-			_add_deposit(mirrored_kind, _mirror(pos), 1.5, -1)
-			break
-	# timber at forest edges
-	for forest in forests:
-		var circle = forest.circles[0]
+	# contested deposits in the open, copied for fairness
+	for kind in contested_deposits:
+		_place_open_deposit(kind, contested_richness, 0.0, asymmetric)
+	# the richest deposits, close to the middle of the map: worth fighting over
+	for kind in middle_deposits:
+		_place_open_deposit(kind, middle_richness, middle_reach, asymmetric)
+	# timber at forest edges; forests come in groups of copies
+	for forest_index in range(0, forests.size(), _symmetry()):
+		var circle = forests[forest_index].circles[0]
 		for _attempt in range(30):
 			var outward = Vector2.from_angle(_rng.randf() * TAU)
 			var pos = circle.center + outward * (circle.radius + 4.5)
 			if _deposit_spot_ok(pos):
-				_add_deposit(&"timber", pos, 1.0, -1)
+				_add_symmetric_deposits(_same_kind(&"timber"), pos, 1.0)
 				break
+
+
+func _home_kind(kind, copy_index, asymmetric, slot):
+	"""asymmetric maps give one side oil and the other metals"""
+	if not asymmetric:
+		return StringName(kind)
+	if copy_index == 0:
+		return &"oil"
+	return [&"iron", &"copper"][slot % 2]
+
+
+func _place_open_deposit(kind, richness, reach, asymmetric):
+	var center = size / 2.0
+	for _attempt in range(300):
+		var pos = _random_point(8.0)
+		if reach > 0.0:
+			var max_distance = reach * min(size.x, size.y) / 2.0
+			pos = (
+				center
+				+ Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(0.0, max_distance)
+			)
+		if spawns.any(func(spawn): return pos.distance_to(spawn) < 24.0):
+			continue
+		if not _copies_apart(pos, 12.0) or not _deposit_spot_ok(pos):
+			continue
+		var copy_kinds = _same_kind(StringName(kind))
+		if asymmetric:
+			var oil_side = pos.distance_to(spawns[0]) < pos.distance_to(spawns[1])
+			var metal = [&"iron", &"copper"][_rng.randi() % 2]
+			copy_kinds = [&"oil", metal] if oil_side else [metal, &"oil"]
+		_add_symmetric_deposits(copy_kinds, pos, richness)
+		return
+
+
+func _same_kind(kind) -> Array:
+	var kinds = []
+	kinds.resize(_symmetry())
+	kinds.fill(kind)
+	return kinds
+
+
+func _add_symmetric_deposits(kinds, pos, richness):
+	var copies = _copies(pos)
+	for copy_index in range(copies.size()):
+		_add_deposit(kinds[copy_index], copies[copy_index], richness, -1)
 
 
 func _deposit_spot_ok(pos: Vector2) -> bool:
 	var margin = 5.0
-	if pos.x < margin or pos.y < margin or pos.x > size.x - margin or pos.y > size.y - margin:
-		return false
-	if is_obstructed(pos, 3.0):
-		return false
-	for spawn in spawns:
-		if pos.distance_to(spawn) < 9.0:
+	for copy in _copies(pos):
+		if copy.x < margin or copy.y < margin or copy.x > size.x - margin:
 			return false
-	for deposit in deposits:
-		if pos.distance_to(deposit.center) < 9.0:
+		if copy.y > size.y - margin or is_obstructed(copy, 3.0):
 			return false
+		for spawn in spawns:
+			if copy.distance_to(spawn) < start_zone_radius + 6.0:
+				return false
+		for deposit in deposits:
+			if copy.distance_to(deposit.center) < 9.0:
+				return false
 	return true
 
 

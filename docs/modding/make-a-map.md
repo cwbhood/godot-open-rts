@@ -58,10 +58,19 @@ Create `data/maps/<id>.json` (or `mods/<your_mod>/data/maps/<id>.json`):
 `players` cannot be more than the number of spawn points, and `size` must match the
 scene's `size`.
 
+## Fair starts
+
+Every spawn point is a start zone the player can pick before the match. Make the zones
+equal: the same deposits at the same distances from each one. The easy way is symmetry,
+which the generator and the map editor's mirror options do for you (2 zones mirrored
+through the center, or 4 zones turned a quarter around the center on a square map). The
+validator measures every zone and fails the map when one zone is better off than another.
+
 ## 4. Check and play it
 
 ```
 godot --headless --path . -s res://tools/validate_data.gd
+godot --headless --path . -s res://tools/check_fair_starts.gd -- --map=dune_crossing
 ```
 
 The map now shows up in the Play menu. To watch how the AIs handle it without playing:

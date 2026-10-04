@@ -3,6 +3,7 @@ extends Control
 const MatchSettings = preload("res://source/data-model/MatchSettings.gd")
 const PlayerSettings = preload("res://source/data-model/PlayerSettings.gd")
 const LoadingScene = preload("res://source/main-menu/Loading.tscn")
+const StartPicker = preload("res://source/main-menu/StartPicker.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 
 var _map_paths = []
@@ -105,8 +106,15 @@ func _get_selected_map_path():
 
 func _on_start_button_pressed():
 	hide()
-	var new_scene = LoadingScene.instantiate()
-	new_scene.match_settings = _create_match_settings()
+	var match_settings = _create_match_settings()
+	var new_scene = null
+	if match_settings.players.any(
+		func(player): return player.controller == Constants.PlayerType.HUMAN
+	):
+		new_scene = StartPicker.new()  # pick a start zone first, see StartPicker.gd
+	else:
+		new_scene = LoadingScene.instantiate()
+	new_scene.match_settings = match_settings
 	new_scene.map_path = _get_selected_map_path()
 	get_parent().add_child(new_scene)
 	get_tree().current_scene = new_scene

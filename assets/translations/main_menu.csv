@@ -57,3 +57,22 @@ MAP_EDITOR_NEEDS_NAME,Give the map a name first.,Najpierw nadaj mapie nazwę.
 MAP_EDITOR_NEEDS_SPAWNS,Place at least 2 start points.,Postaw co najmniej 2 punkty startowe.
 MAP_EDITOR_CANNOT_LOAD,That map file could not be read.,Nie można odczytać pliku mapy.
 MAP_EDITOR_START_N,Start {0},Start {0}
+START_PICK_TITLE,Place your starter city,Postaw swoje miasto startowe
+START_PICK_HINT,"Click inside a start zone to place your city. Rivals pick their zones in secret: scout to find them. Bigger dots are richer deposits, and the richest sit in the middle.","Kliknij wewnątrz strefy startowej, aby postawić miasto. Rywale wybierają strefy w tajemnicy: znajdź ich zwiadem. Większe kropki to bogatsze złoża, a najbogatsze leżą na środku."
+START_PICK_TIME_LEFT,{0} s,{0} s
+START_PICK_RANDOM,Random spot,Losowe miejsce
+START_PICK_START,Start match,Rozpocznij mecz
+START_PICK_ZONE_N,Zone {0},Strefa {0}
+START_PICK_YOUR_CITY,Your city,Twoje miasto
+START_PICK_YOU_WAITING,"You: pick a start zone","Ty: wybierz strefę startową"
+START_PICK_YOU_READY,"You: ready in zone {0}","Ty: gotowy w strefie {0}"
+START_PICK_AI_SECRET,AI: picks in secret,AI: wybiera w tajemnicy
+START_PICK_OUTSIDE_ZONE,Pick a spot inside one of the start zones.,Wybierz miejsce wewnątrz jednej ze stref startowych.
+START_PICK_TOO_CLOSE_TO_DEPOSIT,Too close to a deposit: leave room for the extractor.,Za blisko złoża: zostaw miejsce na wydobycie.
+START_PICK_TOO_CLOSE_TO_EDGE,Too close to the edge of the map.,Za blisko krawędzi mapy.
+START_PICK_BLOCKED,"Water, trees or rocks are in the way there.","Woda, drzewa lub skały stoją tam na przeszkodzie."
+START_PICK_LEGEND,"If the timer runs out, you start in your slot's zone.","Gdy czas minie, zaczynasz w strefie swojego miejsca."
+MAP_EDITOR_MIRROR_4,Mirror 4 ways (square maps),Odbijaj na 4 strony (mapy kwadratowe)
+MAP_EDITOR_MIRROR_4_TOOLTIP,"Copies each placement to all four quarters, turned around the center, so a 4-player map gives every start zone the same surroundings.","Kopiuje każde postawienie do czterech ćwiartek, obrócone wokół środka, więc na mapie dla 4 graczy każda strefa startowa ma to samo otoczenie."
+MAP_EDITOR_FAIR,"Fair start: every start zone has the same deposits at the same distances.","Uczciwy start: każda strefa startowa ma te same złoża w tych samych odległościach."
+MAP_EDITOR_UNFAIR,"Unfair start: {0}","Nieuczciwy start: {0}"

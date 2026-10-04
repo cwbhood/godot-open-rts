@@ -185,6 +185,9 @@ func _create_players_from_settings():
 		player.color = player_settings.color
 		if "personality_id" in player and player_settings.get("ai_personality") != null:
 			player.personality_id = player_settings.ai_personality
+		if player_settings.get("start_zone") != null and player_settings.start_zone >= 0:
+			player.set_meta("start_zone", player_settings.start_zone)
+			player.set_meta("start_position", player_settings.start_position)
 		if player_settings.spawn_index_offset > 0:
 			for _i in range(player_settings.spawn_index_offset):
 				_players.add_child(Node.new())
@@ -200,9 +203,21 @@ func _setup_player_units():
 		if not predefined_units.is_empty():
 			predefined_units.map(func(unit): _setup_unit_groups(unit, unit.player))
 		else:
-			_spawn_player_units(
-				player, map.find_child("SpawnPoints").get_child(player_index).global_transform
-			)
+			_spawn_player_units(player, _start_transform(player, player_index))
+
+
+func _start_transform(player, player_index):
+	"""where a player's starter city stands: the spot picked on the start screen, facing the
+	same way as its zone's spawn point, or the spawn point of the player's slot"""
+	var spawn_points = map.find_child("SpawnPoints")
+	var zone = player.get_meta("start_zone", -1)
+	if zone < 0 or zone >= spawn_points.get_child_count():
+		return spawn_points.get_child(player_index).global_transform
+	var start_transform = spawn_points.get_child(zone).global_transform
+	var spot = player.get_meta("start_position", Vector2.INF)
+	if spot.is_finite():
+		start_transform.origin = Vector3(spot.x, start_transform.origin.y, spot.y)
+	return start_transform
 
 
 func _spawn_player_units(player, spawn_transform):
