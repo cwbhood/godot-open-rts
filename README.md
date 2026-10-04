@@ -45,6 +45,12 @@ This project is compatible with Godot `4.3`.
 
 ![Screenshot 3](./media/screenshots/screenshot_4_1920x1080.png "Screenshot 3")
 
+## Testing
+
+`play` (Windows) or `./play.sh` plays every test scenario and writes a report to
+`harness-out/`. See [docs/testing/play-harness.md](docs/testing/play-harness.md) for
+scenarios, batches across maps and AIs, stress runs and the scripting API.
+
 ## Contributing
 
 Everyone is free to fix bugs or perform refactoring just by opening PR. As for features, please refer to existing issue or create one before starting implementation.

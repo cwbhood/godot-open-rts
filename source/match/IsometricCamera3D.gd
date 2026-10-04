@@ -2,6 +2,7 @@ extends Camera3D
 
 const EXPECTED_X_ROTATION_DEGREES = -30.0
 const EXPECTED_PROJECTION = PROJECTION_ORTHOGONAL
+const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
 
 @export_group("Size")
 @export var size_min = 1
@@ -87,7 +88,7 @@ func _try_handling_movement(delta: float) -> bool:
 
 func _calculate_screen_move_vector() -> Vector2:
 	var viewport_size = get_viewport().size
-	var mouse_pos = get_viewport().get_mouse_position()
+	var mouse_pos = VirtualPointer.get_position(get_viewport())
 
 	var x_axis = Input.get_axis("move_map_left", "move_map_right")
 	var y_axis = Input.get_axis("move_map_up", "move_map_down")

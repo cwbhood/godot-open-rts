@@ -1,0 +1,8 @@
+{
+  "name": "sandbox",
+  "description": "An open match for --serve: you against one balanced AI, no time limit to speak of, no checks. Drive it over the TCP API or play along with --real-mouse=on.",
+  "map": "plain_and_simple",
+  "minutes": 600,
+  "view": "window",
+  "players": [{"type": "human"}, {"type": "ai", "personality": "balanced"}]
+}

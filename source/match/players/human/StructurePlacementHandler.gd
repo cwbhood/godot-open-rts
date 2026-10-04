@@ -28,6 +28,7 @@ const AUTO_PICK_SNAP_STEPS = 12  # tries on each side when the spot facing the m
 const MATERIALS_ROOT = "res://source/match/resources/materials/"
 const BLUEPRINT_VALID_PATH = MATERIALS_ROOT + "blueprint_valid.material.tres"
 const BLUEPRINT_INVALID_PATH = MATERIALS_ROOT + "blueprint_invalid.material.tres"
+const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
 
 var _active_blueprint_node = null
 var _pending_structure_radius = null
@@ -257,7 +258,7 @@ func _start_structure_placement(structure_prototype):
 
 
 func _set_blueprint_position_based_on_mouse_pos():
-	var mouse_pos_2d = get_viewport().get_mouse_position()
+	var mouse_pos_2d = VirtualPointer.get_position(get_viewport())
 	var mouse_pos_3d = get_viewport().get_camera_3d().get_ray_intersection(mouse_pos_2d)
 	if mouse_pos_3d == null:
 		return
@@ -314,7 +315,7 @@ func _try_rotating_blueprint_by(degrees):
 
 
 func _rotate_blueprint_towards_mouse_pos():
-	var mouse_pos_2d = get_viewport().get_mouse_position()
+	var mouse_pos_2d = VirtualPointer.get_position(get_viewport())
 	var mouse_pos_3d = get_viewport().get_camera_3d().get_ray_intersection(mouse_pos_2d)
 	if mouse_pos_3d == null:
 		return
@@ -453,4 +454,4 @@ func _mouse_pos_3d():
 	var camera = get_viewport().get_camera_3d()
 	if camera == null:
 		return null
-	return camera.get_ray_intersection(get_viewport().get_mouse_position())
+	return camera.get_ray_intersection(VirtualPointer.get_position(get_viewport()))

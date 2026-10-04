@@ -2,6 +2,8 @@ extends Resource
 
 enum Screen { FULL = 0, WINDOW = 1 }
 
+const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
+
 @export var screen: Screen = Screen.FULL:
 	set = _set_screen
 @export var mouse_restricted = false:
@@ -38,7 +40,8 @@ func _apply_screen():
 
 
 func _apply_mouse_restricted():
-	if mouse_restricted:
+	# never trap the cursor of someone whose PC runs a scripted match (tools/harness/)
+	if mouse_restricted and not VirtualPointer.active:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 	else:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)

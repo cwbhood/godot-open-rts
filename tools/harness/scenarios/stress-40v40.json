@@ -1,0 +1,33 @@
+{
+  "name": "stress-40v40",
+  "description": "40 against 40 units (tanks, raiders, militia, artillery, heavy tanks) fight in the middle of Big Arena. Fails when the 95th percentile frame time or process time goes over budget. Use --budget-frame-ms on a PC with a real GPU.",
+  "map": "big_arena",
+  "minutes": 2,
+  "fog": false,
+  "players": [{"type": "human"}, {"type": "ai", "personality": "turtle"}],
+  "sample_every": 2,
+  "shots_every": 30,
+  "setup": [
+    {"do": "spawn", "player": "p0", "unit": "tank", "count": 8, "spot": [30, 30], "spacing": 2.2},
+    {"do": "spawn", "player": "p0", "unit": "raider", "count": 8, "spot": [30, 39], "spacing": 2.2},
+    {"do": "spawn", "player": "p0", "unit": "militia", "count": 8, "spot": [30, 48], "spacing": 2.2},
+    {"do": "spawn", "player": "p0", "unit": "artillery", "count": 8, "spot": [30, 57], "spacing": 2.2},
+    {"do": "spawn", "player": "p0", "unit": "heavy_tank", "count": 8, "spot": [30, 66], "spacing": 2.2},
+    {"do": "spawn", "player": "p1", "unit": "tank", "count": 8, "spot": [70, 30], "spacing": 2.2},
+    {"do": "spawn", "player": "p1", "unit": "raider", "count": 8, "spot": [70, 39], "spacing": 2.2},
+    {"do": "spawn", "player": "p1", "unit": "militia", "count": 8, "spot": [70, 48], "spacing": 2.2},
+    {"do": "spawn", "player": "p1", "unit": "artillery", "count": 8, "spot": [70, 57], "spacing": 2.2},
+    {"do": "spawn", "player": "p1", "unit": "heavy_tank", "count": 8, "spot": [70, 66], "spacing": 2.2},
+    {"do": "declare_war", "player": "p0", "on": "p1"}
+  ],
+  "events": [
+    {"at": 2, "do": "fight", "units": "p0:combat", "to": [70, 50]},
+    {"at": 2, "do": "fight", "units": "p1:combat", "to": [30, 50]},
+    {"at": 45, "do": "camera", "spot": [50, 50]}
+  ],
+  "checks": [
+    {"at": 100, "name": "the armies met and fought", "expect": "timeline", "kind": "losses", "min": 1},
+    {"end": true, "expect": "no_errors"}
+  ],
+  "budgets": {"frame_ms_p95": 50}
+}

@@ -16,7 +16,6 @@ mods add to it or patch it (see [mods](#mods)).
 | `ai/*.json` | One file per rival AI personality (its play style) |
 | `difficulties/*.json` | One file per AI difficulty, applied on top of the play style |
 | `player_colors.json` | The colours players and AIs can pick in the Play menu |
-| `ai/*.json` | One file per rival AI personality |
 | `sounds/voices.json`, `sounds/voice_sets/*.json` | Which voice each unit answers with, and the advisor's announcements |
 
 How-to guides:

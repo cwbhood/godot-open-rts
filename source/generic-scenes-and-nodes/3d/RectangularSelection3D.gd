@@ -5,6 +5,8 @@ signal changed(topdown_polygon_2d)
 signal interrupted
 signal finished(topdown_polygon_2d)
 
+const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
+
 @export var polygon_plane = Plane(Vector3.UP, 0)
 @export var interrupt_on_hitting_screen_margin = true
 @export var screen_margin = 1
@@ -37,7 +39,7 @@ func _selecting():
 
 func _screen_margin_hit():
 	var viewport_size = get_viewport().size
-	var mouse_pos = get_viewport().get_mouse_position()
+	var mouse_pos = VirtualPointer.get_position(get_viewport())
 	return (
 		mouse_pos.x <= screen_margin
 		or mouse_pos.x >= viewport_size.x - screen_margin
@@ -47,7 +49,7 @@ func _screen_margin_hit():
 
 
 func _start():
-	var mouse_pos = get_viewport().get_mouse_position()
+	var mouse_pos = VirtualPointer.get_position(get_viewport())
 	_rect_on_screen = Rect2(0, 0, 0, 0)
 	_rect_on_screen.position = mouse_pos
 	started.emit()
@@ -63,7 +65,7 @@ func _interrupt():
 func _finish():
 	if not _selecting():
 		return
-	_rect_on_screen.end = get_viewport().get_mouse_position()
+	_rect_on_screen.end = VirtualPointer.get_position(get_viewport())
 	finished.emit(_screen_rect_2d_to_topdown_polygon_2d(_rect_on_screen.abs()))
 	_rect_on_screen = null
 
@@ -81,7 +83,7 @@ func _throttle_update(delta):
 func _update():
 	if not _selecting():
 		return
-	_rect_on_screen.end = get_viewport().get_mouse_position()
+	_rect_on_screen.end = VirtualPointer.get_position(get_viewport())
 	changed.emit(_screen_rect_2d_to_topdown_polygon_2d(_rect_on_screen.abs()))
 
 
