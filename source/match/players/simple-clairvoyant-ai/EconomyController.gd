@@ -14,6 +14,7 @@ const WorkerScene = preload("res://source/match/units/Worker.tscn")
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const HaulerScene = preload("res://source/match/units/Hauler.tscn")
 const Extractor = preload("res://source/match/units/Extractor.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 const PowerPlantScene = preload("res://source/match/units/PowerPlant.tscn")
 const AirportScene = preload("res://source/match/units/Airport.tscn")
 const GameData = preload("res://source/data-model/GameData.gd")
@@ -256,6 +257,9 @@ func _find_extractor_spot(kind, scene_path):
 				deposit.kind == kind
 				and deposit.global_position.distance_to(base) <= MAX_DEPOSIT_DISTANCE_M
 				and not _deposit_taken(deposit)
+				and WaterRules.land_reaches(
+					get_tree(), base, deposit.global_position, deposit.radius + 6.0
+				)
 			)
 	)
 	deposits.sort_custom(

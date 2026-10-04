@@ -92,6 +92,9 @@ working that route drive `speed_multiplier` times faster.
 | `produced_by` | Ids of structures producing this unit, e.g. `["vehicle_factory"]` |
 | `built_by` | For structures: ids of units constructing it, normally `["worker"]` |
 | `speed` | Movement speed in m/s |
+| `movement` | `"land"` (default), `"water"` (boats) or `"amphibious"`; see [docs/modding/water.md](../docs/modding/water.md) |
+| `water_speed` | Amphibious units: speed in m/s on water (default: `speed`) |
+| `placement` | Structures: `"shore"` must stand on land next to deep water (the shipyard) |
 | `fuel_per_s` | Oil burnt per second while moving |
 | `flight_endurance_s` | Air units only: seconds it can stay airborne before it has to land at an airport to refuel (it crashes when it runs dry). Leave it out for helicopters, which hover freely |
 | `properties` | `hp`, `hp_max`, `sight_range`, `attack_damage`, `attack_interval`, `attack_range`, `attack_domains` (`"terrain"`, `"air"`), `cargo_capacity` |
@@ -114,6 +117,11 @@ working that route drive `speed_multiplier` times faster.
 
 The scene must have a `SpawnPoints` node with at least `players` markers and resource
 deposits placed as instances of the `deposit_scene` of each commodity.
+
+Generated desert maps take a `"layout"` instead (start points, lakes, forests, outcrops,
+deposits, and water: `sea`, `islands`, `water`); see
+[docs/modding/map-editor.md](../docs/modding/map-editor.md#the-map-file) and
+[docs/modding/water.md](../docs/modding/water.md).
 
 ## ai/*.json
 

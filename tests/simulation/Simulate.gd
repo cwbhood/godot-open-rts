@@ -54,8 +54,10 @@ func _ready():
 			_args[parts[0]] = parts[1]
 	Engine.time_scale = float(_args["time-scale"])
 	print(
-		"SIM start map=%s ai=%s scenario=%s seconds=%s"
-		% [_args["map"], _args["ai"], _args["scenario"], _args["seconds"]]
+		(
+			"SIM start map=%s ai=%s scenario=%s seconds=%s"
+			% [_args["map"], _args["ai"], _args["scenario"], _args["seconds"]]
+		)
 	)
 	var settings = MatchSettings.new()
 	var personalities = _args["ai"].split(",")
@@ -71,15 +73,24 @@ func _ready():
 	MatchSignals.diplomacy_changed.connect(
 		func(a, b, state):
 			print(
-				"SIM %.0fs diplomacy P%d-P%d -> %s"
-				% [_elapsed_s, _player_index(a), _player_index(b), ["war", "neutral", "pact", "alliance"][state]]
+				(
+					"SIM %.0fs diplomacy P%d-P%d -> %s"
+					% [
+						_elapsed_s,
+						_player_index(a),
+						_player_index(b),
+						["war", "neutral", "pact", "alliance"][state]
+					]
+				)
 			)
 	)
 	MatchSignals.treaty_signed.connect(
 		func(a, b, kind, offered, requested):
 			print(
-				"SIM %.0fs treaty %s P%d-P%d gives %s asks %s"
-				% [_elapsed_s, kind, _player_index(a), _player_index(b), offered, requested]
+				(
+					"SIM %.0fs treaty %s P%d-P%d gives %s asks %s"
+					% [_elapsed_s, kind, _player_index(a), _player_index(b), offered, requested]
+				)
 			)
 	)
 	_match = load("res://source/match/Match.tscn").instantiate()
@@ -111,6 +122,18 @@ func _physics_process(delta):
 	if _elapsed_s >= float(_args["seconds"]):
 		set_physics_process(false)
 		_finish()
+
+
+func _units_by_kind():
+	"""{player index: {scene file name: count}} of what is alive at the end"""
+	var counts = {}
+	for unit in get_tree().get_nodes_in_group("units"):
+		var key = str(unit.player.get_index())
+		var kind = unit._scene_path().get_file().get_basename()
+		counts[key] = counts.get(key, {})
+		counts[key][kind] = counts[key].get(kind, 0) + 1
+	print("SIM units by kind ", counts)
+	return counts
 
 
 func _players():
@@ -185,8 +208,10 @@ func _player_sample(player):
 		"haulers": haulers.size(),
 		"haulers_busy": haulers.filter(func(unit): return unit.action != null).size(),
 		"hauler_distance_m": snapped(_hauler_distance_by_player.get(player.get_index(), 0.0), 0.1),
-		"extractors": units.filter(func(unit): return unit is Extractor and unit.is_constructed()).size(),
-		"sites": units.filter(func(unit): return unit is Structure and unit.is_under_construction()).size(),
+		"extractors":
+		units.filter(func(unit): return unit is Extractor and unit.is_constructed()).size(),
+		"sites":
+		units.filter(func(unit): return unit is Structure and unit.is_under_construction()).size(),
 		"delivered": player.logistics.delivered_total.duplicate(),
 		"lost": player.logistics.lost_total.duplicate(),
 		"looted": player.logistics.looted_total.duplicate(),
@@ -208,31 +233,33 @@ func _log():
 		sample["players"].append(data)
 		print(
 			(
-				"SIM t=%4d p%d %-8s units=%2d haulers=%d/%d dist=%6.0fm extr=%d sites=%d "
-				+ "delivered=%4d lost=%3d looted=%3d pop=%5.1f sci=%6.1f tier=%d sat=%.2f "
-				+ "power=%.0f/%.0f stock=%s"
+				(
+					"SIM t=%4d p%d %-8s units=%2d haulers=%d/%d dist=%6.0fm extr=%d sites=%d "
+					+ "delivered=%4d lost=%3d looted=%3d pop=%5.1f sci=%6.1f tier=%d sat=%.2f "
+					+ "power=%.0f/%.0f stock=%s"
+				)
+				% [
+					sample["t"],
+					data["player"],
+					data["personality"],
+					data["units"],
+					data["haulers_busy"],
+					data["haulers"],
+					data["hauler_distance_m"],
+					data["extractors"],
+					data["sites"],
+					Utils.Dict.sum(data["delivered"]),
+					Utils.Dict.sum(data["lost"]),
+					Utils.Dict.sum(data["looted"]),
+					data["population"],
+					data["science"],
+					data["tier"],
+					data["satisfaction"],
+					data["power_supply_mw"],
+					data["power_demand_mw"],
+					data["stock"],
+				]
 			)
-			% [
-				sample["t"],
-				data["player"],
-				data["personality"],
-				data["units"],
-				data["haulers_busy"],
-				data["haulers"],
-				data["hauler_distance_m"],
-				data["extractors"],
-				data["sites"],
-				Utils.Dict.sum(data["delivered"]),
-				Utils.Dict.sum(data["lost"]),
-				Utils.Dict.sum(data["looted"]),
-				data["population"],
-				data["science"],
-				data["tier"],
-				data["satisfaction"],
-				data["power_supply_mw"],
-				data["power_demand_mw"],
-				data["stock"],
-			]
 		)
 	_samples.append(sample)
 
@@ -248,6 +275,7 @@ func _finish():
 		"caravans_shipped": market.shipped_total if market != null else 0,
 		"caravans_raided": market.raided_total if market != null else 0,
 		"agreements_active": market.agreements.size() if market != null else 0,
+		"units_by_kind": _units_by_kind(),
 	}
 	var file = FileAccess.open(_args["out"], FileAccess.WRITE)
 	file.store_string(JSON.stringify(summary, "  "))

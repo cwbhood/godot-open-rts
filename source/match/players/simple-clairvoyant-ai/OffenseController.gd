@@ -15,12 +15,23 @@ const AircraftFactory = preload("res://source/match/units/AircraftFactory.gd")
 const AircraftFactoryScene = preload("res://source/match/units/AircraftFactory.tscn")
 const Helicopter = preload("res://source/match/units/Helicopter.gd")
 const HelicopterScene = preload("res://source/match/units/Helicopter.tscn")
+const GameData = preload("res://source/data-model/GameData.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 const AutoAttackingBattlegroup = preload(
 	"res://source/match/players/simple-clairvoyant-ai/AutoAttackingBattlegroup.gd"
 )
 
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
 const NO_ROOM_RETRY_S = 30.0  # after finding no free spot, wait before searching again
+const CROSSING_CHECK_INTERVAL_S = 20.0
+# vehicles that cannot cross deep water; on maps where the enemy is only reachable over
+# water, the amphibious vehicle is built instead (see _crossing_needed)
+const LAND_VEHICLE_SCENES = [
+	"res://source/match/units/Tank.tscn",
+	"res://source/match/units/HeavyTank.tscn",
+	"res://source/match/units/BattleTank.tscn",
+]
+const AMPHIBIOUS_VEHICLE_ID = "amphibious_apc"
 # better units replace the basic ones as the city reaches higher tiers
 const UPGRADES = {
 	"res://source/match/units/Tank.tscn": "res://source/match/units/HeavyTank.tscn",
@@ -34,6 +45,11 @@ const BATTLE_UNIT_SCENES = [
 	"res://source/match/units/Helicopter.tscn",
 	"res://source/match/units/Gunship.tscn",
 ]
+static var amphibious_vehicle_scene_path = (
+	GameData.unit_by_id(AMPHIBIOUS_VEHICLE_ID).get("scene", "")
+	if GameData.unit_by_id(AMPHIBIOUS_VEHICLE_ID) != null
+	else ""
+)
 
 var _player = null
 var _primary_structure_scene = null
@@ -45,6 +61,8 @@ var _number_of_pending_unit_resource_requests = {}
 var _battlegroup_under_forming = null
 var _battlegroups = []
 var _no_room = false  # no free spot was found lately
+var _crossing_needed = false
+var _crossing_checked_at_s = -INF
 
 @onready var _ai = get_parent()
 
@@ -114,8 +132,9 @@ func _provision_structure(structure_scene, resources, metadata):
 
 
 func _provision_unit(unit_scene, structure_producing_unit, resources, metadata):
+	unit_scene = _adapted_to_water(unit_scene)
 	if resources != Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path]:
-		for scene_path in BATTLE_UNIT_SCENES:  # resources were requested before an upgrade
+		for scene_path in _battle_unit_scene_paths():  # requested before an upgrade or a swap
 			if resources == Constants.Match.Units.PRODUCTION_COSTS[scene_path]:
 				unit_scene = load(scene_path)
 				break
@@ -158,7 +177,7 @@ func _try_creating_new_battlegroup():
 
 func _attach_current_battle_units():
 	var battle_units = get_tree().get_nodes_in_group("units").filter(
-		func(unit): return unit.player == _player and unit._scene_path() in BATTLE_UNIT_SCENES
+		func(unit): return unit.player == _player and _is_battle_unit(unit)
 	)
 	for battle_unit in battle_units:
 		_on_unit_spawned(battle_unit)
@@ -239,6 +258,7 @@ func _enforce_secondary_units_production():
 func _enforce_units_production(structure, unit_scene, type):
 	if structure == null or not structure.is_constructed() or not _is_units_production_allowed():
 		return
+	unit_scene = _adapted_to_water(unit_scene)
 	if not _player.meets_tier_requirement(unit_scene.resource_path):
 		return
 	var number_of_pending_units = structure.production_queue.size()
@@ -249,6 +269,56 @@ func _enforce_units_production(structure, unit_scene, type):
 		resources_required.emit(
 			Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path], type
 		)
+
+
+func _is_battle_unit(unit):
+	return unit._scene_path() in _battle_unit_scene_paths()
+
+
+func _battle_unit_scene_paths():
+	if amphibious_vehicle_scene_path == "":
+		return BATTLE_UNIT_SCENES
+	return BATTLE_UNIT_SCENES + [amphibious_vehicle_scene_path]
+
+
+func _adapted_to_water(unit_scene):
+	"""the amphibious vehicle in place of a land one when no enemy can be reached by land"""
+	if unit_scene.resource_path in LAND_VEHICLE_SCENES and _is_crossing_needed():
+		return load(amphibious_vehicle_scene_path)
+	return unit_scene
+
+
+func _is_crossing_needed():
+	if amphibious_vehicle_scene_path == "":
+		return false
+	var now_s = Time.get_ticks_msec() / 1000.0
+	if now_s - _crossing_checked_at_s < CROSSING_CHECK_INTERVAL_S:
+		return _crossing_needed
+	_crossing_checked_at_s = now_s
+	_crossing_needed = false
+	var a_match = find_parent("Match")
+	if a_match == null or not a_match.map.has_method("has_water") or not a_match.map.has_water():
+		return false
+	var own_ccs = _ccs_of(func(player): return player == _player)
+	var enemy_ccs = _ccs_of(func(player): return player != _player and _ai.wants_to_attack(player))
+	if own_ccs.is_empty() or enemy_ccs.is_empty():
+		return false
+	var land = a_match.navigation.get_navigation_map_rid_by_domain(
+		Constants.Match.Navigation.Domain.TERRAIN
+	)
+	_crossing_needed = not enemy_ccs.any(
+		func(cc):
+			return WaterRules.path_reaches(
+				land, own_ccs[0].global_position, cc.global_position, cc.radius + 6.0
+			)
+	)
+	return _crossing_needed
+
+
+func _ccs_of(player_filter):
+	return get_tree().get_nodes_in_group("units").filter(
+		func(unit): return unit is CommandCenter and player_filter.call(unit.player)
+	)
 
 
 func _primary_structure():
@@ -315,7 +385,7 @@ func _number_of_additional_units_required():
 func _on_unit_spawned(unit):
 	if unit.player != _player:
 		return
-	if unit._scene_path() in BATTLE_UNIT_SCENES:
+	if _is_battle_unit(unit):
 		# TODO: check if this still happens after ensuring only own players should match
 		# assert(_battlegroup_under_forming != null) # TODO: investigate how do we get here
 		if _battlegroup_under_forming == null:

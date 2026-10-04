@@ -134,6 +134,8 @@ static func validate_agent_placement_position(position, radius, existing_units, 
 			<= existing_unit.radius + radius
 		):
 			return COLLIDES_WITH_AGENT
+	if _is_wet(_water_to_avoid(navigation_map_rid, Engine.get_main_loop()), position, radius):
+		return NOT_NAVIGABLE  # fords are walkable, but nothing is built in them
 	# the navmesh is eroded by the max agent radius around every obstacle (deposits,
 	# structures), so a footprint's rim may lie in that margin: test the core of it only.
 	# Without this nothing fits next to a deposit once the first rebake carved it out.
