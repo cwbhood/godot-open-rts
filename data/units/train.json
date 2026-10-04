@@ -1,0 +1,26 @@
+{
+  "id": "train",
+  "category": "unit",
+  "scene": "res://source/match/units/Train.tscn",
+  "name": "TRAIN",
+  "description": "TRAIN_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Worker.png",
+  "icon_tint": "#7ab0e6",
+  "tier": 2,
+  "cost": {
+    "iron": 24,
+    "timber": 10,
+    "copper": 6
+  },
+  "build_time_s": 12.0,
+  "speed": 6.0,
+  "produced_by": [
+    "command_center"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 30,
+    "hp_max": 30,
+    "cargo_capacity": 40
+  }
+}

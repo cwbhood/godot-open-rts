@@ -5,8 +5,12 @@ extends Node2D
 #   construction sites waiting for haulers (dashed); upgraded roads are drawn wider,
 # - power lines between grid nodes,
 # - trade caravan routes between cities,
-# - haulers as larger dots in their owner's colour, with a ring showing their cargo,
-# - a red cross for a few seconds wherever cargo was destroyed.
+# - haulers as larger dots in their owner's colour, with a ring showing their cargo
+#   (hollow while they stand by or park without a job),
+# - conveyors from extractors into storage yards, storages as squares,
+# - railway track trains have laid, and trains as larger squares,
+# - a red cross for a few seconds wherever cargo was destroyed, and a red ring around
+#   routes the player's trucks avoid after a raid.
 # Routes of other factions show only where their units are currently in sight, so supply
 # lines keep their fog of war.
 
@@ -14,6 +18,8 @@ const Extractor = preload("res://source/match/units/Extractor.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const Caravan = preload("res://source/match/units/Caravan.gd")
+const Storage = preload("res://source/match/units/Storage.gd")
+const Standby = preload("res://source/match/units/actions/Standby.gd")
 
 const REDRAW_INTERVAL_S = 0.25
 const RAID_MARKER_S = 8.0
@@ -22,6 +28,8 @@ const POWER_LINE_COLOR = Color(1.0, 0.9, 0.3, 0.55)
 const SITE_ROUTE_COLOR = Color(1.0, 1.0, 1.0, 0.6)
 const TRADE_ROUTE_COLOR = Color(0.95, 0.75, 1.0, 0.8)
 const RAID_COLOR = Color(1.0, 0.15, 0.1)
+const RAIL_COLOR = Color(0.2, 0.18, 0.16, 0.95)
+const TRAIN_COLOR_EDGE = Color(0.05, 0.05, 0.05)
 
 var pixels_per_meter = 2.0
 
@@ -53,8 +61,11 @@ func _draw():
 		_draw_power_lines(player, own)
 		_draw_supply_routes(player, own)
 	for unit in get_tree().get_nodes_in_group("units"):
-		if unit is Hauler and _is_seen(unit, unit.player in _match.visible_players):
+		var seen = _is_seen(unit, unit.player in _match.visible_players)
+		if unit is Hauler and seen:
 			_draw_hauler(unit)
+		elif unit.get("is_train") == true and seen:
+			_draw_train(unit)
 	for marker in _raid_markers:
 		var size = 3.0
 		draw_line(marker[0] - Vector2(size, size), marker[0] + Vector2(size, size), RAID_COLOR, 1.5)
@@ -67,8 +78,25 @@ func _draw_supply_routes(player, own):
 	var logistics = player.logistics
 	if logistics == null:
 		return
+	_draw_rails(logistics, own)
+	for storage in logistics.get_storages():
+		if not _is_seen(storage, own):
+			continue
+		var color = Constants.Match.Resources.COLORS.get(storage.kind, Color(0.8, 0.75, 0.6))
+		var depot = logistics.closest_depot(storage.global_position)
+		if depot != null and storage.is_constructed():
+			draw_line(_to_map(depot), _to_map(storage), color, ROUTE_WIDTH)
+		draw_rect(Rect2(_to_map(storage) - Vector2(3, 3), Vector2(6, 6)), color)
+	if own:
+		for zone in logistics.danger_zones:
+			var radius = float(Constants.Match.Logistics.RAIDS.get("radius_m", 9.0))
+			draw_arc(_to_map(zone[0]), radius * pixels_per_meter, 0.0, TAU, 24, RAID_COLOR, 1.0)
 	for extractor in logistics.get_extractors():
 		if not _is_seen(extractor, own):
+			continue
+		if extractor.is_linked():  # conveyor into a storage
+			var belt = Constants.Match.Resources.COLORS.get(extractor.resource_kind, Color.WHITE)
+			draw_dashed_line(_to_map(extractor), _to_map(extractor.linked_storage), belt, 1.0, 1.5)
 			continue
 		var depot = logistics.closest_depot(extractor.global_position)
 		if depot == null:
@@ -113,8 +141,34 @@ func _draw_power_lines(player, own):
 				draw_line(_to_map(link[0]), _to_map(link[1]), POWER_LINE_COLOR, 0.75)
 
 
+func _draw_rails(logistics, own):
+	if not own:
+		return  # track of other factions shows in the world, not on the minimap
+	for leg in logistics.rails.legs.values():
+		var built = leg["built_a"] + leg["built_b"]
+		if built <= 0.0:
+			continue
+		var points = leg["points"]
+		var cumulative = leg["cumulative"]
+		for index in range(1, points.size()):
+			var a = cumulative[index - 1]
+			var b = cumulative[index]
+			var from_end = leg["length"] - leg["built_b"]
+			if b <= leg["built_a"] or a >= from_end or leg["built_a"] >= leg["length"]:
+				draw_line(_to_map(points[index - 1]), _to_map(points[index]), RAIL_COLOR, 2.5)
+
+
+func _draw_train(train):
+	var center = _to_map(train)
+	draw_rect(Rect2(center - Vector2(4, 4), Vector2(8, 8)), TRAIN_COLOR_EDGE)
+	draw_rect(Rect2(center - Vector2(3, 3), Vector2(6, 6)), train.player.color)
+
+
 func _draw_hauler(hauler):
 	var center = _to_map(hauler)
+	if hauler.action is Standby or hauler.action == null:
+		draw_arc(center, 2.0, 0.0, TAU, 10, hauler.player.color, 1.2)
+		return
 	draw_circle(center, 2.5, hauler.player.color)
 	if hauler.cargo.is_empty():
 		return

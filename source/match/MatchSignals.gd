@@ -39,6 +39,8 @@ signal power_changed(player)
 signal embargo_changed(imposer, target, active)
 signal agreement_changed(a, b)
 signal road_upgraded(player, extractor, level)
+signal unit_recycled(unit, refund)  # a truck or train taken apart at a depot
+signal route_raided(player, position)  # a truck or train of the player was destroyed
 signal aircraft_crashed(unit)
 signal diplomacy_changed(a, b, state)
 signal treaty_signed(proposer, partner, kind, offered, requested)

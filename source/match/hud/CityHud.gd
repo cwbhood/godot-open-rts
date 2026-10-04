@@ -46,6 +46,9 @@ var _satisfaction_label = Label.new()
 var _warehouse_label = Label.new()
 var _defense_label = Label.new()
 var _logistics_label = Label.new()
+var _surplus_row = HBoxContainer.new()
+var _surplus_label = Label.new()
+var _recycle_button = Button.new()
 var _partner_option = OptionButton.new()
 var _prices_label = Label.new()
 var _give_amount = SpinBox.new()
@@ -139,6 +142,17 @@ func _build_layout():
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 13)
 		rows.add_child(label)
+	# too many trucks for the work there is: offer to recycle the idle ones
+	_surplus_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_surplus_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_surplus_label.add_theme_font_size_override("font_size", 13)
+	_surplus_label.modulate = Color(1.0, 0.85, 0.4)
+	_surplus_row.add_child(_surplus_label)
+	_recycle_button.focus_mode = Control.FOCUS_NONE
+	_recycle_button.pressed.connect(_on_recycle_pressed)
+	_surplus_row.add_child(_recycle_button)
+	_surplus_row.hide()
+	rows.add_child(_surplus_row)
 
 	rows.add_child(HSeparator.new())
 	rows.add_child(_make_title("TRADE"))
@@ -410,22 +424,58 @@ func _refresh_logistics():
 	var logistics = _player.logistics
 	if logistics == null:
 		return
-	var haulers = logistics.get_haulers()
-	var busy = haulers.filter(func(hauler): return hauler.action != null).size()
+	var fleet = logistics.fleet.get_fleet_counts()
 	_logistics_label.text = (
-		tr("LOGISTICS_SUMMARY")
+		tr("LOGISTICS_FLEET")
 		. format(
 			[
-				haulers.size(),
-				busy,
-				Utils.Dict.sum(logistics.delivered_total),
-				Utils.Dict.sum(logistics.lost_total),
-				Utils.Dict.sum(logistics.looted_total),
+				fleet["total"],
+				fleet["working"],
+				fleet["standby"],
+				fleet["parked"],
+				int(ceil(logistics.fleet.truck_demand)),
+				fleet["trains"],
+				"%.1f" % logistics.fleet.get_upkeep_per_min(),
 			]
 		)
 	)
+	_logistics_label.text += (
+		"\n"
+		+ (
+			tr("LOGISTICS_SUMMARY")
+			. format(
+				[
+					Utils.Dict.sum(logistics.delivered_total),
+					Utils.Dict.sum(logistics.lost_total),
+					Utils.Dict.sum(logistics.looted_total),
+				]
+			)
+		)
+	)
+	if fleet["recycling"] > 0:
+		_logistics_label.text += " " + tr("LOGISTICS_RECYCLING").format([fleet["recycling"]])
 	if logistics.out_of_fuel:
 		_logistics_label.text += "\n" + tr("OUT_OF_FUEL")
+	var surplus = logistics.fleet.surplus_trucks
+	_surplus_row.visible = surplus > 0
+	if surplus > 0:
+		var refund = logistics.fleet.get_recycle_refund_text(surplus)
+		_surplus_label.text = tr("LOGISTICS_SURPLUS").format([surplus])
+		_recycle_button.text = tr("LOGISTICS_RECYCLE_BUTTON").format([surplus])
+		_recycle_button.tooltip_text = tr("LOGISTICS_RECYCLE_TOOLTIP").format(
+			[
+				int(
+					round(float(Constants.Match.Logistics.FLEET.get("recycle_refund", 0.75)) * 100)
+				),
+				refund
+			]
+		)
+
+
+func _on_recycle_pressed():
+	if _player != null and _player.logistics != null:
+		_player.logistics.fleet.recycle_surplus()
+	_refresh_logistics()
 
 
 func _refresh_trade():

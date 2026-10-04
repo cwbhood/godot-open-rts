@@ -1,20 +1,26 @@
 extends "res://source/match/units/Structure.gd"
 
 # Base for oil derricks, mines and lumber mills. Once constructed next to a matching
-# deposit it extracts goods into a small local storage. Haulers pick them up and drive
-# them to a depot (see Logistics). Extraction slows down without power and stops when the
-# storage is full or the deposit runs dry.
+# deposit it extracts goods into a small output buffer (data/logistics.json). Trucks or a
+# train pick them up and drive them to a depot (see Logistics). Extraction slows down
+# without power and stops when the buffer is full or the deposit runs dry. With a storage
+# building close by (Storage.gd) a conveyor empties the buffer into it, so the extractor
+# keeps working while the storage fills up.
 
 signal stored_changed
 
 const ResourceDeposit = preload("res://source/match/units/non-player/ResourceDeposit.gd")
+const BufferGauge = preload("res://source/match/units/traits/BufferGauge.gd")
 
 var deposit = null
 var resource_kind = null
 var stored = 0
 var reserved_for_pickup = 0  # goods promised to haulers already on their way
+var logistics_priority = 1  # 0 low, 1 normal, 2 high: how eagerly trucks come here
+var linked_storage = null  # set by Logistics: a storage this extractor's conveyor feeds
 
 var _accumulated = 0.0
+var _conveyed = 0.0
 
 
 static func find_deposit_near(scene_path, position, structure_radius, scene_tree):
@@ -38,6 +44,9 @@ static func find_deposit_near(scene_path, position, structure_radius, scene_tree
 func _ready():
 	await super()
 	_bind_deposit()
+	var gauge = BufferGauge.new()
+	gauge.name = "BufferGauge"
+	add_child(gauge)
 	var timer = Timer.new()
 	timer.timeout.connect(_extract.bind(0.5))
 	add_child(timer)
@@ -50,6 +59,26 @@ func is_depleted():
 
 func get_available_for_pickup():
 	return max(0, stored - reserved_for_pickup)
+
+
+func get_buffer_capacity():
+	return Constants.Match.Extraction.STORAGE_MAX
+
+
+func get_goods_kind():
+	return resource_kind
+
+
+func is_full():
+	return stored >= get_buffer_capacity()
+
+
+func is_linked():
+	return (
+		linked_storage != null
+		and is_instance_valid(linked_storage)
+		and linked_storage.is_inside_tree()
+	)
 
 
 func reserve_pickup(amount):
@@ -91,14 +120,32 @@ func _bind_deposit():
 
 
 func _extract(delta):
+	_convey(delta)
 	var rate = get_rate_per_s()
 	if rate <= 0.0:
 		return
 	_accumulated += rate * delta
-	while _accumulated >= 1.0 and stored < Constants.Match.Extraction.STORAGE_MAX:
+	while _accumulated >= 1.0 and stored < get_buffer_capacity():
 		if is_depleted() or deposit.extract(1) == 0:
 			break
 		stored += 1
 		_accumulated -= 1.0
 		stored_changed.emit()
 	_accumulated = min(_accumulated, 1.0)
+
+
+func _convey(delta):
+	"""moves goods from the buffer onto the conveyor to the linked storage"""
+	if not is_linked() or resource_kind == null:
+		_conveyed = 0.0
+		return
+	_conveyed += float(Constants.Match.Logistics.STORAGE.get("conveyor_per_s", 1.5)) * delta
+	var amount = min(int(floor(_conveyed)), get_available_for_pickup())
+	if amount <= 0:
+		_conveyed = min(_conveyed, 1.0)
+		return
+	var accepted = linked_storage.receive(resource_kind, amount)
+	_conveyed -= amount
+	if accepted > 0:
+		stored -= accepted
+		stored_changed.emit()

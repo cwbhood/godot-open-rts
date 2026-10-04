@@ -10,6 +10,7 @@ mods add to it or patch it (see [mods](#mods)).
 | `tiers.json` | City tiers and the science each one needs |
 | `roads.json` | Road levels of supply routes and their cost and speed |
 | `caps.json` | Unit cap, match-wide unit cap, match length and end-of-match score |
+| `logistics.json` | Trucks' job board, extractor buffers, storage, trains, fleet upkeep and recycling |
 | `units/*.json` | One file per unit or structure |
 | `maps/*.json` | One file per playable map |
 | `ai/*.json` | One file per rival AI personality (its play style) |
@@ -103,6 +104,32 @@ A mod's `caps.json` replaces just the keys it lists.
 The first entry is the dirt track every route starts with. Upgrading the route of an
 extractor costs `cost_per_10_m` for every started 10 m between it and its depot. Haulers
 working that route drive `speed_multiplier` times faster.
+
+## logistics.json
+
+Tunables of the delivery system (source/match/economy/Logistics.gd, Fleet.gd,
+RailNetwork.gd, units Storage and Train). Mods can patch single values: nested objects
+are merged key by key.
+
+| Key | Meaning |
+| --- | --- |
+| `extractor_buffer` | Goods an extractor holds before it stops and waits for a truck |
+| `jobs.min_pickup` | Trucks do not drive out for fewer goods than this (unless the extractor is full) |
+| `jobs.site_value` | Worth of one unit of construction materials, against commodity prices |
+| `jobs.priority_factors` | Value multipliers for the low, normal and high priority a player sets on a building |
+| `jobs.city_need_share`, `jobs.city_need_factor` | Goods the city warehouse holds less than this share of are worth this much more |
+| `jobs.load_overhead_s` | Seconds added to every trip for loading and unloading |
+| `standby.radius_m`, `standby.max_per_source` | Where and how many idle trucks wait next to an extractor |
+| `raids.avoid_s`, `raids.radius_m`, `raids.penalty` | Where a truck or train was destroyed, routes within the radius are worth `penalty` times less for that long |
+| `storage.capacity`, `storage.link_radius_m`, `storage.conveyor_per_s`, `storage.min_pickup` | Storage size, conveyor reach and speed, smallest load trucks collect |
+| `train.capacity`, `train.laying_speed`, `train.track_cost_per_10_m`, `train.stop_s` | Train load, speed while laying track, track cost, time at each stop |
+| `train.auto_stops`, `train.auto_min_route_m`, `train.max_leg_m` | How a train plans its own line: number of stops, how far a stop must be from the depot, how far apart stops may be |
+| `fleet.upkeep_oil_per_min` | Oil each `hauler` and `train` costs per minute, working or not |
+| `fleet.surplus_window_s`, `fleet.surplus_spare`, `fleet.surplus_min` | Trucks without a job for the whole window, minus the spare, are reported as surplus once there are at least `surplus_min` |
+| `fleet.recycle_refund` | Share of its cost a recycled truck or train gives back |
+
+The train's speed, cost, tier and capacity shown in menus come from `units/train.json`,
+the storage's cost from `units/storage.json`.
 
 ## units/*.json
 

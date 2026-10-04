@@ -8,12 +8,14 @@ extends Node
 #   4. a pylon that wires an off-grid extractor to the grid,
 #   5. an extractor on the best free deposit: the commodity you have the fewest extractors
 #      and the smallest stock of, close to a command center, away from enemies,
-#   6. a road upgrade on the longest dirt supply route.
+#   6. a storage next to a cluster of extractors far from the depot,
+#   7. a road upgrade on the longest dirt supply route.
 # It pays from the bank like the player would, but never spends below the reserve the
 # player chose (see AutoExpandPanel, or per commodity in the helper's panel while the
 # helper is on). A manual order pauses it until the order is done. With the helper on it
 # also avoids every enemy the player's units have seen, and builds the helper's factory.
-# It also queues a hauler at a command center when extractors outnumber haulers.
+# It also queues a hauler at a command center when there is more work than trucks (the
+# logistics demand estimate, see Logistics.get_truck_target).
 # A match whose rules turn auto-build off (MatchRules, "Raw") never runs it.
 
 enum Job { NONE, FLEEING, HELPING, BUILDING, PAUSED, WAITING }
@@ -42,7 +44,6 @@ const FLEE_RADIUS_M = 10.0  # enemies this close to the constructor make it run 
 const POWER_HEADROOM_MW = 1.0
 const MAX_PYLON_GAP_M = 40.0  # longer gaps are not worth a chain of pylons
 const ROAD_MIN_LENGTH_M = 15.0
-const EXTRACTORS_PER_HAULER = 2
 const PLACEMENT_RINGS = 10
 
 static var _radius_cache = {}  # scene path -> radius
@@ -142,7 +143,12 @@ func _pick_a_job():
 func _next_plan():
 	"""{scene, position, reason} or {road, cost}; null when there is nothing to do"""
 	var plans = [
-		_power_plant_plan(), _helper_plan(), _pylon_plan(), _extractor_plan(), _road_plan()
+		_power_plant_plan(),
+		_helper_plan(),
+		_pylon_plan(),
+		_extractor_plan(),
+		_storage_plan(),
+		_road_plan()
 	]
 	var short_of = null
 	for plan in plans:
@@ -267,6 +273,26 @@ func _extractor_plan():
 	)
 
 
+func _storage_plan():
+	var logistics = _player().logistics
+	var entry = GameData.unit_by_id("storage")
+	if logistics == null or entry == null or _site_of_scene_exists(entry["scene"]):
+		return null
+	var site = logistics.suggest_storage_site()
+	if site == null or not _spot_is_safe(site["position"]):
+		return null
+	var position = _find_position_near(site["position"], entry["scene"])
+	if position == null:
+		return null
+	var reach = float(Constants.Match.Logistics.STORAGE.get("link_radius_m", 12.0))
+	var linked = site["extractors"].filter(
+		func(extractor): return extractor.global_position_yless.distance_to(position) <= reach
+	)
+	if linked.size() < 2:
+		return null
+	return _plan(entry["scene"], position, tr("AUTO_REASON_STORAGE").format([linked.size()]))
+
+
 func _road_plan():
 	var logistics = _player().logistics
 	if logistics == null:
@@ -338,16 +364,15 @@ func _flee():
 
 
 func _order_hauler_if_short():
-	var extractors = _own_units(func(unit): return unit is Extractor).size()
-	var haulers = _own_units(func(unit): return unit is Hauler).size()
-	if extractors <= haulers * EXTRACTORS_PER_HAULER:
+	var logistics = _player().logistics
+	if logistics == null:
+		return
+	var haulers = _own_units(func(unit): return unit is Hauler and not unit.recycling).size()
+	if haulers >= logistics.fleet.get_truck_target() or logistics.fleet.surplus_trucks > 0:
 		return
 	var hauler_scene = "res://source/match/units/Hauler.tscn"
 	var cost = Constants.Match.Units.PRODUCTION_COSTS.get(hauler_scene, {})
 	if not _missing_beyond_reserve(cost).is_empty():
-		return
-	var logistics = _player().logistics
-	if logistics == null:
 		return
 	for depot in logistics.get_depots():
 		var queue = depot.production_queue

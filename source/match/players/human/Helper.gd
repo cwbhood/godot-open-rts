@@ -3,7 +3,9 @@ extends Node
 # The helper: an assistant the player can switch on (HUD panel on the left, off by default).
 # It plays the economy and the home guard so the player can focus on war and trade:
 # - economy: puts idle constructors on auto-expand (see AutoExpand), keeps enough
-#   constructors, and asks auto-expand for a vehicle factory when the army needs one,
+#   constructors, and asks auto-expand for a vehicle factory when the army needs one;
+#   it orders a freight train when far extractors call for one and recycles trucks
+#   that have had nothing to do for a while (auto-expand builds the storage yards),
 # - army: queues combat units at the player's factories up to the army size the player
 #   set; they wait at the factory's rally point and only fight back like any idle unit,
 # - scouting: keeps one scout buggy driving to the least recently seen parts of the map,
@@ -75,6 +77,8 @@ var stats = {
 	"resumed": 0,
 	"units_ordered": 0,
 	"constructors_ordered": 0,
+	"trains_ordered": 0,
+	"trucks_recycled": 0,
 	"attack_orders": 0,  # stays 0: nothing in here orders an attack
 	"think_usec_total": 0,
 	"thinks": 0,
@@ -651,6 +655,21 @@ func _manage_economy():
 		if _produce_somewhere(WORKER_SCENE, func(unit): return unit is CommandCenter):
 			stats["constructors_ordered"] += 1
 	_status["economy"] = tr("HELPER_STATUS_ECONOMY").format([on_auto, constructors.size()])
+	_manage_fleet()
+
+
+func _manage_fleet():
+	"""a freight train when far extractors call for one, and idle trucks recycled"""
+	var logistics = _player.logistics
+	var train = GameData.unit_by_id("train")
+	if logistics == null or train == null:
+		return
+	var trains = _own(func(unit): return unit.get("is_train") == true).size()
+	if logistics.rails.wants_train() and _queued(train["scene"]) == 0 and trains < 2:
+		if _produce_somewhere(train["scene"], func(unit): return unit is CommandCenter):
+			stats["trains_ordered"] += 1
+	if logistics.fleet.surplus_trucks > 0:
+		stats["trucks_recycled"] += logistics.fleet.recycle_surplus(1)
 
 
 # --- army

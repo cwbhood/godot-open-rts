@@ -92,6 +92,7 @@ func _run():
 	for entry in data["maps"]:
 		if "caps" in entry:
 			_check_caps("maps/{0}.json caps".format([entry.get("id", "?")]), entry["caps"], false)
+	_check_logistics(data["logistics"], data["units"], resources)
 	print(
 		(
 			"validate_data: {0} units, {1} commodities, {2} maps, {3} AI personalities, "
@@ -423,3 +424,80 @@ func _check_roads(entries, resources, tiers_count):
 			_error(where, "tier must be between 1 and {0}".format([tiers_count]))
 		_check_cost(where, entry.get("cost_per_10_m", {}), resources)
 		_check_translation(where, entry.get("name"))
+
+
+# section -> key -> [min, max] for every number in logistics.json
+const LOGISTICS_RANGES = {
+	"jobs":
+	{
+		"tick_s": [0.1, 5.0],
+		"min_pickup": [1, 1000],
+		"site_value": [0.0, 100.0],
+		"city_need_share": [0.0, 1.0],
+		"city_need_factor": [0.0, 10.0],
+		"load_overhead_s": [0.0, 60.0],
+	},
+	"standby": {"radius_m": [0.5, 20.0], "max_per_source": [1, 10]},
+	"raids": {"avoid_s": [0.0, 600.0], "radius_m": [0.0, 50.0], "penalty": [1.0, 100.0]},
+	"storage":
+	{
+		"capacity": [1, 10000],
+		"link_radius_m": [1.0, 50.0],
+		"conveyor_per_s": [0.01, 100.0],
+		"min_pickup": [1, 1000],
+	},
+	"train":
+	{
+		"capacity": [1, 10000],
+		"laying_speed": [0.1, 50.0],
+		"stop_s": [0.0, 60.0],
+		"auto_stops": [1, 10],
+		"auto_min_route_m": [0.0, 500.0],
+		"max_leg_m": [1.0, 1000.0],
+	},
+	"fleet":
+	{
+		"surplus_window_s": [5.0, 1200.0],
+		"surplus_spare": [0, 50],
+		"surplus_min": [1, 50],
+		"recycle_refund": [0.0, 1.0],
+	},
+}
+
+
+func _check_logistics(logistics, units, resources):
+	var where = "logistics.json"
+	if logistics.is_empty():
+		_error(where, "missing or not a JSON object")
+		return
+	if int(logistics.get("extractor_buffer", 0)) < 1:
+		_error(where, "extractor_buffer must be at least 1")
+	for section in LOGISTICS_RANGES:
+		var values = logistics.get(section)
+		if not values is Dictionary:
+			_error(where, "section '{0}' is missing".format([section]))
+			continue
+		for key in LOGISTICS_RANGES[section]:
+			var bounds = LOGISTICS_RANGES[section][key]
+			if not key in values:
+				_error(where, "'{0}.{1}' is missing".format([section, key]))
+			elif float(values[key]) < bounds[0] or float(values[key]) > bounds[1]:
+				_error(
+					where,
+					"'{0}.{1}' = {2} is outside {3}..{4}".format(
+						[section, key, values[key], bounds[0], bounds[1]]
+					)
+				)
+	var factors = logistics.get("jobs", {}).get("priority_factors", [])
+	if factors.size() != 3 or factors.any(func(factor): return float(factor) <= 0.0):
+		_error(where, "jobs.priority_factors must be three numbers > 0 (low, normal, high)")
+	_check_cost(where + " train.track_cost_per_10_m", logistics.get("train", {}).get("track_cost_per_10_m", {}), resources)
+	var upkeep = logistics.get("fleet", {}).get("upkeep_oil_per_min", {})
+	for kind in upkeep:
+		if float(upkeep[kind]) < 0.0:
+			_error(where, "fleet.upkeep_oil_per_min.{0} must be >= 0".format([kind]))
+	for id in ["storage", "train", "hauler"]:
+		if units.filter(func(unit): return unit["id"] == id).is_empty():
+			_error(where, "the logistics system needs a unit with id '{0}' in data/units".format([id]))
+	if not "oil" in resources and not upkeep.is_empty():
+		_warn(where, "fleet upkeep is paid in oil, but there is no 'oil' commodity")

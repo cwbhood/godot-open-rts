@@ -6,6 +6,8 @@ const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const Worker = preload("res://source/match/units/Worker.gd")
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const ExtractorMenu = preload("res://source/match/hud/unit-menus/ExtractorMenu.gd")
+const FleetMenu = preload("res://source/match/hud/unit-menus/FleetMenu.gd")
+const Storage = preload("res://source/match/units/Storage.gd")
 
 var _shown = []
 
@@ -15,6 +17,7 @@ var _shown = []
 @onready var _aircraft_factory_menu = find_child("AircraftFactoryMenu")
 @onready var _worker_menu = find_child("WorkerMenu")
 @onready var _extractor_menu = _create_extractor_menu()
+@onready var _fleet_menu = _create_fleet_menu()
 
 
 func _ready():
@@ -40,7 +43,8 @@ func _all_menus():
 		_vehicle_factory_menu,
 		_aircraft_factory_menu,
 		_worker_menu,
-		_extractor_menu
+		_extractor_menu,
+		_fleet_menu
 	]
 
 
@@ -74,7 +78,7 @@ func _try_showing_any_menu():
 		return true
 	if (
 		selected_controlled_units.size() == 1
-		and selected_controlled_units[0] is Extractor
+		and (selected_controlled_units[0] is Extractor or selected_controlled_units[0] is Storage)
 		and selected_controlled_units[0].is_constructed()
 	):
 		_extractor_menu.unit = selected_controlled_units[0]
@@ -82,11 +86,21 @@ func _try_showing_any_menu():
 		return true
 	if selected_controlled_units.size() == 1 and selected_controlled_units[0] is Worker:
 		_shown.append(_worker_menu)
+	if FleetMenu.applies_to(selected_controlled_units):
+		_fleet_menu.units = selected_controlled_units
+		_shown.append(_fleet_menu)
 	if selected_controlled_units.size() > 0:
 		_generic_menu.units = selected_controlled_units
 		_shown.append(_generic_menu)
 		return true
 	return false
+
+
+func _create_fleet_menu():
+	var menu = FleetMenu.new()
+	menu.name = "FleetMenu"
+	_generic_menu.add_sibling(menu)
+	return menu
 
 
 func _create_extractor_menu():
