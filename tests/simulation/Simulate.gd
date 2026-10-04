@@ -61,6 +61,8 @@ func _ready():
 		if argument.begins_with("--") and "=" in argument:
 			var parts = argument.substr(2).split("=", true, 1)
 			_args[parts[0]] = parts[1]
+	if _args.has("summary"):  # same as --out, which the crash reporter also reads as a folder
+		_args["out"] = _args["summary"]
 	Engine.time_scale = float(_args["time-scale"])
 	print(
 		(
