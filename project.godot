@@ -28,6 +28,7 @@ MatchSignals="*res://source/match/MatchSignals.gd"
 Signals="*res://source/Signals.gd"
 Utils="*res://source/Utils.gd"
 CrashReporter="*res://source/crash/CrashReporter.gd"
+MusicPlayer="*res://source/audio/MusicPlayer.gd"
 
 [debug]
 
