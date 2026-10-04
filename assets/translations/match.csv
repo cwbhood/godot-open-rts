@@ -279,3 +279,17 @@ HOVER_SKIMMER,Hover skimmer,Poduszkowiec
 HOVER_SKIMMER_DESCRIPTION,"light hovercraft, as fast on water as on sand; fragile","lekki poduszkowiec, na wodzie tak szybki jak na piasku; kruchy"
 BLUEPRINT_IN_WATER,Cannot build in water,Nie można budować w wodzie
 BLUEPRINT_NEEDS_SHORE,Must be built on the shore next to deep water,Trzeba zbudować na brzegu przy głębokiej wodzie
+MATCH_END_VICTORY,Victory,Zwycięstwo
+MATCH_END_DEFEAT,Defeat,Porażka
+MATCH_END_FINISHED,Match over,Koniec meczu
+MATCH_END_DURATION,Match time {0},Czas meczu {0}
+MATCH_END_SCORE_OVER_TIME,Score over time,Wynik w czasie
+MATCH_END_COL_SCORE,Score,Wynik
+MATCH_END_COL_TIER,Tier,Poziom
+MATCH_END_COL_BUILT,Units built,Wyprodukowane
+MATCH_END_COL_LOST,Units lost,Stracone
+MATCH_END_COL_STRUCTURES,Buildings,Budynki
+MATCH_END_COL_DELIVERED,Goods delivered,Dostarczone
+MATCH_END_COL_TRADES,Trades,Wymiany
+MATCH_END_REMATCH,Play again,Zagraj ponownie
+MATCH_END_MAIN_MENU,Main menu,Menu główne
