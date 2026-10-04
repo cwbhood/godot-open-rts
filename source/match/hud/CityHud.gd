@@ -17,6 +17,16 @@ const RESULT_MESSAGES = {
 	Trade.Result.PARTNER_REFUSED: "TRADE_RESULT_PARTNER_REFUSED",
 	Trade.Result.EMBARGO: "TRADE_RESULT_EMBARGO",
 }
+const VERDICT_KEYS = {
+	Trade.Verdict.GOOD: "TRADE_VERDICT_GOOD_TITLE",
+	Trade.Verdict.FAIR: "TRADE_VERDICT_FAIR_TITLE",
+	Trade.Verdict.BAD: "TRADE_VERDICT_BAD_TITLE",
+}
+const VERDICT_COLORS = {
+	Trade.Verdict.GOOD: Color(0.45, 0.9, 0.45),
+	Trade.Verdict.FAIR: Color(0.95, 0.85, 0.35),
+	Trade.Verdict.BAD: Color(1.0, 0.45, 0.4),
+}
 const THREAT_KEYS = {
 	CivilDefense.ThreatLevel.NONE: "THREAT_NONE",
 	CivilDefense.ThreatLevel.CONTAINED: "THREAT_CONTAINED",
@@ -42,6 +52,7 @@ var _give_resource_option = OptionButton.new()
 var _get_amount = SpinBox.new()
 var _get_resource_option = OptionButton.new()
 var _fair_label = Label.new()
+var _verdict_label = Label.new()
 var _propose_button = Button.new()
 var _agreement_button = Button.new()
 var _embargo_button = Button.new()
@@ -49,6 +60,7 @@ var _result_label = Label.new()
 var _agreements_label = Label.new()
 var _offer_box = VBoxContainer.new()
 var _offer_label = Label.new()
+var _offer_verdict_label = Label.new()
 
 @onready var _match = find_parent("Match")
 
@@ -137,6 +149,8 @@ func _build_layout():
 	rows.add_child(get_row)
 	_fair_label.add_theme_font_size_override("font_size", 12)
 	rows.add_child(_fair_label)
+	_setup_verdict_label(_verdict_label)
+	rows.add_child(_verdict_label)
 
 	var buttons_row = HBoxContainer.new()
 	_propose_button.text = tr("TRADE_PROPOSE")
@@ -158,6 +172,8 @@ func _build_layout():
 	_offer_box.add_child(HSeparator.new())
 	_offer_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_offer_box.add_child(_offer_label)
+	_setup_verdict_label(_offer_verdict_label)
+	_offer_box.add_child(_offer_verdict_label)
 	var offer_buttons = HBoxContainer.new()
 	var accept_button = Button.new()
 	accept_button.text = tr("TRADE_ACCEPT")
@@ -172,6 +188,20 @@ func _build_layout():
 	_offer_box.add_child(offer_buttons)
 	_offer_box.hide()
 	rows.add_child(_offer_box)
+
+
+func _setup_verdict_label(label):
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_constant_override("outline_size", 3)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+
+
+func _show_verdict(label, given, received):
+	"""tells the player whether giving 'given' for 'received' makes sense for them now"""
+	var assessment = Trade.assess(_player, given, received)
+	label.text = "{0}: {1}".format([tr(VERDICT_KEYS[assessment["verdict"]]), assessment["reason"]])
+	label.add_theme_color_override("font_color", VERDICT_COLORS[assessment["verdict"]])
 
 
 func _make_title(text_key):
@@ -334,6 +364,7 @@ func _refresh_logistics():
 func _refresh_trade():
 	if _player == null:
 		return
+	_refresh_offer_verdict()  # stock changes can turn a fine offer into a bad one
 	var partner = _selected_partner()
 	var price_lines = [tr("TRADE_PRICES_HEADER")]
 	for resource in Constants.Match.Resources.ALL:
@@ -368,6 +399,11 @@ func _refresh_trade():
 					tr(_get_resource().to_upper()),
 				]
 			)
+		)
+		_show_verdict(
+			_verdict_label,
+			{_give_resource(): int(_give_amount.value)},
+			{_get_resource(): int(_get_amount.value)}
 		)
 		var market = _match.get_node_or_null("Market")
 		var embargoed = market != null and market.is_embargoed(_player, partner)
@@ -459,7 +495,15 @@ func _on_trade_offered(proposer, partner, offered, requested):
 			]
 		)
 	)
+	_refresh_offer_verdict()
 	_offer_box.show()
+
+
+func _refresh_offer_verdict():
+	if _incoming_offer == null:
+		return
+	# the proposer's offer is what we receive, its request is what we give
+	_show_verdict(_offer_verdict_label, _incoming_offer["requested"], _incoming_offer["offered"])
 
 
 func _on_accept_offer_pressed():

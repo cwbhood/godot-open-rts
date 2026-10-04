@@ -14,9 +14,9 @@ func _ready():
 	columns = 4
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_road_button = Button.new()
-	_road_button.custom_minimum_size = Vector2(48, 48)
+	_road_button.custom_minimum_size = Vector2(80, 80)
 	_road_button.text = tr("ROAD_BUTTON")
-	_road_button.add_theme_font_size_override("font_size", 11)
+	_road_button.add_theme_font_size_override("font_size", 14)
 	_road_button.pressed.connect(_on_road_button_pressed)
 	add_child(_road_button)
 	var timer = Timer.new()

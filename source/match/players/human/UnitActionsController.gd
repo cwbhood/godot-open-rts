@@ -14,6 +14,7 @@ class Actions:
 	const AutoAttacking = preload("res://source/match/units/actions/AutoAttacking.gd")
 	const Constructing = preload("res://source/match/units/actions/Constructing.gd")
 	const Escorting = preload("res://source/match/units/actions/Escorting.gd")
+	const Landing = preload("res://source/match/units/actions/Landing.gd")
 
 
 func _ready():
@@ -101,6 +102,9 @@ func _navigate_unit_towards_unit(unit, target_unit):
 		return true
 	if Actions.Constructing.is_applicable(unit, target_unit):
 		unit.action = Actions.Constructing.new(target_unit)
+		return true
+	if Actions.Landing.is_applicable(unit, target_unit):
+		unit.action = Actions.Landing.new(target_unit)  # land and refuel
 		return true
 	if target_unit is Hauler and Actions.Escorting.is_applicable(unit, target_unit):
 		unit.action = Actions.Escorting.new(target_unit)  # convoy escort

@@ -93,6 +93,7 @@ working that route drive `speed_multiplier` times faster.
 | `built_by` | For structures: ids of units constructing it, normally `["worker"]` |
 | `speed` | Movement speed in m/s |
 | `fuel_per_s` | Oil burnt per second while moving |
+| `flight_endurance_s` | Air units only: seconds it can stay airborne before it has to land at an airport to refuel (it crashes when it runs dry). Leave it out for helicopters, which hover freely |
 | `properties` | `hp`, `hp_max`, `sight_range`, `attack_damage`, `attack_interval`, `attack_range`, `attack_domains` (`"terrain"`, `"air"`), `cargo_capacity` |
 | `projectile` | `"cannon_shell"` or `"rocket"` |
 | `extracts` | Structures only: commodities it extracts from a deposit next to it |

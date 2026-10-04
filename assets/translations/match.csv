@@ -141,3 +141,17 @@ ESCORTING,Escorting,Eskortuje
 SANDBOX_SPAWN,Spawn,Postaw
 SANDBOX_SPAWN_TOOLTIP,"Left-click the map to spawn, right-click to stop","Kliknij lewym, aby postawić, prawym, aby przestać"
 SANDBOX_TOP_UP,+{0} of everything for all,+{0} wszystkiego dla wszystkich
+AIRPORT,Airport,Lotnisko
+AIRPORT_DESCRIPTION,"drones and planes land here to refuel; right-click it with aircraft selected to send them home","tu lądują drony i samoloty, by zatankować; kliknij prawym przyciskiem z zaznaczonymi samolotami, by je odesłać"
+NEEDS_AIRPORT,"Flies for {0} s, then must land at an airport (build one first)","Lata przez {0} s, potem musi wylądować na lotnisku (najpierw zbuduj lotnisko)"
+AIRCRAFT_LOW_FUEL,LOW FUEL,MAŁO PALIWA
+AIRCRAFT_NO_AIRPORT,NO AIRPORT - WILL CRASH,BRAK LOTNISKA - ROZBIJE SIĘ
+TRADE_VERDICT_GOOD_TITLE,Good deal for you,Dobry interes dla ciebie
+TRADE_VERDICT_FAIR_TITLE,Fair deal,Uczciwa wymiana
+TRADE_VERDICT_BAD_TITLE,Bad deal for you,Zła wymiana dla ciebie
+TRADE_VERDICT_GOOD,"you get {0}% more than you give, at your current prices","dostajesz o {0}% więcej niż dajesz, według twoich obecnych cen"
+TRADE_VERDICT_FAIR,roughly even at your current prices,mniej więcej po równo według twoich obecnych cen
+TRADE_VERDICT_BAD,"you give {0}% more than you get, at your current prices","dajesz o {0}% więcej niż dostajesz, według twoich obecnych cen"
+TRADE_VERDICT_DRAINS,"it would leave you with only {0} {1}","zostałoby ci tylko {0} {1}"
+TRADE_VERDICT_CANNOT_AFFORD,you do not have enough {0},nie masz wystarczająco {0}
+TRADE_VERDICT_FREE,you give nothing away,nic nie oddajesz

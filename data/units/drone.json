@@ -21,5 +21,6 @@
     "hp": 6,
     "hp_max": 6
   },
-  "fuel_per_s": 0.005
+  "fuel_per_s": 0.005,
+  "flight_endurance_s": 150.0
 }

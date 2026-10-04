@@ -11,9 +11,16 @@ enum BlueprintPositionValidity {
 }
 
 const Extractor = preload("res://source/match/units/Extractor.gd")
+const Worker = preload("res://source/match/units/Worker.gd")
+const GameData = preload("res://source/data-model/GameData.gd")
 
 const ROTATION_BY_KEY_STEP = 45.0
 const ROTATION_DEAD_ZONE_DISTANCE = 0.1
+# with a constructor selected, hovering a deposit picks its extractor automatically
+const AUTO_PICK_HOVER_MARGIN_M = 0.6  # mouse this close to the deposit edge picks it
+const AUTO_PICK_KEEP_MARGIN_M = 2.5  # the blueprint follows the deposit within this ring
+const AUTO_PICK_GAP_M = 0.4  # gap between the snapped blueprint and the deposit
+const AUTO_PICK_SNAP_STEPS = 12  # tries on each side when the spot facing the mouse is taken
 
 const MATERIALS_ROOT = "res://source/match/resources/materials/"
 const BLUEPRINT_VALID_PATH = MATERIALS_ROOT + "blueprint_valid.material.tres"
@@ -24,6 +31,8 @@ var _pending_structure_radius = null
 var _pending_structure_navmap_rid = null
 var _pending_structure_prototype = null
 var _blueprint_rotating = false
+var _auto_deposit = null  # deposit the blueprint was picked for by hovering it
+var _suppressed_deposit = null  # just built at or cancelled, ignored until the mouse leaves
 
 @onready var _player = get_parent()
 @onready var _match = find_parent("Match")
@@ -36,6 +45,8 @@ func _ready():
 
 
 func _unhandled_input(event):
+	if event is InputEventMouseMotion and not _blueprint_rotation_started():
+		_update_auto_picked_extractor()
 	if not _structure_placement_started():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -80,6 +91,8 @@ func _handle_mouse_motion_event(_event):
 	get_viewport().set_input_as_handled()
 	if _blueprint_rotation_started():
 		_rotate_blueprint_towards_mouse_pos()
+	elif _auto_deposit != null:
+		_snap_blueprint_next_to_deposit()
 	else:
 		_set_blueprint_position_based_on_mouse_pos()
 	var blueprint_position_validity = _calculate_blueprint_position_validity()
@@ -239,6 +252,9 @@ func _update_blueprint_color(blueprint_position_is_valid):
 
 
 func _cancel_structure_placement():
+	if _auto_deposit != null and is_instance_valid(_auto_deposit):
+		_suppressed_deposit = _auto_deposit
+	_auto_deposit = null
 	if _structure_placement_started():
 		_feedback_label.hide()
 		_active_blueprint_node.queue_free()
@@ -294,4 +310,120 @@ func _finish_blueprint_rotation():
 
 
 func _on_structure_placement_request(structure_prototype):
+	if _auto_deposit != null:
+		_cancel_structure_placement()  # a button press wins over the hovered deposit
+		_suppressed_deposit = null
 	_start_structure_placement(structure_prototype)
+
+
+func _update_auto_picked_extractor():
+	if _structure_placement_started() and _auto_deposit == null:
+		return  # the player picked a structure in the menu
+	var mouse_pos_3d = _mouse_pos_3d()
+	if mouse_pos_3d == null:
+		return
+	var hovered = _deposit_under(mouse_pos_3d)
+	if _suppressed_deposit != null and hovered != _suppressed_deposit:
+		_suppressed_deposit = null
+	if _auto_deposit != null:
+		if not is_instance_valid(_auto_deposit) or not _auto_deposit.is_inside_tree():
+			_cancel_structure_placement()
+		elif hovered != null and hovered != _auto_deposit:
+			_cancel_structure_placement()
+		elif not _mouse_near_auto_deposit(mouse_pos_3d):
+			_cancel_structure_placement()
+			_suppressed_deposit = null
+		else:
+			return
+	if hovered == null or hovered == _suppressed_deposit or not _constructor_selected():
+		return
+	var scene_path = _extractor_scene_for(hovered.kind)
+	if scene_path == null:
+		return
+	_start_structure_placement(load(scene_path))
+	_auto_deposit = hovered
+
+
+func _constructor_selected():
+	return get_tree().get_nodes_in_group("selected_units").any(
+		func(unit): return unit is Worker and unit.is_in_group("controlled_units")
+	)
+
+
+func _deposit_under(mouse_pos_3d):
+	var closest = null
+	var closest_distance = INF
+	for deposit in get_tree().get_nodes_in_group("deposits"):
+		if not deposit.is_inside_tree() or not deposit.visible:
+			continue
+		var distance = (deposit.global_position * Vector3(1, 0, 1)).distance_to(
+			mouse_pos_3d * Vector3(1, 0, 1)
+		)
+		if distance <= deposit.radius + AUTO_PICK_HOVER_MARGIN_M and distance < closest_distance:
+			closest = deposit
+			closest_distance = distance
+	return closest
+
+
+func _mouse_near_auto_deposit(mouse_pos_3d):
+	return (
+		(_auto_deposit.global_position * Vector3(1, 0, 1)).distance_to(
+			mouse_pos_3d * Vector3(1, 0, 1)
+		)
+		<= _auto_deposit.radius + _pending_structure_radius + AUTO_PICK_KEEP_MARGIN_M
+	)
+
+
+func _extractor_scene_for(kind):
+	"""scene of a structure constructors can build to extract 'kind', unlocked ones first"""
+	var candidates = []
+	for entry in GameData.producible_by("worker"):
+		if kind in entry.get("extracts", []):
+			candidates.append(entry["scene"])
+	if candidates.is_empty():
+		return null
+	for scene_path in candidates:
+		if _player.meets_tier_requirement(scene_path):
+			return scene_path
+	return candidates[0]
+
+
+func _snap_blueprint_next_to_deposit():
+	"""puts the blueprint right next to the deposit, on the side of the mouse if it is free"""
+	var mouse_pos_3d = _mouse_pos_3d()
+	if mouse_pos_3d == null:
+		return
+	var center = _auto_deposit.global_position * Vector3(1, 0, 1)
+	var direction = (mouse_pos_3d * Vector3(1, 0, 1)) - center
+	if direction.length() < 0.05:
+		direction = Vector3(0, 0, 1)
+	direction = direction.normalized()
+	var distance = _auto_deposit.radius + _pending_structure_radius + AUTO_PICK_GAP_M
+	var height = Vector3(0, mouse_pos_3d.y, 0)
+	for step in range(AUTO_PICK_SNAP_STEPS + 1):
+		for side in [1.0, -1.0]:
+			var angle = side * step * PI / AUTO_PICK_SNAP_STEPS
+			_active_blueprint_node.global_transform.origin = (
+				center + direction.rotated(Vector3.UP, angle) * distance + height
+			)
+			if not (
+				_calculate_blueprint_position_validity()
+				in [
+					BlueprintPositionValidity.COLLIDES_WITH_OBJECT,
+					BlueprintPositionValidity.NOT_NAVIGABLE,
+					BlueprintPositionValidity.OUT_OF_MAP,
+				]
+			):
+				_feedback_label.global_transform.origin = (
+					_active_blueprint_node.global_transform.origin
+				)
+				return
+	_active_blueprint_node.global_transform.origin = center + direction * distance + height
+	_feedback_label.global_transform.origin = _active_blueprint_node.global_transform.origin
+
+
+func _mouse_pos_3d():
+	var camera = get_viewport().get_camera_3d()
+	if camera == null:
+		return null
+	return camera.get_ray_intersection(get_viewport().get_mouse_position())

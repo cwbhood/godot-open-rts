@@ -63,7 +63,11 @@ func _ready():
 func take_damage(damage, attacker):
 	if attacker != null and is_instance_valid(attacker) and "player" in attacker:
 		last_attacker_player = attacker.player
+	var hp_before = hp
 	hp -= damage
+	if hp < hp_before:
+		# only real hits count; construction sites also lower hp when they are laid out
+		MatchSignals.unit_damaged.emit(self)
 
 
 func is_revealing():
@@ -71,10 +75,7 @@ func is_revealing():
 
 
 func _set_hp(value):
-	var old_hp = hp
 	hp = max(0, value)
-	if old_hp != null and hp < old_hp:
-		MatchSignals.unit_damaged.emit(self)
 	hp_changed.emit()
 	if hp == 0:
 		_handle_unit_death()
@@ -218,6 +219,14 @@ func _setup_default_properties_from_constants():
 	var movement = find_child("Movement")
 	if movement != null and scene_path in Constants.Match.Units.SPEEDS:
 		movement.speed = Constants.Match.Units.SPEEDS[scene_path]
+	if (
+		scene_path in Constants.Match.Air.FLIGHT_ENDURANCE_S
+		and get_node_or_null("FixedWingFlight") == null
+	):
+		var flight = load("res://source/match/units/traits/FixedWingFlight.gd").new()
+		flight.name = "FixedWingFlight"
+		flight.endurance_s = float(Constants.Match.Air.FLIGHT_ENDURANCE_S[scene_path])
+		add_child(flight)
 
 
 func _on_action_node_tree_exited(action_node):

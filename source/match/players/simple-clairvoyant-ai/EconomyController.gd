@@ -15,6 +15,7 @@ const Hauler = preload("res://source/match/units/Hauler.gd")
 const HaulerScene = preload("res://source/match/units/Hauler.tscn")
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const PowerPlantScene = preload("res://source/match/units/PowerPlant.tscn")
+const AirportScene = preload("res://source/match/units/Airport.tscn")
 const GameData = preload("res://source/data-model/GameData.gd")
 const EXTRACTOR_PRIORITY = ["iron", "oil", "timber", "copper"]  # ties go to the first
 const REFRESH_INTERVAL_S = 2.0
@@ -85,7 +86,9 @@ func _refresh():
 	_try_upgrading_a_road()
 	if _pending_structure_request or _count_units(Worker) == 0:
 		return
-	var next = _next_structure()
+	var next = _next_airport() if not _ccs.is_empty() and _needs_airport() else null
+	if next == null:
+		next = _next_structure()
 	if next == null:
 		return
 	_pending_structure_request = true
@@ -181,6 +184,24 @@ func _try_upgrading_a_road():
 			best = [length, extractor]
 	if best != null and logistics.upgrade_road(best[1]):
 		_since_road_upgrade_s = 0.0
+
+
+func _next_airport():
+	var position = _find_position_near(_ccs[0].global_position, AirportScene, 7.0)
+	return [AirportScene.resource_path, position] if position != null else null
+
+
+func _needs_airport():
+	"""fixed-wing aircraft (the starting drone) crash without an airport to land at"""
+	var has_aircraft = get_tree().get_nodes_in_group("units").any(
+		func(unit): return unit.player == _player and unit.get_node_or_null("FixedWingFlight") != null
+	)
+	return (
+		has_aircraft
+		and _count_scene(AirportScene.resource_path) == 0
+		and _player.meets_tier_requirement(AirportScene.resource_path)
+		and _obtainable(AirportScene.resource_path)
+	)
 
 
 func _obtainable(scene_path):

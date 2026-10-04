@@ -88,6 +88,21 @@ func meets_tier_requirement(scene_path):
 	return has_tier(int(Constants.Match.Units.TIER_REQUIREMENTS.get(scene_path, 1)))
 
 
+func needs_airport_for(scene_path):
+	"""fixed-wing aircraft can only be produced once there is an airport to land at"""
+	return scene_path in Constants.Match.Air.FLIGHT_ENDURANCE_S and not has_airport()
+
+
+func has_airport():
+	return get_tree().get_nodes_in_group("airports").any(
+		func(airport): return airport.player == self and airport.is_constructed()
+	)
+
+
+func can_produce(scene_path):
+	return meets_tier_requirement(scene_path) and not needs_airport_for(scene_path)
+
+
 func get_production_multiplier():
 	return city.production_multiplier if city != null else 1.0
 

@@ -14,15 +14,42 @@ enum Result {
 	EMBARGO,
 }
 
+enum Verdict { GOOD, FAIR, BAD }
+
 
 static func local_price(player, resource):
+	return _price_at_stock(player, resource, float(player.get(resource)))
+
+
+static func assess(player, given, received):
+	"""whether a trade pays off for 'player' right now, as
+	{"verdict": Verdict, "reason": translated line}. Goods are valued at the prices the
+	player would have halfway through the trade, so giving away the last of something
+	counts for a lot and receiving more of what is piling up counts for little."""
 	var trade = Constants.Match.Trade
-	var comfortable = trade.COMFORTABLE_STOCK * _hoarding_factor(player)
-	var stock = max(1.0, float(player.get(resource)))
-	return (
-		trade.BASE_PRICES[resource]
-		* clamp(sqrt(comfortable / stock), trade.PRICE_FACTOR_MIN, trade.PRICE_FACTOR_MAX)
-	)
+	for resource in given:
+		var left = int(player.get(resource)) - int(given[resource])
+		if left < 0:
+			return _verdict(Verdict.BAD, "TRADE_VERDICT_CANNOT_AFFORD", [_name(resource)])
+		if left < trade.ASSESSMENT_SAFETY_STOCK and given[resource] > 0:
+			return _verdict(Verdict.BAD, "TRADE_VERDICT_DRAINS", [left, _name(resource)])
+	var given_value = 0.0
+	for resource in given:
+		var stock = float(player.get(resource)) - given[resource] / 2.0
+		given_value += given[resource] * _price_at_stock(player, resource, stock)
+	var received_value = 0.0
+	for resource in received:
+		var stock = float(player.get(resource)) + received[resource] / 2.0
+		received_value += received[resource] * _price_at_stock(player, resource, stock)
+	if given_value <= 0.0:
+		return _verdict(Verdict.GOOD, "TRADE_VERDICT_FREE", [])
+	var ratio = received_value / given_value
+	var percent = int(round(abs(ratio - 1.0) * 100.0))
+	if ratio >= trade.ASSESSMENT_GOOD_RATIO:
+		return _verdict(Verdict.GOOD, "TRADE_VERDICT_GOOD", [percent])
+	if ratio >= trade.ASSESSMENT_FAIR_RATIO:
+		return _verdict(Verdict.FAIR, "TRADE_VERDICT_FAIR", [percent])
+	return _verdict(Verdict.BAD, "TRADE_VERDICT_BAD", [percent])
 
 
 static func value_for(player, resources):
@@ -124,6 +151,26 @@ static func execute(proposer, partner, offered, requested):
 		partner.add_resources(offered)
 		proposer.add_resources(requested)
 	MatchSignals.trade_completed.emit(proposer, partner, offered, requested)
+
+
+static func _price_at_stock(player, resource, stock):
+	var trade = Constants.Match.Trade
+	var comfortable = trade.COMFORTABLE_STOCK * _hoarding_factor(player)
+	return (
+		trade.BASE_PRICES[resource]
+		* clamp(sqrt(comfortable / max(1.0, stock)), trade.PRICE_FACTOR_MIN, trade.PRICE_FACTOR_MAX)
+	)
+
+
+static func _verdict(verdict, reason_key, arguments):
+	return {
+		"verdict": verdict,
+		"reason": TranslationServer.translate(reason_key).format(arguments),
+	}
+
+
+static func _name(resource):
+	return TranslationServer.translate(resource.to_upper())
 
 
 static func _market(player):

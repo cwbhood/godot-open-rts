@@ -15,7 +15,7 @@ const UNIT_FIELDS = ["id", "category", "name", "cost"]
 const KNOWN_UNIT_FIELDS = [
 	"id", "category", "scene", "base", "base_scene", "blueprint", "name", "description",
 	"icon", "icon_tint", "tier", "cost", "build_time_s", "produced_by", "built_by",
-	"properties", "projectile", "fuel_per_s", "extracts", "power", "speed", "model",
+	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
 	"model_scale", "model_offset", "model_rotation_y_deg"
 ]
 const KNOWN_PROPERTIES = [

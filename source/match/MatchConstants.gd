@@ -22,11 +22,21 @@ class Navigation:
 class Air:
 	const Y = 1.5
 	const PLANE = Plane(Vector3.UP, Y)
+	# fixed-wing aircraft (units with "flight_endurance_s" in data/units) cannot hover:
+	# they fly for that long, then have to land at an airport to refuel or they crash.
+	# Helicopters have no endurance limit.
+	const REFUEL_TIME_S = 6.0  # empty to full, while landed
+	const RETURN_RESERVE_S = 6.0  # spare airtime kept when heading home on low fuel
+	const LOW_FUEL_WARNING_RATIO = 0.25
+	const LANDING_DURATION_S = 0.6
 
 	class Navmesh:
 		const CELL_SIZE = 0.4
 		const CELL_HEIGHT = 0.4
 		const MAX_AGENT_RADIUS = 0.8
+
+	# gdlint: ignore=class-variable-name
+	static var FLIGHT_ENDURANCE_S = GameData.unit_field("flight_endurance_s")
 
 
 class Terrain:
@@ -203,6 +213,11 @@ class Trade:
 	const AI_TRADE_RESERVE = {"timber": 4, "iron": 4, "copper": 2, "oil": 3}
 	const AI_OFFER_INTERVAL_S = 30.0
 	const OFFER_EXPIRY_S = 20.0
+	# trade advice shown to the player (see Trade.assess): received value / given value in
+	# the player's own prices, and the stock below which giving a commodity away is bad
+	const ASSESSMENT_GOOD_RATIO = 1.1
+	const ASSESSMENT_FAIR_RATIO = 0.9
+	const ASSESSMENT_SAFETY_STOCK = 10
 	# gdlint: ignore=class-variable-name
 	static var BASE_PRICES = GameData.resource_field("base_price")
 
