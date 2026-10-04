@@ -151,6 +151,7 @@ var _lightning_cooldown = 6.0
 var _flash = 0.0
 var _cloud_shadows = MeshInstance3D.new()
 var _cloud_zone_timer = 0.0
+var _particle_areas = {}  # particles -> emission half-size last applied
 
 @onready var _match = find_parent("Match")
 @onready var _clouds = $Clouds
@@ -341,18 +342,29 @@ func _apply():
 		var camera_distance = 80.0 if camera == null else max(camera.global_position.y, 1.0) * 2.0
 		environment.fog_density = _current.haze * 0.55 / camera_distance
 		environment.fog_sky_affect = 0.0
-	_rain.amount_ratio = _current.rain
-	_rain.emitting = _current.rain > 0.02
-	_dust.amount_ratio = _current.dust
-	_dust.emitting = _current.dust > 0.02
-	_dust_haze.amount_ratio = _current.dust
-	_dust_haze.emitting = _current.dust > 0.02
+	# zoomed out, single drops and dust grains are too small to see: emit fewer of them
+	var particle_share = lerp(1.0, 0.4, zoom_visibility)
+	_set_particles(_rain, _current.rain, particle_share)
+	_set_particles(_dust, _current.dust, particle_share)
+	_set_particles(_dust_haze, _current.dust, 1.0)
+	if not _dust.emitting:
+		return
 	var wind = get_wind()
 	for particles in [_dust, _dust_haze]:
 		var process_material = particles.process_material
 		process_material.direction = Vector3(wind.x, 0.0, wind.y).normalized()
 		process_material.initial_velocity_min = _current.wind_speed * 1.2
 		process_material.initial_velocity_max = _current.wind_speed * 2.0
+
+
+func _set_particles(particles, intensity, share):
+	"""only touches the particle system when something changed: idle weather costs nothing"""
+	var emitting = intensity > 0.02
+	if particles.emitting != emitting:
+		particles.emitting = emitting
+	var ratio = snappedf(intensity * share, 0.02)
+	if emitting and not is_equal_approx(particles.amount_ratio, ratio):
+		particles.amount_ratio = ratio
 
 
 func _follow_camera():
@@ -365,7 +377,12 @@ func _follow_camera():
 	_clouds.global_position = Vector3(pivot.x, CLOUD_HEIGHT, pivot.z)
 	var area = clamp(camera.size * 1.4, 12.0, 90.0)
 	for particles in [_rain, _dust, _dust_haze]:
+		if not particles.emitting:
+			continue
 		particles.global_position = Vector3(pivot.x, 0.0, pivot.z)
+		if is_equal_approx(_particle_areas.get(particles, 0.0), area):
+			continue
+		_particle_areas[particles] = area
 		particles.process_material.emission_box_extents.x = area
 		particles.process_material.emission_box_extents.z = area
 		particles.visibility_aabb = AABB(

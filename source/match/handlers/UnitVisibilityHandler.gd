@@ -1,12 +1,14 @@
 extends Node3D
 
 const SIGHT_COMPENSATION = 2.0  # compensates for blurry edges of FoW
+const REFRESH_EVERY_PHYSICS_TICKS = 3
 
 const Structure = preload("res://source/match/units/Structure.gd")
 
 var _units_processed_at_least_once = {}
 var _structure_to_dummy_mapping = {}
 var _orphaned_dummies = []
+var _ticks_until_refresh = 0
 
 
 func _ready():
@@ -15,6 +17,12 @@ func _ready():
 
 
 func _physics_process(_delta):
+	# every unit against every revealing unit is the costliest check of a big match; a 20 Hz
+	# refresh looks the same as a 60 Hz one
+	_ticks_until_refresh -= 1
+	if _ticks_until_refresh > 0:
+		return
+	_ticks_until_refresh = REFRESH_EVERY_PHYSICS_TICKS
 	var all_units = get_tree().get_nodes_in_group("units")
 	var revealed_units = all_units.filter(func(unit): return unit.is_in_group("revealed_units"))
 	for unit in all_units:

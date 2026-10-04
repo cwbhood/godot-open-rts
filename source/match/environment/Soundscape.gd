@@ -3,16 +3,28 @@ extends Node
 # Ambient sound of a match, mixed from where the camera looks:
 # - wind, louder with the weather's wind and when zoomed out, howling in sandstorms,
 # - rain while it rains,
-# - the hum of engines when vehicles move near the middle of the screen,
+# - engines of vehicles moving near the middle of the screen: tank diesels and tracks, wheeled
+#   trucks, helicopter rotors and drone propellers, each from how many of them move nearby,
 # - the noise of the nearest city, fading out with distance and as the camera zooms out,
 # - a trade horn when a trade deal goes through or goods reach a depot near the camera.
-# The sounds are synthesized by tools/audio/make_soundscape.py.
+# The sounds are synthesized by tools/audio/make_soundscape.py and make_war_sounds.py.
+# Weapon fire and explosions are WarSounds, a child of this node.
+
+const WarSounds = preload("res://source/match/environment/WarSounds.gd")
 
 const AUDIO_DIR = "res://assets/audio/ambience/"
+const WAR_AUDIO_DIR = "res://assets/audio/war/"
 const REFRESH_S = 0.25
 const FADE_PER_S = 1.5  # how fast volumes follow their targets (linear gain per second)
 const CITY_HEARING_RANGE_M = 45.0
-const ENGINE_HEARING_RANGE_M = 20.0
+const ENGINE_HEARING_RANGE_M = 16.0  # when zoomed in; grows with the camera size
+# engine loop -> unit scenes it is heard from; other vehicles (trucks, buggies) hum
+const ENGINE_LOOPS = {
+	"tank_engine_loop": ["Tank", "HeavyTank", "BattleTank", "Artillery"],
+	"rotor_loop": ["Helicopter", "Gunship"],
+	"drone_loop": ["Drone"],
+}
+const SILENT_UNITS = ["Militia"]  # on foot
 const CLOSE_CAMERA_SIZE = 12.0
 const FAR_CAMERA_SIZE = 70.0
 const HORN_COOLDOWN_S = 9.0
@@ -24,6 +36,7 @@ var _since_refresh = 0.0
 var _horn_cooldown = 0.0
 var _pivot = Vector3.ZERO
 var _zoom_out = 0.0  # 0 close to the ground, 1 fully zoomed out
+var _camera_size = CLOSE_CAMERA_SIZE
 
 
 func _ready():
@@ -31,6 +44,13 @@ func _ready():
 		var stream = load(AUDIO_DIR + sound_name + ".ogg")
 		stream.loop = true
 		_add_player(sound_name, stream, true)
+	for sound_name in ENGINE_LOOPS:
+		var stream = load(WAR_AUDIO_DIR + sound_name + ".ogg")
+		stream.loop = true
+		_add_player(sound_name, stream, true)
+	var war_sounds = WarSounds.new()
+	war_sounds.name = "WarSounds"
+	add_child(war_sounds)
 	_add_player("trade_horn", load(AUDIO_DIR + "trade_horn.ogg"), false)
 	MatchSignals.trade_completed.connect(_on_trade_completed)
 	MatchSignals.goods_delivered.connect(_on_goods_delivered)
@@ -72,6 +92,7 @@ func _update_listener():
 	if pivot != null:
 		_pivot = pivot
 	_zoom_out = clamp(inverse_lerp(CLOSE_CAMERA_SIZE, FAR_CAMERA_SIZE, camera.size), 0.0, 1.0)
+	_camera_size = camera.size
 
 
 func _update_targets():
@@ -89,7 +110,11 @@ func _update_targets():
 	_targets["rain_loop"] = rain * lerp(0.7, 0.4, _zoom_out)
 	var close = 1.0 - _zoom_out
 	_targets["city_loop"] = _city_closeness() * close * 0.6
-	_targets["engine_hum_loop"] = _engine_loudness() * close * 0.5
+	var engines = _engine_loudness()
+	_targets["engine_hum_loop"] = engines.get("engine_hum_loop", 0.0) * close * 0.45
+	_targets["tank_engine_loop"] = engines.get("tank_engine_loop", 0.0) * close * 0.6
+	_targets["rotor_loop"] = engines.get("rotor_loop", 0.0) * lerp(1.0, 0.5, _zoom_out) * 0.55
+	_targets["drone_loop"] = engines.get("drone_loop", 0.0) * close * 0.35
 
 
 func _city_closeness():
@@ -100,14 +125,28 @@ func _city_closeness():
 
 
 func _engine_loudness():
-	var moving = 0
+	"""loop name -> 0..1 from the moving vehicles that use it, nearer ones counting more"""
+	var hearing_range = ENGINE_HEARING_RANGE_M + _camera_size * 0.5
+	var weights = {}
 	for unit in get_tree().get_nodes_in_group("units"):
-		if _flat_distance(unit.global_position, _pivot) > ENGINE_HEARING_RANGE_M:
+		var distance = _flat_distance(unit.global_position, _pivot)
+		if distance > hearing_range:
 			continue
 		var movement = unit.find_child("Movement", false, false)
-		if movement != null and movement.velocity.length_squared() > 0.01:
-			moving += 1
-	return clamp(log(1.0 + moving) / log(12.0), 0.0, 1.0)
+		if movement == null or movement.velocity.length_squared() <= 0.01:
+			continue
+		var unit_name = unit.scene_file_path.get_file().get_basename()
+		if unit_name in SILENT_UNITS:
+			continue
+		var loop = "engine_hum_loop"
+		for engine_loop in ENGINE_LOOPS:
+			if unit_name in ENGINE_LOOPS[engine_loop]:
+				loop = engine_loop
+		weights[loop] = weights.get(loop, 0.0) + 1.0 - distance / hearing_range
+	var loudness = {}
+	for loop in weights:
+		loudness[loop] = clamp(log(1.0 + weights[loop] * 1.5) / log(10.0), 0.0, 1.0)
+	return loudness
 
 
 func _depots():
