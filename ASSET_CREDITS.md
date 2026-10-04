@@ -15,7 +15,23 @@ sources are used.
 | `assets/audio/voices/` speech (infantry, vehicle crews, officers, pilots, builders, traders, advisor) | text-to-speech with the Kokoro-82M voice model (weights Apache 2.0, by hexgrad) run locally through kokoro-onnx (MIT), then radio-filtered with numpy by `tools/audio/make_voices.py`; lines in `tools/audio/voice_lines.json` | `python3 tools/audio/make_voices.py --kokoro-dir DIR` (see the script header) |
 | `assets/audio/voices/` machine sounds (drone, auto_vehicle, structure) | synthesized from noise and sine waves by `tools/audio/make_voices.py` | `python3 tools/audio/make_voices.py --only drone,auto_vehicle,structure` |
 | `assets/audio/construction/city_build_up.ogg` (hammering, crane motors, scaffold clatter, stage thuds, finish chime) | synthesized from noise and sine waves by `tools/audio/make_construction_sounds.py`, timed to `tools/blender/construction_timeline.json` | `python3 tools/audio/make_construction_sounds.py` (needs numpy and ffmpeg) |
+| `assets/audio/music/` (menu theme, calm tracks "Dust and Steel" and "Caravan Road", tension loop "Heat Haze", battle loop "Iron Storm", victory and defeat stings) | composed note by note in `tools/audio/make_music.py`, played by the GeneralUser GS SoundFont through tinysoundfont (MIT) and mixed and mastered with numpy | `python3 tools/audio/make_music.py` (needs numpy, `pip install --no-deps tinysoundfont` and ffmpeg; fetches the SoundFont, see below) |
 | Terrain, water, cloud, cloud shadow and road shaders in `source/shaders/3d/` | written for this project | |
+
+The music is rendered with the **GeneralUser GS v2.0.3** SoundFont by S. Christian Collins
+(<https://www.schristiancollins.com/generaluser>). The SoundFont itself is not in the
+repository: `make_music.py` downloads it from
+<https://raw.githubusercontent.com/mrbumpy409/GeneralUser-GS/main/GeneralUser-GS.sf2>
+(32 MB, sha256 `9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe`) into
+`~/.cache/ironbound-music/`. Its license
+(<https://raw.githubusercontent.com/mrbumpy409/GeneralUser-GS/main/documentation/LICENSE.txt>,
+"License v2.0") reads in part: "You may use GeneralUser GS without restriction for your own
+music creation, private or commercial. [...] Please feel free to use it in your software
+projects, and to modify the SoundFont bank or its packaging to suit your needs." and "GeneralUser
+GS inherits the usage rights of the samples contained within, all of which allow full use in
+music production, including the ability to make profit from musical recordings created with
+GeneralUser GS." The rendered tracks are therefore original recordings released under the
+project's MIT license like the other generated assets.
 
 Third-party assets that were already in the project keep their own licenses:
 
