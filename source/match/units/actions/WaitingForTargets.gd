@@ -28,7 +28,8 @@ func is_idle():
 
 
 func _get_units_to_attack():
-<<<<<<< HEAD
+	if _unit.get_meta("hold_fire", false):
+		return []  # e.g. the helper's scout: it looks, it does not fight
 	# every idle armed unit runs this six times a second against every unit of the match, so
 	# the cheap distance test goes first and the weather-dependent sight range is read once
 	var sight_range = _unit.sight_range
@@ -45,25 +46,6 @@ func _get_units_to_attack():
 		):
 			units_to_attack.append(unit)
 	return units_to_attack
-=======
-	if _unit.get_meta("hold_fire", false):
-		return []  # e.g. the helper's scout: it looks, it does not fight
-	return get_tree().get_nodes_in_group("units").filter(
-		func(unit):
-			return (
-				unit.player != _unit.player
-				and Diplomacy.engages_on_sight(_unit.player, unit.player)
-				and unit.movement_domain in _unit.attack_domains
-				and not (
-					unit.has_method("is_protected_from") and unit.is_protected_from(_unit.player)
-				)
-				and (
-					_unit.global_position_yless.distance_to(unit.global_position_yless)
-					<= _unit.sight_range
-				)
-			)
-	)
->>>>>>> origin/claude/project-thread-dzhw92
 
 
 func _attack_unit(unit):
