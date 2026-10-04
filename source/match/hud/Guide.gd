@@ -6,7 +6,7 @@ extends Control
 #   is remembered between matches),
 # - one-off hints that pop up below it the first time something worth explaining happens
 #   (a blackout, a site outside the yard, a crashed drone...),
-# - the auto-expand overview on the left,
+# - the helper's panel and the auto-expand overview on the left,
 # - the manual (F1, or the Help button).
 
 const Human = preload("res://source/match/players/human/Human.gd")
@@ -17,6 +17,8 @@ const AutoExpand = preload("res://source/match/units/traits/AutoExpand.gd")
 const AutoExpandPanel = preload("res://source/match/hud/AutoExpandPanel.gd")
 const AutoExpandBar = preload("res://source/match/hud/AutoExpandBar.gd")
 const HelpWindow = preload("res://source/match/hud/HelpWindow.gd")
+const HelperPanel = preload("res://source/match/hud/HelperPanel.gd")
+const Helper = preload("res://source/match/players/human/Helper.gd")
 
 const SETTINGS_PATH = "user://guide.cfg"
 const REFRESH_INTERVAL_S = 0.5
@@ -40,6 +42,7 @@ var player = null
 var help_window = null
 var auto_expand_panel = null
 var auto_expand_bar = null
+var helper_panel = null
 
 var _step = 0
 var _delivered = false
@@ -68,6 +71,8 @@ func _ready():
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_tutorial()
 	_build_hint()
+	helper_panel = HelperPanel.new()
+	add_child(helper_panel)
 	auto_expand_panel = AutoExpandPanel.new()
 	add_child(auto_expand_panel)
 	auto_expand_bar = AutoExpandBar.new()  # placed left of the unit menu, see _layout
@@ -191,12 +196,18 @@ func _layout():
 		round((screen.x - _hint_panel.size.x) / 2.0), _tutorial.position.y + _tutorial.size.y + 6
 	)
 	var minimap_top = screen.y - 225
+	if helper_panel.size.y > helper_panel.get_combined_minimum_size().y + 1.0:
+		helper_panel.reset_size()
+	helper_panel.position = Vector2(5, 60)
+	var below_helper = 60.0
+	if helper_panel.visible:
+		below_helper = helper_panel.position.y + helper_panel.size.y + 6.0
 	auto_expand_panel.position = Vector2(
 		5,
 		clamp(
-			round((screen.y - auto_expand_panel.size.y) / 2.0),
+			max(round((screen.y - auto_expand_panel.size.y) / 2.0), below_helper),
 			60,
-			minimap_top - auto_expand_panel.size.y
+			max(60, minimap_top - auto_expand_panel.size.y)
 		)
 	)
 	var unit_menus = get_parent().find_child("UnitMenus", true, false)
@@ -223,6 +234,13 @@ func show_hint(key, args = []):
 		return
 	_hints_shown[key] = true
 	_hint_queue.append(tr(key).format(args))
+
+
+func show_alert(text):
+	"""a warning that may come back (unlike hints), but not twice in a row"""
+	if text in _hint_queue or (_hint_panel.visible and _hint_label.text == text):
+		return
+	_hint_queue.append(text)
 
 
 func _update_hint(delta):
@@ -327,6 +345,10 @@ func _on_match_started():
 		return
 	player = humans[0]
 	auto_expand_panel.setup(player)
+	helper_panel.setup(player)
+	var helper = Helper.of(player)
+	if helper != null:
+		helper.alerted.connect(show_alert)
 	_refresh_tutorial()
 
 

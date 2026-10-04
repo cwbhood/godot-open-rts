@@ -152,6 +152,7 @@ func _set_collapsed(collapsed):
 func _set_all(enabled):
 	for unit in _constructors():
 		AutoExpand.set_enabled_on(unit, enabled)
+		unit.set_meta("auto_expand_opt_out", not enabled)  # the helper leaves it alone
 	_refresh()
 
 
