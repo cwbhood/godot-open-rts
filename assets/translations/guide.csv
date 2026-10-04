@@ -94,3 +94,33 @@ HELP_COMBAT_TITLE,Combat and defense
 HELP_COMBAT_BODY,"Build a vehicle factory for tanks and other ground units, and turrets near what you need to hold. Right-click an enemy to attack it, right-click your own hauler to escort it.\n\nAI factions raid supply lines and far extractors first. Keep a few units near long routes and your far extractors; auto-expanding constructors also prefer deposits your armed units guard."
 HELP_AIRCRAFT_TITLE,Aircraft and airports
 HELP_AIRCRAFT_BODY,"Helicopters and gunships fly freely. Fixed-wing drones have limited airtime: they must land at an [b]airport[/b] to refuel, circle when idle, and crash when they run dry. Drones can only be built once you have an airport. A unit's tooltip shows its airtime."
+AUTO_REASON_HELPER,Building a vehicle factory for the helper's army
+HELPER_TITLE,Helper
+HELPER_ON,On
+HELPER_OFF,Off
+HELPER_TOOLTIP,"The helper (H) runs your economy and home guard so you can focus on war and trade: it puts idle constructors on auto-expand, keeps enough constructors, builds army units up to the size you set, scouts the map and keeps constructors away from enemies. It never attacks and never spends below what you keep in the bank."
+HELPER_STATUS_OFF,"Off. Switch it on to let it run the economy, build defenders up to your army size, scout and keep constructors out of danger. It never attacks."
+HELPER_STATUS_GUARD,"Guarding constructors: {0} held back or rerouted, {1} enemy units known"
+HELPER_STATUS_GUARD_CLEAR,Guarding constructors: no enemies seen nearby
+HELPER_STATUS_ECONOMY,Economy: {0} of {1} constructors on auto-expand
+HELPER_STATUS_ARMY,"Army: {0} ready, {1} in production, target {2}"
+HELPER_STATUS_ARMY_FULL,"Army: {0} ready, target {1} reached"
+HELPER_STATUS_ARMY_OFF,"Army: {0} units, not building more (army size 0)"
+HELPER_STATUS_ARMY_NO_FACTORY,"Army: {0} of {1}, waiting for a vehicle factory"
+HELPER_STATUS_SCOUT,Scouting: {0}% of the map seen
+HELPER_STATUS_SCOUT_WAITING,Scouting: waiting for a scout buggy (needs a vehicle factory)
+HELPER_STATUS_SCOUT_OFF,Scouting: off
+HELPER_KEEP,Keep in bank:
+HELPER_KEEP_TOOLTIP,"The helper (and auto-expand while the helper is on) never spends a commodity below this amount."
+HELPER_ARMY,Army size:
+HELPER_ARMY_TOOLTIP,"The helper keeps this many combat units, not counting its scout. They wait at the factory rally point and only fight back; sending them to attack is up to you."
+HELPER_SCOUT,Scout the map
+HELPER_SCOUT_TOOLTIP,"Keeps one scout buggy driving to the parts of the map nobody has seen lately. It holds fire and turns back from enemies, and what it sees warns your constructors."
+HELPER_ALERT_ON,"Helper on: running the economy, guarding constructors"
+HELPER_ALERT_OFF,Helper off: you are in charge again
+HELPER_ALERT_RETREAT,Constructor pulled back: {0} enemy units close by (click to look)
+HELPER_ALERT_DETOUR,Constructor rerouted around {0} enemy units (click to look)
+HELPER_ALERT_HOLD,"Constructor held back: {0} enemy units at its destination. It resumes when the way is clear (click to look)"
+HELP_HELPER_TITLE,Helper
+HELP_HELPER_BODY,"The helper is an assistant you switch on in the panel at the top left (or press [b]H[/b]). It starts off. While it is on it:\n1. [b]runs the economy:[/b] puts idle constructors on auto-expand and keeps three constructors,\n2. [b]builds an army:[/b] queues the strongest combat units your bank can spare at your factories, up to the [b]Army size[/b] you set (and asks a constructor for a vehicle factory if you have none). They wait at the factory rally point,\n3. [b]scouts:[/b] keeps one scout buggy visiting the parts of the map nobody has seen lately; it holds fire and turns back from enemies,\n4. [b]guards constructors:[/b] it remembers every enemy your units have seen. A constructor whose path passes near them is rerouted around them; one whose destination is threatened is held back and resumes the order once the way is clear; one that enemies come close to runs to the nearest safe command center. Warnings appear in the panel and the hint bar; click one to look.\n\n[b]It never attacks.[/b] It gives no attack orders, its scout holds fire, and its units only fight back like any idle unit at war. It never starts a war and treats factions under a pact or alliance as friends.\n\n[b]Keep in bank[/b] sets, per commodity, what the helper (and auto-expand while the helper is on) must leave you. Your own orders always win: an order you give a constructor replaces the helper's, and turning auto-expand off on a constructor keeps the helper from turning it back on. Switching the helper off hands everything back."
+HELPER_ALERT_BLOCKED,"Constructor held back: {0} enemy units block the way and there is no safe way round. It resumes when the way is clear (click to look)"

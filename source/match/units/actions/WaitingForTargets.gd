@@ -28,6 +28,8 @@ func is_idle():
 
 
 func _get_units_to_attack():
+	if _unit.get_meta("hold_fire", false):
+		return []  # e.g. the helper's scout: it looks, it does not fight
 	return get_tree().get_nodes_in_group("units").filter(
 		func(unit):
 			return (
