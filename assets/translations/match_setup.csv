@@ -8,9 +8,9 @@ DIFFICULTY_EASY_DESCRIPTION,"slower and smaller economy, small attacks from minu
 DIFFICULTY_NORMAL,Normal,Normalny
 DIFFICULTY_NORMAL_DESCRIPTION,"plays its style at full speed, no bonuses","gra swoim stylem z pełną prędkością, bez premii"
 DIFFICULTY_HARD,Hard,Trudny
-DIFFICULTY_HARD_DESCRIPTION,"reacts fast, expands wider, bigger attacks, pulls damaged units back, no bonuses","szybko reaguje, szerzej się rozbudowuje, większe ataki, wycofuje uszkodzone jednostki, bez premii"
+DIFFICULTY_HARD_DESCRIPTION,"reacts fast, more turrets and raids, pulls damaged units back, no bonuses","szybko reaguje, więcej wieżyczek i najazdów, wycofuje uszkodzone jednostki, bez premii"
 DIFFICULTY_BRUTAL,Brutal (cheats),Brutalny (oszukuje)
-DIFFICULTY_BRUTAL_DESCRIPTION,"plays like Hard with a bigger army, and CHEATS: +20% income and +15% build speed","gra jak Trudny z większą armią i OSZUKUJE: +20% dochodu i +15% szybkości budowy"
+DIFFICULTY_BRUTAL_DESCRIPTION,"plays like Hard with a wider economy, and CHEATS: +20% income and +15% build speed","gra jak Trudny z większą gospodarką i OSZUKUJE: +20% dochodu i +15% szybkości budowy"
 COLOR_BLUE,Blue,Niebieski
 COLOR_RED,Red,Czerwony
 COLOR_GREEN,Green,Zielony
