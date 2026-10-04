@@ -299,6 +299,10 @@ func _on_rematch_button_pressed():
 	if a_match == null or a_match.settings == null or map_path == "":
 		_on_exit_button_pressed()
 		return
+	if a_match.scene_file_path != "res://source/match/Match.tscn":
+		get_tree().paused = false
+		get_tree().reload_current_scene()  # a test scene with its own players and map
+		return
 	var loading = LoadingScene.instantiate()
 	loading.match_settings = a_match.settings.duplicate(true)
 	loading.map_path = map_path

@@ -61,6 +61,7 @@ func _add_player(sound_name, stream, looping):
 	player.name = sound_name.to_pascal_case()
 	player.stream = stream
 	player.volume_db = SILENT_DB
+	player.bus = &"Ambience" if looping else &"Effects"  # see default_bus_layout.tres
 	add_child(player)
 	if looping:
 		player.play(randf() * stream.get_length())
