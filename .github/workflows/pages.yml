@@ -1,14 +1,14 @@
 name: Website
 
-# Publishes site/ to GitHub Pages. It only runs when started by hand from the
-# Actions tab, and it fails until Pages is turned on (Settings > Pages > Source:
-# GitHub Actions). To publish on every change later, add:
-#   push:
-#     branches: [main]
-#     paths: ["site/**"]
+# Publishes site/ to GitHub Pages whenever the site changes on main, or when
+# started by hand from the Actions tab. Pages must be on (Settings > Pages >
+# Source: GitHub Actions).
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["site/**", "tools/site/**", ".github/workflows/pages.yml"]
 
 permissions:
   contents: read
