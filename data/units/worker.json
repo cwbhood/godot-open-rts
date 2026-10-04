@@ -3,7 +3,7 @@
   "category": "unit",
   "scene": "res://source/match/units/Worker.tscn",
   "model": "res://assets/models/ironbound/units/constructor.glb",
-  "model_scale": 0.7,
+  "model_scale": 1.0,
   "name": "WORKER",
   "description": "WORKER_DESCRIPTION",
   "icon": "res://assets/ui/icons/Worker.png",

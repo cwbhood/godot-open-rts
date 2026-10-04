@@ -2,6 +2,8 @@
   "id": "ag_turret",
   "category": "structure",
   "scene": "res://source/match/units/AntiGroundTurret.tscn",
+  "model": "res://assets/models/ironbound/buildings/defense_turret.glb",
+  "model_scale": 1.0,
   "blueprint": "res://source/match/units/structure-geometries/AntiGroundTurret.tscn",
   "name": "AG_TURRET",
   "description": "AG_TURRET_DESCRIPTION",

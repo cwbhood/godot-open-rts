@@ -2,6 +2,8 @@
   "id": "militia",
   "category": "unit",
   "scene": "res://source/match/units/Militia.tscn",
+  "model": "res://assets/models/ironbound/units/militia_squad.glb",
+  "model_scale": 2.083,
   "name": "MILITIA",
   "description": "MILITIA_DESCRIPTION",
   "icon": "res://assets/ui/icons/Tank.png",

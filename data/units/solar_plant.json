@@ -2,6 +2,8 @@
   "id": "solar_plant",
   "category": "structure",
   "scene": "res://source/match/units/SolarPlant.tscn",
+  "model": "res://assets/models/ironbound/buildings/solar_plant.glb",
+  "model_scale": 1.0,
   "blueprint": "res://source/match/units/structure-geometries/SolarPlant.tscn",
   "name": "SOLAR_PLANT",
   "description": "SOLAR_PLANT_DESCRIPTION",
