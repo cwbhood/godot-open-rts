@@ -62,6 +62,7 @@ func _try_navigating_selected_units_towards_position(target_point):
 			unit.dedicated_extractor = null
 			unit.road_speed_multiplier = 1.0
 		unit.action = Actions.Moving.new(new_target)
+	return new_unit_targets.map(func(tuple): return tuple[0])
 
 
 func _try_setting_rally_points(target_point: Vector3):
@@ -74,6 +75,7 @@ func _try_setting_rally_points(target_point: Vector3):
 		if rally_point != null:
 			rally_point.target_unit = null
 			rally_point.global_position = target_point
+	return controlled_structures
 
 
 func _try_ordering_selected_workers_to_construct_structure(potential_structure):
@@ -89,69 +91,83 @@ func _try_ordering_selected_workers_to_construct_structure(potential_structure):
 	)
 	for unit in selected_constructors:
 		unit.action = Actions.Constructing.new(structure)
+	if not selected_constructors.is_empty():
+		MatchSignals.units_ordered.emit(selected_constructors, "build")
 
 
 func _navigate_selected_units_towards_unit(target_unit):
-	var at_least_one_unit_navigated = false
-	for unit in get_tree().get_nodes_in_group("selected_units"):
-		if not unit.is_in_group("controlled_units"):
-			continue
-		if _navigate_unit_towards_unit(unit, target_unit):
-			at_least_one_unit_navigated = true
-	return at_least_one_unit_navigated
+	var orders = {}  # unit -> "move", "attack" or "build", for the unit voices
+	var selected = get_tree().get_nodes_in_group("selected_units").filter(
+		func(unit): return unit.is_in_group("controlled_units")
+	)
+	for unit in selected:
+		var order = _navigate_unit_towards_unit(unit, target_unit)
+		if order != "":
+			orders[unit] = order
+	if not orders.is_empty():
+		var kinds = orders.values()
+		var order = "attack" if "attack" in kinds else ("build" if "build" in kinds else "move")
+		MatchSignals.units_ordered.emit(orders.keys(), order)
+	elif selected.any(func(unit): return not unit is Structure):
+		MatchSignals.units_ordered.emit(selected, "cannot")
+	return not orders.is_empty()
 
 
 func _navigate_unit_towards_unit(unit, target_unit):
-	if unit is Hauler and _order_hauler(unit, target_unit):
-		return true
+	"""gives the order that fits the target and returns its kind, "" if none fits"""
+	if unit is Hauler:
+		var hauler_order = _order_hauler(unit, target_unit)
+		if hauler_order != "":
+			return hauler_order
 	if Actions.AutoAttacking.is_applicable(unit, target_unit):
 		unit.action = Actions.AutoAttacking.new(target_unit)
-		return true
+		return "attack"
 	if Actions.Constructing.is_applicable(unit, target_unit):
 		unit.action = Actions.Constructing.new(target_unit)
-		return true
+		return "build"
 	if Actions.Landing.is_applicable(unit, target_unit):
 		unit.action = Actions.Landing.new(target_unit)  # land and refuel
-		return true
+		return "move"
 	if target_unit is Hauler and Actions.Escorting.is_applicable(unit, target_unit):
 		unit.action = Actions.Escorting.new(target_unit)  # convoy escort
-		return true
+		return "move"
 	if (
 		(target_unit.is_in_group("adversary_units") or target_unit.is_in_group("controlled_units"))
 		and Actions.Following.is_applicable(unit)
 	):
 		unit.action = Actions.Following.new(target_unit)
-		return true
+		# units that cannot shoot still chase enemies when told to: they answer as if attacking
+		return "attack" if target_unit.is_in_group("adversary_units") else "move"
 	if Actions.MovingToUnit.is_applicable(unit):
 		unit.action = Actions.MovingToUnit.new(target_unit)
-		return true
+		return "move"
 	if _try_setting_rally_point_to_unit(unit, target_unit):
-		return true
-	return false  # gdlint: ignore = max-returns
+		return "move"
+	return ""  # gdlint: ignore = max-returns
 
 
 func _order_hauler(hauler, target_unit):
 	"""own extractor: serve only that extractor, own depot: back to automatic logistics,
-	own construction site: bring materials there"""
+	own construction site: bring materials there; returns the order kind or an empty string"""
 	if not "player" in target_unit or target_unit.player != hauler.player:
-		return false
+		return ""
 	var logistics = hauler.player.logistics
 	if target_unit is Extractor and target_unit.is_constructed():
 		hauler.automated = true
 		hauler.dedicated_extractor = target_unit
 		hauler.action = null
-		return true
+		return "move"
 	if target_unit is CommandCenter and target_unit.is_constructed():
 		hauler.automated = true
 		hauler.dedicated_extractor = null
 		hauler.action = null
-		return true
+		return "move"
 	if target_unit is Structure and target_unit.needs_materials() and logistics != null:
 		hauler.automated = true
 		hauler.dedicated_extractor = null
 		hauler.action = null
-		return logistics.assign_supply(hauler, target_unit)
-	return false
+		return "build" if logistics.assign_supply(hauler, target_unit) else ""
+	return ""
 
 
 func _try_setting_rally_point_to_unit(unit, target_unit):
@@ -169,8 +185,18 @@ func _try_setting_rally_point_to_unit(unit, target_unit):
 
 
 func _on_terrain_targeted(position):
-	_try_navigating_selected_units_towards_position(position)
-	_try_setting_rally_points(position)
+	var moved = _try_navigating_selected_units_towards_position(position)
+	var rallied = _try_setting_rally_points(position)
+	if not moved.is_empty():
+		MatchSignals.units_ordered.emit(moved, "move")
+	elif not rallied.is_empty():
+		MatchSignals.units_ordered.emit(rallied, "move")
+	else:
+		var stuck = get_tree().get_nodes_in_group("selected_units").filter(
+			func(unit): return unit.is_in_group("controlled_units") and not unit is Structure
+		)
+		if not stuck.is_empty():
+			MatchSignals.units_ordered.emit(stuck, "cannot")
 
 
 func _on_unit_targeted(unit):

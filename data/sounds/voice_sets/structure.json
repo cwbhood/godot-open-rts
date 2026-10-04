@@ -1,0 +1,152 @@
+{
+  "id": "structure",
+  "kind": "machine",
+  "description": "Buildings and turrets: relay clicks, hums, chimes and alarms",
+  "folder": "res://assets/audio/voices/structure/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "(structure select)"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "(structure select)"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "(structure select)"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "(structure select)"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "(structure move)"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "(structure move)"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "(structure move)"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "(structure move)"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "(structure attack)"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "(structure attack)"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "(structure attack)"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "(structure attack)"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "(structure retreat)"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "(structure retreat)"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "(structure retreat)"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "(structure retreat)"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "(structure build)"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "(structure build)"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "(structure build)"
+      },
+      {
+        "file": "build_04.ogg",
+        "text": "(structure build)"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "(structure cannot)"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "(structure cannot)"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "(structure cannot)"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "(structure cannot)"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "(structure under attack)"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "(structure under attack)"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "(structure under attack)"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "(structure under attack)"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "(structure ready)"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "(structure ready)"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "(structure ready)"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "(structure ready)"
+      }
+    ]
+  }
+}

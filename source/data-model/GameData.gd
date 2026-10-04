@@ -103,6 +103,44 @@ static func roads():
 	return get_data()["roads"]
 
 
+static func voices():
+	"""data/sounds/voices.json: which voice set each unit uses and what actions need lines"""
+	return get_data()["voices"]
+
+
+static func voice_sets():
+	return get_data()["voice_sets"]
+
+
+static func voice_set_by_id(id):
+	for voice_set in voice_sets():
+		if voice_set["id"] == id:
+			return voice_set
+	return null
+
+
+static func voice_set_id_for(unit_entry):
+	"""a unit's own "voice" field wins, then data/sounds/voices.json, then a default"""
+	if unit_entry == null:
+		return null
+	if "voice" in unit_entry:
+		return unit_entry["voice"]
+	var config = voices()
+	var mapped = config.get("unit_voices", {}).get(unit_entry["id"])
+	if mapped != null:
+		return mapped
+	var defaults = config.get("default_voices", {})
+	if unit_entry.get("category") == "structure":
+		return defaults.get("structure")
+	var scene_path = unit_entry.get("base_scene", unit_entry.get("scene", ""))
+	if (
+		scene_path
+		in ["res://source/match/units/Helicopter.tscn", "res://source/match/units/Drone.tscn"]
+	):
+		return defaults.get("air_unit", defaults.get("unit"))
+	return defaults.get("unit")
+
+
 static func is_generated_scene(scene_path):
 	return scene_path.begins_with(GENERATED_SCENES_ROOT)
 
@@ -232,6 +270,8 @@ static func _load_all():
 		"ai_difficulties": _load_dir(BASE_DATA_DIR + "/difficulties"),
 		"player_colors": _load_list_file(BASE_DATA_DIR + "/player_colors.json", "player_colors"),
 		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
+		"voices": _parse_dict_file(BASE_DATA_DIR + "/sounds/voices.json"),
+		"voice_sets": _load_dir(BASE_DATA_DIR + "/sounds/voice_sets"),
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -248,6 +288,8 @@ static func _load_all():
 		var mod_roads = _load_list_file(mod_dir + "/roads.json", "roads")
 		if not mod_roads.is_empty():
 			data["roads"] = mod_roads
+		_merge_voices(data["voices"], _parse_dict_file(mod_dir + "/sounds/voices.json"))
+		_merge_voice_sets(data["voice_sets"], _load_dir(mod_dir + "/sounds/voice_sets"))
 	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
@@ -312,6 +354,42 @@ static func _merge(base_entries, mod_entries):
 			base_entries.append(mod_entry)
 		else:
 			existing[0].merge(mod_entry, true)
+
+
+static func _merge_voices(base, mod):
+	"""unit_voices and default_voices are patched key by key, other fields replaced"""
+	for key in mod:
+		if key in ["unit_voices", "default_voices"] and key in base:
+			base[key].merge(mod[key], true)
+		else:
+			base[key] = mod[key]
+
+
+static func _merge_voice_sets(base_sets, mod_sets):
+	"""a mod set with a known id replaces lines action by action; a lines entry with a
+	"folder" of its own keeps it, so mods can add their files to a base set"""
+	for mod_set in mod_sets:
+		var existing = base_sets.filter(func(entry): return entry["id"] == mod_set["id"])
+		if existing.is_empty():
+			base_sets.append(mod_set)
+			continue
+		var target = existing[0]
+		var lines = target.get("lines", {}).duplicate()
+		for action in mod_set.get("lines", {}):
+			var entries = mod_set["lines"][action].duplicate(true)
+			for line in entries:
+				if line is Dictionary and not "folder" in line and "folder" in mod_set:
+					line["folder"] = mod_set["folder"]
+			lines[action] = entries
+		for key in mod_set:
+			if key != "lines" and key != "folder":
+				target[key] = mod_set[key]
+		target["lines"] = lines
+
+
+static func _parse_dict_file(path):
+	var parsed = _parse_json_file(path)
+	return parsed if parsed is Dictionary else {}
 
 
 static func _load_list_file(path, key):

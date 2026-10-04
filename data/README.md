@@ -14,12 +14,14 @@ mods add to it or patch it (see [mods](#mods)).
 | `ai/*.json` | One file per rival AI personality (its play style) |
 | `difficulties/*.json` | One file per AI difficulty, applied on top of the play style |
 | `player_colors.json` | The colours players and AIs can pick in the Play menu |
+| `sounds/voices.json`, `sounds/voice_sets/*.json` | Which voice each unit answers with, and the advisor's announcements |
 
 How-to guides:
 
 - [Add a unit in 10 minutes](../docs/modding/add-a-unit.md)
 - [Make a map](../docs/modding/make-a-map.md), or paint one in the [map editor](../docs/modding/map-editor.md)
 - [Add a resource](../docs/modding/add-a-resource.md)
+- [Give units new voices](../docs/modding/voices.md)
 
 Check your changes with the validator before starting the game:
 
@@ -101,6 +103,7 @@ working that route drive `speed_multiplier` times faster.
 | `extracts` | Structures only: commodities it extracts from a deposit next to it |
 | `power` | `output_mw`, `demand_mw`, `grid_radius_m`, `burns` (commodity per MW per second) |
 | `blueprint` | Structures only: the ghost shown while placing it |
+| `voice` | Optional: id of the voice set it answers with, overriding `sounds/voices.json` |
 
 ## maps/*.json
 
@@ -234,6 +237,42 @@ biggest map and that no two are too alike.
 Team colour goes on the surfaces of a model whose material is named `TeamColor` (what the
 Blender scripts in `tools/blender/` export) or whose albedo is the key colour
 `(0.99, 0.81, 0.48)` of the older models, so any colour in this list works on both.
+## sounds/
+
+`sounds/voices.json` says which voice set every unit uses and which actions need a sound:
+
+```json
+{
+  "unit_actions": ["select", "move", "attack", "retreat", "build", "cannot", "under_attack", "ready"],
+  "optional_unit_actions": ["select_repeat"],   // played when the same unit is clicked 3 times
+  "unit_voices": {"militia": "infantry", "drone": "drone"},
+  "default_voices": {"unit": "vehicle_crew", "air_unit": "pilot", "structure": "structure"},
+  "advisor": "advisor",
+  "advisor_events": ["base_under_attack", "low_oil", "storage_full", "..."]
+}
+```
+
+A unit's own `"voice"` field wins over `unit_voices`; units in neither get the default.
+
+`sounds/voice_sets/<id>.json` lists the lines of one voice. The game picks a line at random
+but plays every line of an action once before repeating any, and never the same line twice in
+a row. `kind` is `"speech"`, `"machine"` (unmanned units and buildings) or `"advisor"`.
+
+```json
+{
+  "id": "infantry",
+  "kind": "speech",
+  "folder": "res://assets/audio/voices/infantry/",
+  "lines": {
+    "move": [{"file": "move_01.ogg", "text": "Moving out!"}, {"file": "move_02.ogg", "text": "On our way."}]
+  }
+}
+```
+
+`file` is relative to `folder` unless it starts with `res://` or `user://`. The unit actions:
+`select` (clicked), `move`, `attack`, `retreat` (a move order while hurt or just hit),
+`build`, `cannot` (no valid order for the click), `under_attack` and `ready` (produced).
+Check every unit has every sound with `godot --headless --path . res://tests/audio/VoiceCheck.tscn`.
 
 ## Mods
 
@@ -245,4 +284,7 @@ this folder. Mods are loaded in alphabetical order on top of the base data:
 - a file whose `id` already exists replaces just the fields it lists, so a mod
   rebalancing the tank only needs `{"id": "tank", "cost": {"iron": 5, "oil": 3}}`
   (a listed field is replaced as a whole: give the full `cost` or `properties`),
-- a mod's `tiers.json` or `roads.json` replaces the base one.
+- a mod's `tiers.json` or `roads.json` replaces the base one,
+- a mod's `sounds/voices.json` patches `unit_voices` and `default_voices` key by key, and a
+  voice set with a known id replaces only the actions it lists (its `folder` applies to its
+  own lines), so a mod can give the drone new beeps without copying the rest.

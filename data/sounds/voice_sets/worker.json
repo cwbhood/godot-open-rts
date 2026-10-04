@@ -1,0 +1,241 @@
+{
+  "id": "worker",
+  "kind": "speech",
+  "description": "Constructors, workers and haulers, practical and cheerful",
+  "folder": "res://assets/audio/voices/worker/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Builder here.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Need something built?",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Tools ready.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Yeah, boss?",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Hard hat on.",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "select_06.ogg",
+        "text": "What's the job?",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "select_07.ogg",
+        "text": "Ready to work.",
+        "speaker": "am_adam"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "I've got real work to do, you know.",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Still here, boss.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Is this a union break?",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "select_repeat_04.ogg",
+        "text": "Measure twice, click once.",
+        "speaker": "af_sarah"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Heading over.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "On my way.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Going.",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Right away.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Moving the gear.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "move_06.ogg",
+        "text": "Off I go.",
+        "speaker": "af_sarah"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Uh, I'm a builder!",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "With a wrench?",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Fine, I'll try!",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "This isn't in my contract!",
+        "speaker": "am_adam"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Getting out of here!",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Run for it!",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Not paid enough for this!",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "Back to the yard!",
+        "speaker": "af_sarah"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "I'll get it built.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Starting construction.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Laying foundations.",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "build_04.ogg",
+        "text": "Hammer time.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "build_05.ogg",
+        "text": "Building it now.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "build_06.ogg",
+        "text": "On the job.",
+        "speaker": "af_sarah"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't build there.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "No can do, boss.",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "That won't work.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "Not possible.",
+        "speaker": "am_adam"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "They're shooting at me!",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Help! Builder under fire!",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Ow! Hey!",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "I need protection!",
+        "speaker": "af_sarah"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Ready to build.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "New crew reporting.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Worker ready.",
+        "speaker": "af_sarah"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "Tools packed, let's work.",
+        "speaker": "am_liam"
+      }
+    ]
+  }
+}

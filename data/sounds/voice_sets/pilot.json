@@ -1,0 +1,246 @@
+{
+  "id": "pilot",
+  "kind": "speech",
+  "description": "Helicopter and gunship pilots, heavy radio static over the rotors",
+  "folder": "res://assets/audio/voices/pilot/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Pilot here.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Airborne and ready.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Rotors turning.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Eyes in the sky.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Go ahead, ground.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "select_06.ogg",
+        "text": "Wings ready.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "select_07.ogg",
+        "text": "Flight standing by.",
+        "speaker": "af_nova"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Fuel isn't free, ground.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Still up here, circling.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Roger, roger, roger.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "select_repeat_04.ogg",
+        "text": "Getting dizzy up here.",
+        "speaker": "am_echo"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Flying there now.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Vector received.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Inbound.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Changing heading.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "On approach.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "move_06.ogg",
+        "text": "Copy, en route.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "move_07.ogg",
+        "text": "Banking now.",
+        "speaker": "af_kore"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Weapons hot!",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Beginning attack run!",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Target painted, firing!",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "Rockets away!",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "attack_05.ogg",
+        "text": "Strafing run!",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "attack_06.ogg",
+        "text": "Guns guns guns!",
+        "speaker": "af_kore"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Breaking off!",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Pulling up!",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Bugging out!",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "Returning to base!",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "retreat_05.ogg",
+        "text": "Getting clear!",
+        "speaker": "af_kore"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Providing air cover.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Circling the site.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Overwatch in position.",
+        "speaker": "am_echo"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Unable, ground.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "Negative, can't comply.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "No can do.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "That's out of range.",
+        "speaker": "af_nova"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "Taking ground fire!",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Mayday, we're hit!",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Missile lock! Evading!",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "Anti-air on us!",
+        "speaker": "am_echo"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Pilot ready for takeoff.",
+        "speaker": "af_kore"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Bird's fueled up.",
+        "speaker": "af_nova"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Flight ready.",
+        "speaker": "am_echo"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "Wheels up when you are.",
+        "speaker": "af_kore"
+      }
+    ]
+  }
+}

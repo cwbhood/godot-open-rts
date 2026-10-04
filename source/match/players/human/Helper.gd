@@ -16,6 +16,7 @@ extends Node
 # orders an attack: it does not start wars and leaves pacts and alliances alone.
 
 signal alerted(text)
+signal alert_raised(kind)  # the same alert by kind ("on", "retreat", ...), for the advisor voice
 
 const Worker = preload("res://source/match/units/Worker.gd")
 const Hauler = preload("res://source/match/units/Hauler.gd")
@@ -943,6 +944,7 @@ func _say(key, kind, args = [], position = null):
 	if alerts.size() > MAX_ALERTS:
 		alerts.resize(MAX_ALERTS)
 	alerted.emit(text)
+	alert_raised.emit(kind)
 
 
 func _log(kind, unit, position):
