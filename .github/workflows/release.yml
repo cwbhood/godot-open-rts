@@ -1,0 +1,125 @@
+name: Release builds
+
+# Builds Windows, Linux and macOS zips with Godot 4.7.2 and attaches them, with
+# SHA256SUMS.txt, to a DRAFT GitHub release. Nothing is public until someone opens
+# the draft on the Releases page and presses "Publish release".
+#
+# Start it from the Actions tab ("Run workflow"), or push a tag like v0.1.0.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or commit to build"
+        required: true
+        default: "main"
+      version:
+        description: "Version number, e.g. 0.1.0 (the tag will be v<version>)"
+        required: true
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  build:
+    name: Export and draft a release
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Work out what to build
+        id: what
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "tag=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out the release tools
+        uses: actions/checkout@v4
+        with:
+          path: release-tools
+          sparse-checkout: tools/release
+
+      - name: Check out the game
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.what.outputs.ref }}
+          path: game
+          fetch-depth: 1
+
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot and export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          mkdir -p ~/godot ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          curl -sSLf -o /tmp/godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          curl -sSLf -o /tmp/templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          # Only the desktop templates are needed.
+          unzip -q /tmp/templates.tpz 'templates/windows_release_x86_64.exe' 'templates/linux_release.x86_64' 'templates/macos.zip' 'templates/version.txt' -d /tmp/tpl
+          mv /tmp/tpl/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          rm -f /tmp/godot.zip /tmp/templates.tpz
+
+      - name: Export
+        shell: bash
+        env:
+          PROJECT_DIR: ${{ github.workspace }}/game
+          BUILD_BRANCH: ${{ steps.what.outputs.ref }}
+        run: |
+          export GODOT="$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          bash release-tools/tools/release/export.sh "${{ steps.what.outputs.version }}" windows linux macos
+
+      - name: Keep the zips as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ironbound-${{ steps.what.outputs.version }}
+          path: game/dist/*
+          retention-days: 14
+
+      - name: Create or update the draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="${{ steps.what.outputs.tag }}"
+          cd game/dist
+          commit="$(git -C .. rev-parse HEAD)"
+          notes="Built from ${{ steps.what.outputs.ref }} ($(git -C .. rev-parse --short HEAD)) with Godot ${GODOT_VERSION}.
+
+          These builds are not code-signed. Windows SmartScreen and macOS Gatekeeper will warn on first start: on Windows click More info, then Run anyway; on macOS right-click the app and choose Open (macOS 15: System Settings > Privacy & Security > Open Anyway).
+
+          Check your download against SHA256SUMS.txt."
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" Ironbound-*.zip SHA256SUMS.txt --clobber
+          else
+            gh release create "$tag" Ironbound-*.zip SHA256SUMS.txt \
+              --draft --target "$commit" \
+              --title "Ironbound ${{ steps.what.outputs.version }}" \
+              --notes "$notes"
+          fi
