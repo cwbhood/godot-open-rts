@@ -194,7 +194,8 @@ func _next_airport():
 func _needs_airport():
 	"""fixed-wing aircraft (the starting drone) crash without an airport to land at"""
 	var has_aircraft = get_tree().get_nodes_in_group("units").any(
-		func(unit): return unit.player == _player and unit.get_node_or_null("FixedWingFlight") != null
+		func(unit):
+			return unit.player == _player and unit.get_node_or_null("FixedWingFlight") != null
 	)
 	return (
 		has_aircraft
