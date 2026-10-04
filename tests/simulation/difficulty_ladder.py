@@ -20,6 +20,7 @@ import concurrent.futures
 import csv
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -34,6 +35,8 @@ def play(args, a, b, run):
     name = "%s_%s_vs_%s_%s_%d" % (args.style, a, args.style, b, run)
     out = os.path.join(args.out, name + ".json")
     log = os.path.join(args.out, name + ".log")
+    if os.path.isdir(out):
+        shutil.rmtree(out)  # the crash reporter copies reports into a "directory" named --out
     if not os.path.exists(out) or args.force:
         command = [
             "xvfb-run", "-a", "-s", "-screen 0 640x360x24",
