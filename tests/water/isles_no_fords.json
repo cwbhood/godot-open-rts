@@ -1,0 +1,314 @@
+{
+  "id": "isles_no_fords",
+  "name": "Isles without fords (test)",
+  "scene": "res://tests/water/IslesNoFords.tscn",
+  "players": 2,
+  "size": [
+    160,
+    160
+  ],
+  "generator": {
+    "seed": 11
+  },
+  "layout": {
+    "sea": true,
+    "spawns": [
+      [
+        38,
+        124
+      ],
+      [
+        122,
+        36
+      ]
+    ],
+    "islands": [
+      {
+        "center": [
+          38,
+          122
+        ],
+        "radius": 27
+      },
+      {
+        "center": [
+          20,
+          100
+        ],
+        "radius": 15
+      },
+      {
+        "center": [
+          62,
+          142
+        ],
+        "radius": 13
+      },
+      {
+        "center": [
+          122,
+          38
+        ],
+        "radius": 27
+      },
+      {
+        "center": [
+          140,
+          60
+        ],
+        "radius": 15
+      },
+      {
+        "center": [
+          98,
+          18
+        ],
+        "radius": 13
+      },
+      {
+        "center": [
+          80,
+          80
+        ],
+        "radius": 18
+      },
+      {
+        "center": [
+          67,
+          67
+        ],
+        "radius": 11
+      },
+      {
+        "center": [
+          93,
+          93
+        ],
+        "radius": 11
+      },
+      {
+        "center": [
+          26,
+          38
+        ],
+        "radius": 7
+      },
+      {
+        "center": [
+          134,
+          122
+        ],
+        "radius": 7
+      }
+    ],
+    "water": [],
+    "lakes": [],
+    "forests": [
+      {
+        "kind": "acacia",
+        "circles": [
+          {
+            "center": [
+              14,
+              112
+            ],
+            "radius": 3.0
+          },
+          {
+            "center": [
+              16,
+              118
+            ],
+            "radius": 2.5
+          }
+        ]
+      },
+      {
+        "kind": "acacia",
+        "circles": [
+          {
+            "center": [
+              146,
+              48
+            ],
+            "radius": 3.0
+          },
+          {
+            "center": [
+              144,
+              42
+            ],
+            "radius": 2.5
+          }
+        ]
+      },
+      {
+        "kind": "mixed",
+        "circles": [
+          {
+            "center": [
+              74,
+              89
+            ],
+            "radius": 2.5
+          }
+        ]
+      },
+      {
+        "kind": "mixed",
+        "circles": [
+          {
+            "center": [
+              86,
+              71
+            ],
+            "radius": 2.5
+          }
+        ]
+      }
+    ],
+    "outcrops": [
+      {
+        "center": [
+          80,
+          80
+        ],
+        "radius": 2.5
+      },
+      {
+        "center": [
+          26,
+          38
+        ],
+        "radius": 2.0
+      },
+      {
+        "center": [
+          134,
+          122
+        ],
+        "radius": 2.0
+      }
+    ],
+    "deposits": [
+      {
+        "kind": "iron",
+        "center": [
+          22,
+          104
+        ]
+      },
+      {
+        "kind": "iron",
+        "center": [
+          138,
+          56
+        ]
+      },
+      {
+        "kind": "iron",
+        "center": [
+          36,
+          102
+        ]
+      },
+      {
+        "kind": "iron",
+        "center": [
+          124,
+          58
+        ]
+      },
+      {
+        "kind": "oil",
+        "center": [
+          58,
+          136
+        ]
+      },
+      {
+        "kind": "oil",
+        "center": [
+          102,
+          24
+        ]
+      },
+      {
+        "kind": "copper",
+        "center": [
+          28,
+          138
+        ]
+      },
+      {
+        "kind": "copper",
+        "center": [
+          132,
+          22
+        ]
+      },
+      {
+        "kind": "timber",
+        "center": [
+          22,
+          115
+        ]
+      },
+      {
+        "kind": "timber",
+        "center": [
+          138,
+          45
+        ]
+      },
+      {
+        "kind": "oil",
+        "center": [
+          73,
+          73
+        ],
+        "amount": 1400
+      },
+      {
+        "kind": "oil",
+        "center": [
+          87,
+          87
+        ],
+        "amount": 1400
+      },
+      {
+        "kind": "copper",
+        "center": [
+          66,
+          80
+        ],
+        "amount": 900
+      },
+      {
+        "kind": "copper",
+        "center": [
+          94,
+          80
+        ],
+        "amount": 900
+      },
+      {
+        "kind": "iron",
+        "center": [
+          62,
+          64
+        ],
+        "amount": 1200
+      },
+      {
+        "kind": "iron",
+        "center": [
+          98,
+          96
+        ],
+        "amount": 1200
+      }
+    ]
+  }
+}

@@ -33,7 +33,7 @@ MAP_EDITOR_OPEN,Open,Otwórz
 MAP_EDITOR_OPEN_PICK,Pick a map...,Wybierz mapę...
 MAP_EDITOR_MIRROR,Mirror placements,Odbijaj postawienia
 MAP_EDITOR_TOOLS,Paint,Malowanie
-MAP_EDITOR_TOOL_LAKE,Water,Woda
+MAP_EDITOR_TOOL_LAKE,Lake,Jezioro
 MAP_EDITOR_TOOL_FOREST,Trees,Drzewa
 MAP_EDITOR_TOOL_OUTCROP,Rocks,Skały
 MAP_EDITOR_TOOL_DEPOSIT,Deposit,Złoże
@@ -76,3 +76,8 @@ MAP_EDITOR_MIRROR_4,Mirror 4 ways (square maps),Odbijaj na 4 strony (mapy kwadra
 MAP_EDITOR_MIRROR_4_TOOLTIP,"Copies each placement to all four quarters, turned around the center, so a 4-player map gives every start zone the same surroundings.","Kopiuje każde postawienie do czterech ćwiartek, obrócone wokół środka, więc na mapie dla 4 graczy każda strefa startowa ma to samo otoczenie."
 MAP_EDITOR_FAIR,"Fair start: every start zone has the same deposits at the same distances.","Uczciwy start: każda strefa startowa ma te same złoża w tych samych odległościach."
 MAP_EDITOR_UNFAIR,"Unfair start: {0}","Nieuczciwy start: {0}"
+MAP_EDITOR_TOOL_ISLAND,Island,Wyspa
+MAP_EDITOR_TOOL_SHALLOWS,Shallows (ford),Płycizna (bród)
+MAP_EDITOR_SEA,Sea (land only on islands),Morze (ląd tylko na wyspach)
+MAP_EDITOR_WATER_INFO,"Water: {0}, {1} islands, {2} shallows","Woda: {0}, {1} wysp, {2} płycizn"
+MAP_EDITOR_IN_WATER,A start point or deposit is in water. Move it onto land first.,Punkt startowy lub złoże jest w wodzie. Najpierw przenieś je na ląd.

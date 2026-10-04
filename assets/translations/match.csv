@@ -269,3 +269,13 @@ HAULER_DOING_COLLECTING,Collecting goods,Odbiera towary
 HAULER_DOING_SUPPLYING,Bringing materials to a site,Wiezie materiały na budowę
 HAULER_DOING_BUSY,Busy,Zajęta
 FLEET_SELECTED,{0} vehicles selected,Zaznaczono pojazdy: {0}
+SHIPYARD,Shipyard,Stocznia
+SHIPYARD_DESCRIPTION,"builds boats and amphibious vehicles; must stand on the shore, next to deep water","buduje łodzie i pojazdy amfibijne; musi stać na brzegu, przy głębokiej wodzie"
+PATROL_BOAT,Patrol boat,Łódź patrolowa
+PATROL_BOAT_DESCRIPTION,"fast gunboat; sails deep and shallow water, cannot go ashore","szybka kanonierka; pływa po głębokiej i płytkiej wodzie, nie wychodzi na ląd"
+AMPHIBIOUS_APC,Amphibious APC,Amfibijny transporter
+AMPHIBIOUS_APC_DESCRIPTION,"armoured eight-wheeler that swims; slower in water, slows down while climbing in or out","opancerzony ośmiokołowiec, który pływa; w wodzie wolniejszy, zwalnia przy wjeździe i wyjeździe"
+HOVER_SKIMMER,Hover skimmer,Poduszkowiec
+HOVER_SKIMMER_DESCRIPTION,"light hovercraft, as fast on water as on sand; fragile","lekki poduszkowiec, na wodzie tak szybki jak na piasku; kruchy"
+BLUEPRINT_IN_WATER,Cannot build in water,Nie można budować w wodzie
+BLUEPRINT_NEEDS_SHORE,Must be built on the shore next to deep water,Trzeba zbudować na brzegu przy głębokiej wodzie

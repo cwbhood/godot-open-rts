@@ -1,0 +1,29 @@
+{
+  "id": "patrol_boat",
+  "base": "tank",
+  "movement": "water",
+  "model": "res://assets/models/ironbound/units/patrol_boat.glb",
+  "model_scale": 1.667,
+  "model_offset": [0, -0.2, 0],
+  "name": "PATROL_BOAT",
+  "description": "PATROL_BOAT_DESCRIPTION",
+  "icon_tint": "#8fd0ff",
+  "cost": {
+    "iron": 6,
+    "oil": 3
+  },
+  "build_time_s": 6.0,
+  "speed": 3.6,
+  "produced_by": [
+    "shipyard"
+  ],
+  "properties": {
+    "sight_range": 10.0,
+    "hp": 12,
+    "hp_max": 12,
+    "attack_damage": 2,
+    "attack_interval": 0.8,
+    "attack_range": 6.0
+  },
+  "fuel_per_s": 0.012
+}

@@ -30,6 +30,7 @@ const Moving = preload("res://source/match/units/actions/Moving.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const Helper = preload("res://source/match/players/human/Helper.gd")
 const MatchRules = preload("res://source/data-model/MatchRules.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 
 const NODE_NAME = "AutoExpand"
 const DEFAULT_RESERVE = 10
@@ -251,6 +252,8 @@ func _extractor_plan():
 		)
 		if from_depot > limit or not _spot_is_safe(deposit.global_position):
 			continue
+		if not WaterRules.can_reach(_unit, deposit.global_position, deposit.radius + 6.0):
+			continue  # across deep water
 		var score = (
 			from_depot
 			+ 0.3 * _unit.global_position_yless.distance_to(deposit.global_position_yless)

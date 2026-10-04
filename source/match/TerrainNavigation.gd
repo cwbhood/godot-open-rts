@@ -1,6 +1,12 @@
 extends Node3D
 
+# obstacle geometry (structures) parsed for a rebake; the amphibious map reuses it
+signal obstacles_parsed(geometry)
+
 const DOMAIN = Constants.Match.Navigation.Domain.TERRAIN
+
+# what bake() parsed from the scene: forests, rocks and other static colliders
+var static_geometry = NavigationMeshSourceGeometryData3D.new()
 
 var _earliest_frame_to_perform_next_rebake = null
 var _is_baking = false
@@ -48,10 +54,13 @@ func bake(map):
 		Vector3.ZERO, Vector3(map.size.x, 5.0, map.size.y)
 	)
 	NavigationServer3D.parse_source_geometry_data(
-		_navigation_region.navigation_mesh, _map_geometry, get_tree().root
+		_navigation_region.navigation_mesh, static_geometry, get_tree().root
 	)
 	for node in get_tree().get_nodes_in_group("terrain_navigation_input"):
 		node.remove_from_group("terrain_navigation_input")
+	_map_geometry.merge(static_geometry)
+	if map.has_method("get_navigation_faces"):  # generated maps: land without deep water
+		_map_geometry.add_faces(map.get_navigation_faces(DOMAIN), Transform3D.IDENTITY)
 	NavigationServer3D.bake_from_source_geometry_data(
 		_navigation_region.navigation_mesh, _map_geometry
 	)
@@ -64,6 +73,7 @@ func _rebake():
 	NavigationServer3D.parse_source_geometry_data(
 		_navigation_region.navigation_mesh, full_geometry, get_tree().root
 	)
+	obstacles_parsed.emit(full_geometry)  # before the map geometry gets merged in
 	# add pre-parsed map geometry
 	full_geometry.merge(_map_geometry)
 

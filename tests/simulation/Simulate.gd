@@ -137,6 +137,18 @@ func _physics_process(delta):
 		_finish()
 
 
+func _units_by_kind():
+	"""{player index: {scene file name: count}} of what is alive at the end"""
+	var counts = {}
+	for unit in get_tree().get_nodes_in_group("units"):
+		var key = str(unit.player.get_index())
+		var kind = unit._scene_path().get_file().get_basename()
+		counts[key] = counts.get(key, {})
+		counts[key][kind] = counts[key].get(kind, 0) + 1
+	print("SIM units by kind ", counts)
+	return counts
+
+
 func _players():
 	return get_tree().get_nodes_in_group("players")
 
@@ -294,6 +306,7 @@ func _finish():
 		"caravans_shipped": market.shipped_total if market != null else 0,
 		"caravans_raided": market.raided_total if market != null else 0,
 		"agreements_active": market.agreements.size() if market != null else 0,
+		"units_by_kind": _units_by_kind(),
 	}
 	var file = FileAccess.open(_args["out"], FileAccess.WRITE)
 	file.store_string(JSON.stringify(summary, "  "))

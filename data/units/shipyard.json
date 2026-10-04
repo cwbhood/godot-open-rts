@@ -1,0 +1,27 @@
+{
+  "id": "shipyard",
+  "category": "structure",
+  "scene": "res://source/match/units/Shipyard.tscn",
+  "blueprint": "res://source/match/units/structure-geometries/Shipyard.tscn",
+  "placement": "shore",
+  "name": "SHIPYARD",
+  "description": "SHIPYARD_DESCRIPTION",
+  "icon": "res://assets/ui/icons/VehicleFactory.png",
+  "icon_tint": "#8fd0ff",
+  "tier": 1,
+  "cost": {
+    "timber": 10,
+    "iron": 8
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 14,
+    "hp_max": 14
+  },
+  "power": {
+    "demand_mw": 2.0
+  }
+}

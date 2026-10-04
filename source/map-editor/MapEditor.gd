@@ -1,12 +1,13 @@
 extends Node3D
 
 # In-game editor for desert maps. It edits the explicit layout that DesertMapGenerator.gd
-# reads from a map definition (start points, lakes, forests, rock outcrops and resource
-# deposits), rebuilds the map after every change and saves it as a mod under
-# user://mods/custom_maps/, where GameData picks it up so it shows in the Play menu.
+# reads from a map definition (start points, lakes, forests, rock outcrops, resource
+# deposits, and water: a sea with islands and shallow fords, see WaterLayout.gd), rebuilds
+# the map after every change and saves it as a mod under user://mods/custom_maps/, where
+# GameData picks it up so it shows in the Play menu.
 # Anything not placed by hand (dunes, sand patterns, small props) comes from the seed.
 
-enum Tool { LAKE, FOREST, OUTCROP, DEPOSIT, SPAWN, ERASE }
+enum Tool { LAKE, FOREST, OUTCROP, DEPOSIT, SPAWN, ERASE, ISLAND, SHALLOWS }
 
 const Generator = preload("res://source/match/maps/DesertMapGenerator.gd")
 const MapScene = preload("res://source/match/Map.tscn")
@@ -22,6 +23,8 @@ const BRUSH_LIMITS = {
 	"lake": Vector2(3.0, 14.0),
 	"forest": Vector2(1.5, 5.0),
 	"outcrop": Vector2(1.0, 5.0),
+	"island": Vector2(4.0, 30.0),
+	"shallows": Vector2(2.0, 10.0),
 }
 const ERASE_REACH = 4.0
 const START_ZONE_RADIUS = 7.0
@@ -85,7 +88,26 @@ func _unhandled_input(event):
 
 
 func _empty_layout():
-	return {"spawns": [], "lakes": [], "forests": [], "outcrops": [], "deposits": []}
+	return {
+		"spawns": [],
+		"lakes": [],
+		"forests": [],
+		"outcrops": [],
+		"deposits": [],
+		"sea": false,
+		"islands": [],
+		"water": [],
+	}
+
+
+func _with_water_keys(layout):
+	"""older layouts have no water keys"""
+	for key in ["islands", "water"]:
+		if not key in layout:
+			layout[key] = []
+	if not "sea" in layout:
+		layout["sea"] = false
+	return layout
 
 
 func _mirror(pos: Vector2) -> Vector2:
@@ -145,6 +167,12 @@ func _place_at(pos: Vector2):
 			var kind = _resource_ids()[_ui.deposit_kind.selected]
 			for p in positions:
 				_layout.deposits.append({"kind": kind, "center": _to_list(p)})
+		Tool.ISLAND:
+			for p in positions:
+				_layout.islands.append({"center": _to_list(p), "radius": radius})
+		Tool.SHALLOWS:
+			for p in positions:
+				_layout.water.append({"center": _to_list(p), "radius": radius, "depth": "shallow"})
 		Tool.SPAWN:
 			if _layout.spawns.size() + positions.size() > MAX_SPAWNS:
 				_set_status(tr("MAP_EDITOR_TOO_MANY_SPAWNS").format([MAX_SPAWNS]))
@@ -180,26 +208,26 @@ func _erase_at(pos: Vector2):
 
 func _erase_nearest(pos: Vector2) -> bool:
 	"""removes the closest feature whose area (or marker) is under 'pos'"""
-	var candidates = []  # [distance, container array, index]
-	for i in range(_layout.spawns.size()):
-		candidates.append(
-			[_to_vector(_layout.spawns[i]).distance_to(pos) - ERASE_REACH, _layout.spawns, i]
-		)
-	for i in range(_layout.deposits.size()):
-		var center = _to_vector(_layout.deposits[i].center)
-		candidates.append([center.distance_to(pos) - ERASE_REACH, _layout.deposits, i])
-	var circle_lists = [_layout.lakes, _layout.outcrops]
+	var candidates = []  # [distance, container array, item]
+	for spawn in _layout.spawns:
+		candidates.append([_to_vector(spawn).distance_to(pos) - ERASE_REACH, _layout.spawns, spawn])
+	for deposit in _layout.deposits:
+		var center = _to_vector(deposit.center)
+		candidates.append([center.distance_to(pos) - ERASE_REACH, _layout.deposits, deposit])
+	var circle_lists = [_layout.lakes, _layout.outcrops, _layout.islands, _layout.water]
 	for forest in _layout.forests:
 		circle_lists.append(forest.circles)
 	for circles in circle_lists:
-		for i in range(circles.size()):
-			var distance = _to_vector(circles[i].center).distance_to(pos)
-			candidates.append([distance - float(circles[i].radius) - 1.0, circles, i])
+		for circle in circles:
+			if not "center" in circle:
+				continue  # polygons and fords from JSON are edited there
+			var distance = _to_vector(circle.center).distance_to(pos)
+			candidates.append([distance - float(circle.radius) - 1.0, circles, circle])
 	candidates = candidates.filter(func(candidate): return candidate[0] <= 0.0)
 	if candidates.is_empty():
 		return false
 	candidates.sort_custom(func(a, b): return a[0] < b[0])
-	candidates[0][1].remove_at(candidates[0][2])
+	candidates[0][1].erase(candidates[0][2])
 	_layout.forests = _layout.forests.filter(func(forest): return not forest.circles.is_empty())
 	return true
 
@@ -211,7 +239,8 @@ func _new_random_layout():
 	_map.map_seed = _seed
 	_map.size = _size
 	_map.generate()
-	_layout = _map.export_layout()
+	_layout = _with_water_keys(_map.export_layout())
+	_layout.sea = _ui.sea.button_pressed
 	for deposit in _layout.deposits:
 		deposit.erase("amount")  # keep the commodity's default amount unless set by hand
 	_map.layout = _layout.duplicate(true)
@@ -233,9 +262,13 @@ func _on_size_changed(_value):
 	var scale = _size / old_size
 	var rescale = func(list): return _to_list(_to_vector(list) * scale)
 	_layout.spawns = _layout.spawns.map(rescale)
-	for key in ["lakes", "outcrops", "deposits"]:
+	for key in ["lakes", "outcrops", "deposits", "islands", "water"]:
 		for item in _layout[key]:
-			item.center = rescale.call(item.center)
+			for point_key in ["center", "from", "to"]:
+				if point_key in item:
+					item[point_key] = rescale.call(item[point_key])
+			if "points" in item:
+				item.points = item.points.map(rescale)
 	for forest in _layout.forests:
 		for circle in forest.circles:
 			circle.center = rescale.call(circle.center)
@@ -351,6 +384,9 @@ func _save():
 	if _layout.spawns.size() < 2:
 		_set_status(tr("MAP_EDITOR_NEEDS_SPAWNS"))
 		return
+	if _something_in_water():
+		_set_status(tr("MAP_EDITOR_IN_WATER"))
+		return
 	DirAccess.make_dir_recursive_absolute(MOD_DIR + "/data/maps")
 	DirAccess.make_dir_recursive_absolute(MOD_DIR + "/maps")
 	var json_path = "{0}/data/maps/{1}.json".format([MOD_DIR, id])
@@ -410,7 +446,8 @@ func _load_definition(path):
 	if "layout" in definition:
 		_size = Vector2(size_list[0], size_list[1])
 		_seed = int(_ui.seed.value)
-		_layout = definition.layout
+		_layout = _with_water_keys(definition.layout)
+		_ui.sea.set_pressed_no_signal(bool(_layout.sea))
 		_queue_rebuild()
 	else:
 		_new_random_layout()
@@ -495,7 +532,9 @@ func _setup_brush_preview():
 
 func _update_brush_preview():
 	var hit = _camera.get_ray_intersection(get_viewport().get_mouse_position())
-	_brush_preview.visible = hit != null and _tool in [Tool.LAKE, Tool.FOREST, Tool.OUTCROP]
+	_brush_preview.visible = (
+		hit != null and _tool in [Tool.LAKE, Tool.FOREST, Tool.OUTCROP, Tool.ISLAND, Tool.SHALLOWS]
+	)
 	if _brush_preview.visible:
 		var radius = _ui.brush.value
 		_brush_preview.position = hit + Vector3(0.0, 0.15, 0.0)
@@ -563,6 +602,10 @@ func _build_ui():
 	_ui.mirror_4.text = tr("MAP_EDITOR_MIRROR_4")
 	_ui.mirror_4.tooltip_text = tr("MAP_EDITOR_MIRROR_4_TOOLTIP")
 	box.add_child(_ui.mirror_4)
+	_ui.sea = CheckBox.new()
+	_ui.sea.text = tr("MAP_EDITOR_SEA")
+	_ui.sea.toggled.connect(_on_sea_toggled)
+	box.add_child(_ui.sea)
 
 	_add_heading(box, tr("MAP_EDITOR_TOOLS"))
 	var group = ButtonGroup.new()
@@ -574,6 +617,8 @@ func _build_ui():
 		Tool.OUTCROP: "MAP_EDITOR_TOOL_OUTCROP",
 		Tool.DEPOSIT: "MAP_EDITOR_TOOL_DEPOSIT",
 		Tool.SPAWN: "MAP_EDITOR_TOOL_SPAWN",
+		Tool.ISLAND: "MAP_EDITOR_TOOL_ISLAND",
+		Tool.SHALLOWS: "MAP_EDITOR_TOOL_SHALLOWS",
 		Tool.ERASE: "MAP_EDITOR_TOOL_ERASE",
 	}
 	for tool_id in tool_names:
@@ -659,7 +704,13 @@ func _button(text, callback):
 
 func _select_tool(tool_id):
 	_tool = tool_id
-	var tool_key = {Tool.LAKE: "lake", Tool.FOREST: "forest", Tool.OUTCROP: "outcrop"}
+	var tool_key = {
+		Tool.LAKE: "lake",
+		Tool.FOREST: "forest",
+		Tool.OUTCROP: "outcrop",
+		Tool.ISLAND: "island",
+		Tool.SHALLOWS: "shallows",
+	}
 	var limits = BRUSH_LIMITS.get(tool_key.get(tool_id), Vector2.ZERO)
 	_ui.brush.editable = limits != Vector2.ZERO
 	if limits != Vector2.ZERO:
@@ -694,17 +745,35 @@ func _update_info():
 			func(kind): return "{0} {1}".format([deposit_counts[kind], tr(kind.to_upper())])
 		)
 	)
-	_ui.info.text = (
-		tr("MAP_EDITOR_INFO")
-		. format(
-			[
-				_layout.spawns.size(),
-				_layout.lakes.size(),
-				_layout.forests.size(),
-				_layout.outcrops.size(),
-				deposit_text if deposit_text != "" else "-",
-			]
+	var water_text = ""
+	if _layout.sea or not _layout.water.is_empty():
+		water_text = (
+			"\n"
+			+ (
+				tr("MAP_EDITOR_WATER_INFO")
+				. format(
+					[
+						tr("MAP_EDITOR_SEA") if _layout.sea else "-",
+						_layout.islands.size(),
+						_layout.water.size(),
+					]
+				)
+			)
 		)
+	_ui.info.text = (
+		(
+			tr("MAP_EDITOR_INFO")
+			. format(
+				[
+					_layout.spawns.size(),
+					_layout.lakes.size(),
+					_layout.forests.size(),
+					_layout.outcrops.size(),
+					deposit_text if deposit_text != "" else "-",
+				]
+			)
+		)
+		+ water_text
 	)
 	var problems = FairStart.problems(_map)
 	if problems.is_empty():
@@ -719,3 +788,21 @@ func _set_status(text):
 
 func _resource_ids():
 	return Array(GameData.resource_ids()).map(func(id): return String(id))
+
+
+func _on_sea_toggled(pressed):
+	_layout.sea = pressed
+	if pressed and _layout.islands.is_empty():
+		# a sea with no land would drown every start point: give each one an island
+		for spawn in _layout.spawns:
+			_layout.islands.append({"center": spawn, "radius": min(_size.x, _size.y) * 0.16})
+	_queue_rebuild()
+
+
+func _something_in_water() -> bool:
+	"""start points and deposits must stay on dry land"""
+	if _map.water == null:
+		return false
+	var points = _layout.spawns.map(_to_vector)
+	points.append_array(_layout.deposits.map(func(deposit): return _to_vector(deposit.center)))
+	return points.any(func(point): return _map.water.is_wet_near(point, 1.5))

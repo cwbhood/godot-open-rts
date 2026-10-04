@@ -19,6 +19,9 @@ const DEFAULT_START_PICK_SECONDS = 30.0
 ## how long players get to pick a start zone before one is picked for them
 @export var start_pick_seconds = DEFAULT_START_PICK_SECONDS
 
+# WaterLayout.gd of maps with seas, lakes or fords; null on maps without any water
+var water = null
+
 
 func get_start_zones():
 	"""returns [{center: Vector2, radius: float, transform: Transform3D}], one per spawn point,
@@ -73,6 +76,15 @@ func _transform_in_map(node):
 		result = parent.transform * result
 		parent = parent.get_parent()
 	return result
+
+
+func has_water() -> bool:
+	return water != null and water.has_water()
+
+
+func water_depth_at(pos: Vector3) -> int:
+	"""WaterLayout.Depth (0 = land) under a point; cheap enough for per-tick use"""
+	return water.depth_fast(Vector2(pos.x, pos.z)) if has_water() else 0
 
 
 func get_topdown_polygon_2d():

@@ -44,6 +44,37 @@ func _ready():
 	print("saved map spawns: ", map.find_child("SpawnPoints").get_child_count())
 	print("saved map deposits: ", map.get_node("Deposits").get_child_count())
 	map.free()
+	# water: turn the sea on (each start point gets an island), add an island and a ford
+	editor._on_sea_toggled(true)
+	editor._select_tool(editor.Tool.ISLAND)
+	editor._place_at(Vector2(25, 35))
+	editor._select_tool(editor.Tool.SHALLOWS)
+	editor._place_at(Vector2(50, 70))
+	await _frames(20)
+	await _shot(out_dir + "/editor_water.png")
+	editor._ui.name.text = "Editor Island Test"
+	editor._save()
+	print("editor water status: ", editor._ui.status.text)
+	var island_map = "user://mods/custom_maps/maps/editor_island_test.tscn"
+	print("editor island map listed: ", Constants.Match.MAPS.get(island_map) != null)
+	print(
+		"editor island layout sea: ",
+		editor._layout.sea,
+		" islands: ",
+		editor._layout.islands.size()
+	)
+	editor._place_at(Vector2(50, 50))  # an island in the middle of the old lake is fine
+	editor._select_tool(editor.Tool.DEPOSIT)
+	editor._place_at(Vector2(50, 92))  # out at sea: saving must refuse
+	await _frames(20)
+	print(
+		"spawns: ",
+		editor._layout.spawns,
+		" depth there: ",
+		editor._map.water.depth_fast(Vector2(50, 92))
+	)
+	editor._save()
+	print("editor deposit at sea status: ", editor._ui.status.text)
 	get_tree().quit()
 
 

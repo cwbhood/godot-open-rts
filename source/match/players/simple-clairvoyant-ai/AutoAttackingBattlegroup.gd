@@ -13,6 +13,7 @@ const PLAYER_TO_ATTACK_SWITCHING_DELAY_S = 0.5
 const NOBODY_TO_ATTACK_DELAY_S = 5.0
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const RETREAT_CHECK_INTERVAL_S = 1.0
+const MAX_TARGETS_TRIED = 12  # path queries per retarget on maps with water
 
 
 class Actions:
@@ -20,6 +21,8 @@ class Actions:
 	const AutoAttacking = preload("res://source/match/units/actions/AutoAttacking.gd")
 	const Moving = preload("res://source/match/units/actions/Moving.gd")
 
+
+const WaterRules = preload("res://source/match/WaterRules.gd")
 
 var _expected_number_of_units = null
 var _players_to_attack = null
@@ -125,11 +128,14 @@ func _attack_next_adversary_unit():
 			return
 		_attack_next_player()
 		return
-	for tuple in adversary_units_sorted_by_distance:
+	for tuple in adversary_units_sorted_by_distance.slice(0, MAX_TARGETS_TRIED):
 		var target_unit = tuple["unit"]
 		if _attached_units.any(
 			func(attached_unit):
-				return Actions.AutoAttacking.is_applicable(attached_unit, target_unit)
+				return (
+					Actions.AutoAttacking.is_applicable(attached_unit, target_unit)
+					and _can_reach(attached_unit, target_unit)
+				)
 		):
 			_target_unit = target_unit
 			if not target_unit.tree_exited.is_connected(_on_target_unit_died):
@@ -159,7 +165,7 @@ func _attack_spread_out(adversary_units):
 			if not Actions.AutoAttacking.is_applicable(attached_unit, adversary_unit):
 				continue
 			var distance = attached_unit.global_position.distance_to(adversary_unit.global_position)
-			if distance < best_distance:
+			if distance < best_distance and _can_reach(attached_unit, adversary_unit):
 				best_distance = distance
 				best = adversary_unit
 		if best == null:
@@ -203,6 +209,16 @@ func _home_position():
 		if unit.player == _owner_ai and unit is CommandCenter:
 			return unit.global_position + Vector3(3, 0, 3)
 	return null
+
+
+func _can_reach(attached_unit, target_unit):
+	"""land units leave targets across deep water alone (always true on maps without water)"""
+	var reach = (
+		attached_unit.attack_range + target_unit.radius + 1.0
+		if "attack_range" in attached_unit and attached_unit.attack_range != null
+		else target_unit.radius + 4.0
+	)
+	return WaterRules.can_reach(attached_unit, target_unit.global_position, reach)
 
 
 func _attack_next_player():

@@ -31,8 +31,10 @@ static func find_valid_position_radially_yet_skip_starting_radius(
 		0 if is_zero_approx(starting_radius) else starting_radius + radius + spacing
 	)
 	var starting_offset = 1 if is_zero_approx(starting_radius) else 0
+	var land_water = _water_to_avoid(navigation_map_rid, scene_tree)
 	if (
 		is_zero_approx(starting_radius)
+		and not _is_wet(land_water, starting_position_yless, radius)
 		and _is_agent_placement_position_valid(
 			starting_position_yless, radius, units, navigation_map_rid
 		)
@@ -68,11 +70,29 @@ static func find_valid_position_radially_yet_skip_starting_radius(
 		for radial_position in radial_positions:
 			if not _flat_has_point(bounds, radial_position):
 				continue  # off the map: cheap to rule out before checking every unit
+			if _is_wet(land_water, radial_position, radius):
+				continue  # fords are walkable, but nothing is built or parked in them
 			if _is_agent_placement_position_valid(
 				radial_position, radius, units, navigation_map_rid
 			):
 				return radial_position
 	return Vector3.INF  # no room anywhere; callers must handle it
+
+
+static func _water_to_avoid(navigation_map_rid, scene_tree):
+	"""the map's WaterLayout when placing on the land map of a map with water, else null"""
+	var a_match = scene_tree.get_first_node_in_group("match") if scene_tree != null else null
+	if a_match == null or a_match.navigation == null or a_match.map == null:
+		return null
+	if not a_match.map.has_method("has_water") or not a_match.map.has_water():
+		return null
+	if a_match.navigation.terrain.navigation_map_rid != navigation_map_rid:
+		return null
+	return a_match.map.water
+
+
+static func _is_wet(water, position, radius):
+	return water != null and water.is_wet_near(Vector2(position.x, position.z), radius * 0.8)
 
 
 static func _navigation_bounds(navigation_map_rid):
@@ -114,6 +134,8 @@ static func validate_agent_placement_position(position, radius, existing_units, 
 			<= existing_unit.radius + radius
 		):
 			return COLLIDES_WITH_AGENT
+	if _is_wet(_water_to_avoid(navigation_map_rid, Engine.get_main_loop()), position, radius):
+		return NOT_NAVIGABLE  # fords are walkable, but nothing is built in them
 	# the navmesh is eroded by the max agent radius around every obstacle (deposits,
 	# structures), so a footprint's rim may lie in that margin: test the core of it only.
 	# Without this nothing fits next to a deposit once the first rebake carved it out.

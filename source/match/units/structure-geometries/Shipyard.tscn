@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/ironbound/buildings/shipyard.glb" id="1_m"]
+
+[node name="Geometry" type="Node3D"]
+
+[node name="shipyard" parent="." instance=ExtResource("1_m")]

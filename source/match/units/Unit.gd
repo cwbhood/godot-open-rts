@@ -21,8 +21,10 @@ var attack_range = null
 var attack_domains = []
 var radius:
 	get = _get_radius
-var movement_domain:
+var movement_domain:  # AIR or TERRAIN: boats and amphibious units count as TERRAIN
 	get = _get_movement_domain
+var navigation_domain:  # also WATER or AMPHIBIOUS: picks the navigation map
+	get = _get_navigation_domain
 var movement_speed:
 	get = _get_movement_speed
 var sight_range = null:
@@ -106,6 +108,10 @@ func _get_radius():
 
 
 func _get_movement_domain():
+	return Constants.Match.Navigation.surface(_get_navigation_domain())
+
+
+func _get_navigation_domain():
 	var movement = _cached_child("Movement")
 	if movement != null:
 		return movement.domain

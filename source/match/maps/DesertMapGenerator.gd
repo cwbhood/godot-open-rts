@@ -20,13 +20,13 @@ const TerrainMaterial = preload(
 )
 const WaterMaterial = preload("res://source/match/resources/materials/water.material.tres")
 const Scatter = preload("res://source/match/maps/DesertScatter.gd")
+const WaterLayout = preload("res://source/match/maps/WaterLayout.gd")
 
 const WATER_LEVEL = -0.3
 const LAKE_DEPTH = 1.6
 const LAKE_SHORE_RATIO = 1.35
 const SPAWN_CLEARANCE = 15.0
 const DEPOSIT_CLEARANCE = 3.5
-const LAKE_OUTLINE_POINTS = 24
 const LAKE_WATER_LINE_RATIO = 1.2  # lake bed reaches the water level at about this ratio
 const INNER_MARGIN = 6.0
 const FOREST_KINDS = [&"acacia", &"pine", &"mixed"]
@@ -142,6 +142,7 @@ func generate():
 		_apply_layout(layout)
 	else:
 		_plan_layout()
+	_setup_water()
 	_build_terrain()
 	_build_water()
 	_build_spawn_points()
@@ -153,12 +154,17 @@ func generate():
 func get_height(pos: Vector2) -> float:
 	var edge_distance = _distance_outside_playable_area(pos)
 	if edge_distance <= 0.0:
-		return _lake_height(pos)
+		return min(_lake_height(pos), water.bed_height(pos))
+	if water.sea:  # open water out to the horizon
+		return -WaterLayout.DEEP_BED
 	var ramp = smoothstep(3.0, 30.0, edge_distance)
 	return ramp * (_dune_height(pos) + _mesa_height(pos) * smoothstep(18.0, 55.0, edge_distance))
 
 
 func is_in_lake(pos: Vector2, margin = 0.0) -> bool:
+	if water != null and water.has_more_than_lakes():
+		if min(water.deep_distance(pos, false), water.shallow_distance(pos)) < margin:
+			return true
 	for lake in lakes:
 		if pos.distance_to(lake.center) < _lake_radius_at(lake, pos) * LAKE_SHORE_RATIO + margin:
 			return true
@@ -224,6 +230,7 @@ func _clear_generated():
 			container.remove_child(child)
 			child.queue_free()
 	lakes.clear()
+	water = null
 	forests.clear()
 	outcrops.clear()
 	deposits.clear()
@@ -480,13 +487,16 @@ func export_layout() -> Dictionary:
 				}
 			)
 		)
-	return {
+	var exported = {
 		"spawns": spawns.map(_vector_to_list),
 		"lakes": lakes.map(_circle_to_dict),
 		"forests": forest_list,
 		"outcrops": outcrops.map(_circle_to_dict),
 		"deposits": deposit_list,
 	}
+	if water != null:
+		water.export_layout(exported)
+	return exported
 
 
 func _vector_to_list(vector):
@@ -662,6 +672,8 @@ func _terrain_color(pos: Vector2, height: float, slope: float) -> Color:
 		var proximity = lake_proximity(pos)
 		wet = smoothstep(1.4, 0.3, proximity)
 		vegetation = max(vegetation, smoothstep(2.6, 0.9, proximity) * 0.85)
+	if water.has_more_than_lakes() and _distance_outside_playable_area(pos) <= 0.0:
+		wet = max(wet, water.wetness(pos))
 	var rock = _rock_weight(pos, height, slope)
 	var hardpan = 0.0
 	if _distance_outside_playable_area(pos) <= 0.0:
@@ -670,20 +682,43 @@ func _terrain_color(pos: Vector2, height: float, slope: float) -> Color:
 	return Color(vegetation, rock, wet, hardpan)
 
 
+func _setup_water():
+	water = WaterLayout.from_layout(layout)
+	water.lakes = lakes
+	water.lake_line_at = func(lake, pos): return _lake_radius_at(lake, pos) * LAKE_WATER_LINE_RATIO
+	water.build_grid(Rect2(-Vector2.ONE * INNER_MARGIN, size + Vector2.ONE * INNER_MARGIN * 2.0))
+
+
+func get_navigation_faces(domain) -> PackedVector3Array:
+	"""walkable ground of a navigation domain (see Navigation.gd); forests, rocks and
+	structures are parsed from colliders on top of it"""
+	var depths = {
+		Constants.Match.Navigation.Domain.TERRAIN:
+		[WaterLayout.Depth.LAND, WaterLayout.Depth.SHALLOW],
+		Constants.Match.Navigation.Domain.WATER:
+		[WaterLayout.Depth.SHALLOW, WaterLayout.Depth.DEEP],
+		Constants.Match.Navigation.Domain.AMPHIBIOUS:
+		[WaterLayout.Depth.LAND, WaterLayout.Depth.SHALLOW, WaterLayout.Depth.DEEP],
+	}
+	return water.navigation_faces(depths.get(domain, []))
+
+
 func _build_water():
-	if lakes.is_empty():
+	if not water.has_water():
 		return
-	var water = MeshInstance3D.new()
-	water.name = "Water"
+	var water_mesh = MeshInstance3D.new()
+	water_mesh.name = "Water"
 	var plane = PlaneMesh.new()
 	plane.size = size + Vector2(8.0, 8.0)
+	if water.sea:
+		plane.size = size + Vector2.ONE * outer_margin * 2.0
 	plane.subdivide_width = 0
 	plane.subdivide_depth = 0
 	plane.material = WaterMaterial
-	water.mesh = plane
-	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	water.position = Vector3(size.x / 2.0, WATER_LEVEL, size.y / 2.0)
-	add_child(water)
+	water_mesh.mesh = plane
+	water_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	water_mesh.position = Vector3(size.x / 2.0, WATER_LEVEL, size.y / 2.0)
+	add_child(water_mesh)
 
 
 func _build_spawn_points():
@@ -698,19 +733,14 @@ func _build_spawn_points():
 
 
 func _build_obstacles():
-	"""navigation input made of colliders only: a flat ground slab, a prism per lake and a
-	cylinder per forest or outcrop circle. The detailed terrain mesh is left out of the
-	navigation group because parsing it on every rebake reads it back from the GPU."""
+	"""navigation input: the ground comes from get_navigation_faces() (land, water or both,
+	rasterized from the water layout), obstacles are colliders: a cylinder per forest or
+	outcrop circle. The detailed terrain mesh is left out of the navigation group because
+	parsing it on every rebake reads it back from the GPU."""
 	var obstacles = Node3D.new()
 	obstacles.name = "Obstacles"
 	add_child(obstacles)
 	find_child("Terrain").remove_from_group("terrain_navigation_input")
-	var ground = BoxShape3D.new()
-	ground.size = Vector3(size.x + INNER_MARGIN * 2.0, 1.0, size.y + INNER_MARGIN * 2.0)
-	obstacles.add_child(_navigation_body(ground, Vector3(size.x / 2.0, -0.5, size.y / 2.0)))
-	for lake in lakes:
-		var center = Vector3(lake.center.x, 0.0, lake.center.y)
-		obstacles.add_child(_navigation_body(_lake_shape(lake), center))
 	var circles = []
 	for forest in forests:
 		circles.append_array(forest.circles)
@@ -734,26 +764,6 @@ func _navigation_body(shape, position_value):
 	body.add_child(collision)
 	body.position = position_value
 	return body
-
-
-func _lake_shape(lake):
-	"""a 3 m high prism following the lake's wobbly water line"""
-	var outline = PackedVector3Array()
-	for i in range(LAKE_OUTLINE_POINTS):
-		var direction = Vector2.from_angle(TAU * i / LAKE_OUTLINE_POINTS)
-		var radius = _lake_radius_at(lake, lake.center + direction * lake.radius)
-		var point = direction * radius * LAKE_WATER_LINE_RATIO
-		outline.append(Vector3(point.x, 0.0, point.y))
-	var faces = PackedVector3Array()
-	var up = Vector3(0.0, 3.0, 0.0)
-	for i in range(outline.size()):
-		var a = outline[i]
-		var b = outline[(i + 1) % outline.size()]
-		faces.append_array([Vector3.ZERO + up, b + up, a + up])
-		faces.append_array([a, b, b + up, a, b + up, a + up])
-	var shape = ConcavePolygonShape3D.new()
-	shape.set_faces(faces)
-	return shape
 
 
 func _build_deposit_markers():

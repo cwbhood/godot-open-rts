@@ -1,0 +1,31 @@
+{
+  "id": "amphibious_apc",
+  "base": "tank",
+  "movement": "amphibious",
+  "model": "res://assets/models/ironbound/units/amphibious_apc.glb",
+  "model_scale": 1.667,
+  "name": "AMPHIBIOUS_APC",
+  "description": "AMPHIBIOUS_APC_DESCRIPTION",
+  "icon_tint": "#9fe8c8",
+  "cost": {
+    "iron": 7,
+    "copper": 1,
+    "oil": 3
+  },
+  "build_time_s": 7.0,
+  "speed": 3.0,
+  "water_speed": 2.4,
+  "produced_by": [
+    "vehicle_factory",
+    "shipyard"
+  ],
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 12,
+    "hp_max": 12,
+    "attack_damage": 1,
+    "attack_interval": 0.5,
+    "attack_range": 4.5
+  },
+  "fuel_per_s": 0.015
+}

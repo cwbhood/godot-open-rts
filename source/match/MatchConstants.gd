@@ -11,12 +11,39 @@ static var MAPS = GameData.maps()
 
 
 class Navigation:
-	enum Domain { AIR, TERRAIN }
+	# WATER (boats) and AMPHIBIOUS (land and water) are navigation layers of surface units:
+	# Unit.movement_domain reports them as TERRAIN, so targeting, selection and orders treat
+	# boats like any ground unit, while Unit.navigation_domain picks the navigation map
+	enum Domain { AIR, TERRAIN, WATER, AMPHIBIOUS }
 
 	const DOMAIN_TO_GROUP_MAPPING = {
 		Domain.AIR: "air_navigation_input",
 		Domain.TERRAIN: "terrain_navigation_input",
+		Domain.WATER: "terrain_navigation_input",
+		Domain.AMPHIBIOUS: "terrain_navigation_input",
 	}
+	const NAMES = {"land": Domain.TERRAIN, "water": Domain.WATER, "amphibious": Domain.AMPHIBIOUS}
+
+	static func surface(domain):
+		"""the targeting domain of a navigation domain"""
+		if domain == Domain.WATER or domain == Domain.AMPHIBIOUS:
+			return Domain.TERRAIN
+		return domain
+
+
+class Water:
+	# see source/match/maps/WaterLayout.gd; deep water is boats' and amphibious units' only,
+	# shallow water (fords, shoals) can be waded by land units and sailed by boats
+	const SHALLOW_WADING_SPEED_FACTOR = 0.55  # land units in shallow water
+	const SHORE_TRANSITION_SPEED_FACTOR = 0.6  # amphibious units while climbing in or out
+	const FLOAT_OFFSET_DEEP = -0.3  # boats and swimming amphibious units sit in the water
+	const FLOAT_OFFSET_SHALLOW = -0.12
+	const SHORE_REACH_M = 4.0  # a shore structure needs deep water this close to its edge
+
+	# gdlint: ignore=class-variable-name
+	static var WATER_SPEEDS = GameData.unit_field("water_speed")
+	# gdlint: ignore=class-variable-name
+	static var PLACEMENT = GameData.unit_field("placement", "structure")
 
 
 class Air:
