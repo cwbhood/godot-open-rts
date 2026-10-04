@@ -41,6 +41,7 @@ const GameData = preload("res://source/data-model/GameData.gd")
 @export var attacks_neutrals = true
 # the difficulty (data/difficulties/) is applied on top of the personality
 @export var difficulty_id = "normal"
+@export var defence = {}  # where the army stands while home, see ArmyPositioningController
 var think_interval_multiplier = 1.0
 var reaction_delay_s = 0.5
 var first_attack_after_s = 0.0
@@ -49,7 +50,6 @@ var tech_upgrades = true
 var retreat_below_hp = 0.0
 var focus_fire = true
 var match_time_s = 0.0
-@export var defence = {}  # where the army stands while home, see ArmyPositioningController
 
 var _provisioning_ongoing = false
 var _resource_requests = {
