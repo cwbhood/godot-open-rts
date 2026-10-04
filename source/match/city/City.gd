@@ -50,6 +50,11 @@ var housing:
 			Constants.Match.City.STARTING_POPULATION
 			+ _buildings.size() * Constants.Match.City.POPULATION_PER_BUILDING
 		)
+# the most citizens the city can hold at its tier ("max_population" in data/tiers.json);
+# growth stops there until the next tier, see MatchLimits
+var max_population:
+	get:
+		return get_max_population()
 var player:
 	get:
 		return get_parent()
@@ -117,6 +122,21 @@ func get_next_tier_science():
 	return tiers[tier]["science"] if tier < tiers.size() else null
 
 
+func get_max_population(a_tier = null):
+	var tiers = Constants.Match.Tech.TIERS
+	var entry = tiers[clamp((a_tier if a_tier != null else tier) - 1, 0, tiers.size() - 1)]
+	if "max_population" in entry:
+		return float(entry["max_population"])
+	return (
+		Constants.Match.City.MAX_BUILDINGS * Constants.Match.City.POPULATION_PER_BUILDING
+		+ Constants.Match.City.STARTING_POPULATION
+	)
+
+
+func is_at_population_cap():
+	return population >= max_population - 0.01
+
+
 func get_tier_name(a_tier = null):
 	return Constants.Match.Tech.TIERS[(a_tier if a_tier != null else tier) - 1]["name"]
 
@@ -167,11 +187,13 @@ func _get_growth_per_s():
 	var city_satisfaction = get_satisfaction()
 	if city_satisfaction < Constants.Match.City.STARVING_SATISFACTION:
 		return -Constants.Match.City.SHRINK_PER_S
-	var max_population = (
-		Constants.Match.City.MAX_BUILDINGS * Constants.Match.City.POPULATION_PER_BUILDING
-		+ Constants.Match.City.STARTING_POPULATION
+	if is_at_population_cap():
+		return 0.0
+	# growth slows as the city fills up towards the last tier's cap; the current tier's cap
+	# is a hard ceiling on top of that (see _tick)
+	var room_left = max(
+		0.0, 1.0 - population / get_max_population(Constants.Match.Tech.TIERS.size())
 	)
-	var room_left = max(0.0, 1.0 - population / max_population)
 	var power_factor = 0.5 + 0.5 * power_ratio
 	return (
 		(Constants.Match.City.BASE_GROWTH_PER_S * city_satisfaction + trade_growth_boost)
@@ -200,7 +222,7 @@ func _tick(delta):
 	population = clamp(
 		population + growth_per_s * delta,
 		Constants.Match.City.STARTING_POPULATION * 0.5,
-		housing + Constants.Match.City.POPULATION_PER_BUILDING
+		min(housing + Constants.Match.City.POPULATION_PER_BUILDING, max_population)
 	)
 	trade_growth_boost = max(
 		0.0, trade_growth_boost - Constants.Match.Trade.GROWTH_BOOST_DECAY_PER_S * delta
@@ -238,6 +260,8 @@ func _try_placing_buildings():
 	var core = _find_core()
 	if core == null or _buildings.size() >= Constants.Match.City.MAX_BUILDINGS:
 		return
+	if housing >= max_population:
+		return  # the tier's population cap: more houses would stand empty
 	if population < housing - Constants.Match.City.POPULATION_PER_BUILDING * 0.5:
 		return  # houses are built when the city gets crowded
 	var kind = _next_building_kind()

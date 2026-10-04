@@ -4,6 +4,7 @@ signal element_enqueued(element)
 signal element_removed(element)
 
 const Moving = preload("res://source/match/units/actions/Moving.gd")
+const MatchLimits = preload("res://source/match/MatchLimits.gd")
 
 
 class ProductionQueueElement:
@@ -49,6 +50,10 @@ func produce(unit_prototype, ignore_limit = false):
 	if not ignore_limit and _queue.size() >= Constants.Match.Units.PRODUCTION_QUEUE_LIMIT:
 		return null
 	if not _unit.player.can_produce(unit_prototype.resource_path):
+		return null
+	var limits = MatchLimits.of(get_tree())
+	if limits != null and not limits.has_room_for(_unit.player, unit_prototype.resource_path):
+		MatchSignals.unit_cap_reached.emit(_unit.player)
 		return null
 	var production_cost = Constants.Match.Units.PRODUCTION_COSTS[unit_prototype.resource_path]
 	if not _unit.player.has_resources(production_cost):
