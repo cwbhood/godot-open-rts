@@ -7,10 +7,12 @@ const Hauler = preload("res://source/match/units/Hauler.gd")
 
 const GROUND_LEVEL_PLANE = Plane(Vector3.UP, 0)
 const MINIMAP_PIXELS_PER_WORLD_METER = 2
+const UNIT_SYNC_EVERY_PHYSICS_TICKS = 3
 
 var _unit_to_corresponding_node_mapping = {}
 var _camera_movement_active = false
 var _routes_overlay = null
+var _ticks_until_unit_sync = 0
 
 @onready var _match = find_parent("Match")
 @onready var _camera_indicator = find_child("CameraIndicator")
@@ -34,7 +36,12 @@ func _ready():
 
 
 func _physics_process(_delta):
-	_sync_real_units_with_minimap_representations()
+	# unit dots refresh at 20 Hz: a 3 px dot moving a tenth of a metre more often isn't visible,
+	# and walking every unit each tick shows up in big matches
+	_ticks_until_unit_sync -= 1
+	if _ticks_until_unit_sync <= 0:
+		_ticks_until_unit_sync = UNIT_SYNC_EVERY_PHYSICS_TICKS
+		_sync_real_units_with_minimap_representations()
 	_update_camera_indicator()
 
 

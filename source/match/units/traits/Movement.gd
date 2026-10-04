@@ -31,19 +31,25 @@ var _total_direction_in_the_low_pass_filter_window = Vector3.ZERO
 var _previously_set_global_transform_of_unit = null
 
 var _passive_movement_detected = false
+var _weather = null
 
 @onready var _match = find_parent("Match")
 @onready var _unit = get_parent()
 
 
 func _physics_process(delta):
-	_interim_speed = speed * get_speed_multiplier() * delta
+	_interim_speed = speed * get_speed_multiplier() * delta  # also caps how far a push moves
+	if not _has_target():
+		# idle: the velocity still has to be submitted so that avoidance can push the unit
+		# aside, but asking the agent for a path to nowhere would run a path query every time
+		set_velocity(Vector3.ZERO)
+		return
 	var fake_direction = _get_fake_direction_due_to_stuck_prevention()
 	if fake_direction != null:
 		set_velocity(fake_direction * _interim_speed)
 		return
 	var next_path_position: Vector3 = get_next_path_position()
-	var current_agent_position: Vector3 = _unit.global_transform.origin
+	var current_agent_position: Vector3 = _unit.global_position
 	var new_velocity: Vector3 = (
 		(next_path_position - current_agent_position).normalized() * _interim_speed
 	)
@@ -68,9 +74,10 @@ func _ready():
 func get_speed_multiplier():
 	"""weather and running out of fuel slow units down, roads speed haulers up"""
 	var multiplier = 1.0
-	var weather = _match.get_node_or_null("WeatherEffects")
-	if weather != null:
-		multiplier *= weather.get_speed_multiplier(_unit.global_position, domain)
+	if _weather == null or not is_instance_valid(_weather):
+		_weather = _match.get_node_or_null("WeatherEffects")
+	if _weather != null:
+		multiplier *= _weather.get_speed_multiplier(_unit.global_position, domain)
 	var logistics = _unit.player.get_node_or_null("Logistics") if "player" in _unit else null
 	if logistics != null and logistics.is_unit_out_of_fuel(_unit):
 		multiplier *= Constants.Match.Fuel.OUT_OF_FUEL_SPEED_FACTOR
@@ -98,8 +105,14 @@ func _align_unit_position_to_navigation():
 	)
 
 
+func _has_target():
+	return target_position != Vector3.INF
+
+
 func _is_moving_actively():
-	return get_next_path_position() != _unit.global_position
+	# stop() parks the target at infinity, which never has a path: the agent then reports the
+	# unit's own position as the next one, so there is no need to ask it
+	return _has_target() and get_next_path_position() != _unit.global_position
 
 
 func _get_fake_direction_due_to_stuck_prevention():
@@ -128,8 +141,8 @@ func _get_fake_direction_due_to_stuck_prevention():
 	return option_b
 
 
-func _update_stuck_prevention(safe_velocity: Vector3):
-	if not _is_moving_actively():
+func _update_stuck_prevention(safe_velocity: Vector3, moving_actively):
+	if not moving_actively:
 		return
 	_stuck_prevention_window.append(safe_velocity.length())
 	_total_velocity_in_stuck_prevention_window += safe_velocity.length()
@@ -180,10 +193,10 @@ func _rotate_in_direction(direction: Vector3):
 		_unit.global_transform = _unit.global_transform.looking_at(rotation_target)
 
 
-func _update_passive_movement_tracking(safe_velocity):
+func _update_passive_movement_tracking(safe_velocity, moving_actively):
 	if not PASSIVE_MOVEMENT_TRACKING_ENABLED:
 		return
-	if _is_moving_actively() or safe_velocity.is_zero_approx():
+	if moving_actively or safe_velocity.is_zero_approx():
 		if _passive_movement_detected:
 			_passive_movement_detected = false
 			passive_movement_finished.emit()
@@ -194,13 +207,17 @@ func _update_passive_movement_tracking(safe_velocity):
 
 
 func _on_velocity_computed(safe_velocity: Vector3):
-	_update_stuck_prevention(safe_velocity)
+	var moving_actively = _is_moving_actively()
+	if not moving_actively and safe_velocity.is_zero_approx():
+		# an idle unit nobody pushes: nothing moves, so skip touching its transform
+		_update_passive_movement_tracking(safe_velocity, moving_actively)
+		return
+	_update_stuck_prevention(safe_velocity, moving_actively)
 	_rotate_in_direction(safe_velocity * Vector3(1, 0, 1))
-	_unit.global_transform.origin = _unit.global_transform.origin.move_toward(
-		_unit.global_transform.origin + safe_velocity, _interim_speed
-	)
+	var origin = _unit.global_position
+	_unit.global_position = origin.move_toward(origin + safe_velocity, _interim_speed)
 	_previously_set_global_transform_of_unit = _unit.global_transform
-	_update_passive_movement_tracking(safe_velocity)
+	_update_passive_movement_tracking(safe_velocity, moving_actively)
 
 
 func _on_navigation_finished():

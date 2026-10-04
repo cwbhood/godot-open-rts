@@ -25,6 +25,8 @@ var _queue = []
 
 
 func _process(delta):
+	if _queue.is_empty():
+		return
 	delta *= _unit.player.get_production_multiplier() * _power_factor()
 	while _queue.size() > 0 and delta > 0.0:
 		var current_queue_element = _queue.front()

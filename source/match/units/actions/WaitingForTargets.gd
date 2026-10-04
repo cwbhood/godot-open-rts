@@ -28,21 +28,22 @@ func is_idle():
 
 
 func _get_units_to_attack():
-	return get_tree().get_nodes_in_group("units").filter(
-		func(unit):
-			return (
-				unit.player != _unit.player
-				and Diplomacy.engages_on_sight(_unit.player, unit.player)
-				and unit.movement_domain in _unit.attack_domains
-				and not (
-					unit.has_method("is_protected_from") and unit.is_protected_from(_unit.player)
-				)
-				and (
-					_unit.global_position_yless.distance_to(unit.global_position_yless)
-					<= _unit.sight_range
-				)
-			)
-	)
+	# every idle armed unit runs this six times a second against every unit of the match, so
+	# the cheap distance test goes first and the weather-dependent sight range is read once
+	var sight_range = _unit.sight_range
+	var position = _unit.global_position_yless
+	var units_to_attack = []
+	for unit in get_tree().get_nodes_in_group("units"):
+		if position.distance_to(unit.global_position_yless) > sight_range:
+			continue
+		if (
+			unit.player != _unit.player
+			and Diplomacy.engages_on_sight(_unit.player, unit.player)
+			and unit.movement_domain in _unit.attack_domains
+			and not (unit.has_method("is_protected_from") and unit.is_protected_from(_unit.player))
+		):
+			units_to_attack.append(unit)
+	return units_to_attack
 
 
 func _attack_unit(unit):

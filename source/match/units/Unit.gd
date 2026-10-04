@@ -29,10 +29,11 @@ var sight_range = null:
 	get:
 		if sight_range == null or _match == null:
 			return sight_range
-		var weather = _match.get_node_or_null("WeatherEffects")
-		if weather == null:
-			return sight_range
-		return sight_range * weather.get_vision_multiplier(global_position, movement_domain)
+		if _weather == null or not is_instance_valid(_weather):
+			_weather = _match.get_node_or_null("WeatherEffects")
+			if _weather == null:
+				return sight_range
+		return sight_range * _weather.get_vision_multiplier(global_position, movement_domain)
 var player:
 	get:
 		return get_parent()
@@ -49,6 +50,8 @@ var type:
 var last_attacker_player = null  # used to hand out loot when cargo gets destroyed
 
 var _action_locked = false
+var _weather = null
+var _child_cache = {}  # trait name -> node or null; sight range and radius reads are hot
 
 @onready var _match = find_parent("Match")
 
@@ -90,25 +93,42 @@ func _set_hp_max(value):
 
 
 func _get_radius():
-	if find_child("Movement") != null:
-		return find_child("Movement").radius
-	if find_child("MovementObstacle") != null:
-		return find_child("MovementObstacle").radius
+	var movement = _cached_child("Movement")
+	if movement != null:
+		return movement.radius
+	var obstacle = _cached_child("MovementObstacle")
+	if obstacle != null:
+		return obstacle.radius
 	return null
 
 
 func _get_movement_domain():
-	if find_child("Movement") != null:
-		return find_child("Movement").domain
-	if find_child("MovementObstacle") != null:
-		return find_child("MovementObstacle").domain
+	var movement = _cached_child("Movement")
+	if movement != null:
+		return movement.domain
+	var obstacle = _cached_child("MovementObstacle")
+	if obstacle != null:
+		return obstacle.domain
 	return null
 
 
 func _get_movement_speed():
-	if find_child("Movement") != null:
-		return find_child("Movement").speed
+	var movement = _cached_child("Movement")
+	if movement != null:
+		return movement.speed
 	return 0.0
+
+
+func _cached_child(child_name):
+	"""find_child walks the whole model, which is too slow for the per-tick reads above"""
+	if child_name in _child_cache:
+		var cached = _child_cache[child_name]
+		if cached == null or (is_instance_valid(cached) and cached.get_parent() != null):
+			return cached
+	var node = find_child(child_name)
+	if is_inside_tree():
+		_child_cache[child_name] = node  # before entering the tree traits may still be added
+	return node
 
 
 func _is_movable():

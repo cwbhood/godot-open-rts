@@ -13,6 +13,8 @@ func _unhandled_input(event):
 
 
 func _physics_process(_delta):
+	if not visible:
+		return
 	_fps_label.text = (
 		"{0} FPS \n".format(["%0.1f" % (Performance.get_monitor(Performance.TIME_FPS))])
 		+ str(OS.get_processor_name())
