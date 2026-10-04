@@ -67,6 +67,10 @@ gets imported.
 
 `model_scale`, `model_offset` ([x, y, z] in metres) and `model_rotation_y_deg` move the
 model so it sits centred on the unit. The base model is hidden automatically.
+`model_scale` multiplies the base scene's own `Geometry` scale (the tank's is 0.6, for
+example), so copy the value from a unit with the same base and adjust from there.
+Surfaces using a material whose colour is sRGB (0.99, 0.81, 0.48) take the owner's
+team colour; see `tools/blender/README.md`.
 
 ## 5. Name it
 
