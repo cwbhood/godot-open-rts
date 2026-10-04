@@ -88,4 +88,5 @@ func _refresh():
 func _on_toggled(pressed):
 	for unit in _selected_constructors():
 		AutoExpand.set_enabled_on(unit, pressed)
+		unit.set_meta("auto_expand_opt_out", not pressed)  # the helper leaves it alone
 	_refresh.call_deferred()
