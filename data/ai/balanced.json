@@ -22,6 +22,13 @@
   "accepts_alliances": true,
   "attacks_neutrals": true,
   "upgrades_roads": true,
+  "defence": {
+    "front_m": 16,
+    "front": 0.5,
+    "flanks": 0.2,
+    "reserve": 0.2,
+    "guards": 0.1
+  },
   "id": "balanced",
   "name": "AI_BALANCED",
   "description": "AI_BALANCED_DESCRIPTION"

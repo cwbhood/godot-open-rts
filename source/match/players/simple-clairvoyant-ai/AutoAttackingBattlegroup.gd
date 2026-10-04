@@ -29,6 +29,7 @@ var _retarget_pending = false
 
 var _state = State.FORMING
 var _attached_units = []
+var _target_unit = null  # what the group is going for, null while it has nobody to attack
 
 
 func _init(expected_number_of_units, players_to_attack, owner_ai = null):
@@ -49,6 +50,31 @@ func _ready():
 
 func size():
 	return _attached_units.size()
+
+
+func units():
+	return _attached_units.duplicate()
+
+
+func is_attacking():
+	"""on its way to or fighting a target; a formed group with nobody to attack is not"""
+	if _state != State.ATTACKING:
+		return false
+	if _target_unit != null and is_instance_valid(_target_unit) and _target_unit.is_inside_tree():
+		return true
+	# between two targets: still on the attack if anybody may be attacked
+	if _retarget_pending and _players_to_attack.any(_may_attack):
+		return true
+	# units sent at targets one by one (no single group target); units the AI's army
+	# positioning sent at intruders near home do not count, they defend
+	return _attached_units.any(
+		func(unit):
+			return (
+				is_instance_valid(unit)
+				and (unit.action is Actions.AutoAttacking or unit.action is Actions.MovingToUnit)
+				and not unit.get_meta("defending", false)
+			)
+	)
 
 
 func attach_unit(unit):
@@ -105,6 +131,7 @@ func _attack_next_adversary_unit():
 			func(attached_unit):
 				return Actions.AutoAttacking.is_applicable(attached_unit, target_unit)
 		):
+			_target_unit = target_unit
 			if not target_unit.tree_exited.is_connected(_on_target_unit_died):
 				target_unit.tree_exited.connect(_on_target_unit_died, CONNECT_ONE_SHOT)
 			for attached_unit in _attached_units:
@@ -179,6 +206,7 @@ func _home_position():
 
 
 func _attack_next_player():
+	_target_unit = null
 	var player_to_attack_index = _players_to_attack.find(_player_to_attack)
 	var next_player_to_attack_index = (player_to_attack_index + 1) % _players_to_attack.size()
 	_player_to_attack = _players_to_attack[next_player_to_attack_index]
