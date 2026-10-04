@@ -22,6 +22,7 @@ signal alerted(text)
 signal alert_raised(kind)  # the same alert by kind ("on", "retreat", ...), for the advisor voice
 
 const Worker = preload("res://source/match/units/Worker.gd")
+const HelperScoutMap = preload("res://source/match/players/human/HelperScoutMap.gd")
 const MatchLimits = preload("res://source/match/MatchLimits.gd")
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
@@ -93,7 +94,7 @@ var _guards = {}  # constructor -> {"kind", "action", "resume", "since_s", ...}
 var _path_checked_s = {}  # constructor -> clock of its last path check
 var _scout = null
 var _scout_pending = false
-var _scout_cells = {}  # Vector2i -> clock when seen, or a negative "avoid until"
+var _scout_map = HelperScoutMap.new(SCOUT_CELL_M)  # where the scout has been
 var _scout_target = null
 var _alert_times = {}  # alert key -> clock
 var _blocked = []  # [position, until clock] of destinations held back for a blocked route
@@ -794,16 +795,23 @@ func _manage_scout():
 				_scout_pending = true
 		_status["scout"] = tr("HELPER_STATUS_SCOUT_WAITING")
 		return
-	_status["scout"] = tr("HELPER_STATUS_SCOUT").format([int(round(_map_seen_share() * 100.0))])
+	_status["scout"] = tr("HELPER_STATUS_SCOUT").format(
+		[int(round(_scout_map.seen_share(_match().map.size) * 100.0))]
+	)
 
 
 func _steer_scout():
 	if _scout == null or not is_instance_valid(_scout) or not scouting:
 		return
-	_mark_seen(_scout.global_position, max(_scout.sight_range, SCOUT_CELL_M * 0.6))
+	_scout_map.mark_seen(
+		_scout.global_position,
+		max(_scout.sight_range, SCOUT_CELL_M * 0.6),
+		_match().map.size,
+		_clock_s
+	)
 	var danger = _threat_near(_scout.global_position, SCOUT_EXTRA_M)
 	if danger != null:
-		_scout_cells[_cell_of(danger[1])] = -(_clock_s + SCOUT_AVOID_S)
+		_scout_map.avoid(danger[1], _clock_s + SCOUT_AVOID_S)
 		if _scout_target == null or _scout_target.distance_to(danger[1]) < danger[3] * 2.0:
 			_scout_target = _safe_spot_for(_scout.global_position, danger[1])
 			_scout.action = Moving.new(_scout_target)
@@ -816,69 +824,22 @@ func _steer_scout():
 		and (not moving or _scout_target.distance_to(_scout.global_position_yless) < 6.0)
 	):
 		# as close as it gets to that cell (a cell out at sea ends the move on the shore)
-		_scout_cells[_cell_of(_scout_target)] = _clock_s
+		_scout_map.mark_cell(_scout_target, _clock_s)
 	_scout_target = _next_scout_target()
 	if _scout_target != null:
 		_scout.action = Moving.new(_scout_target)
 
 
 func _next_scout_target():
-	var best = null
-	var size = _match().map.size
-	var columns = int(ceil(size.x / SCOUT_CELL_M))
-	var rows = int(ceil(size.y / SCOUT_CELL_M))
-	for x in range(columns):
-		for z in range(rows):
-			var cell = Vector2i(x, z)
-			var seen = _scout_cells.get(cell, -1.0)
-			if seen < 0.0 and -seen > _clock_s:
-				continue  # enemies were there not long ago
-			var center = Vector3(
-				min((x + 0.5) * SCOUT_CELL_M, size.x - 2.0),
-				0,
-				min((z + 0.5) * SCOUT_CELL_M, size.y - 2.0)
-			)
-			if is_dangerous(center, SCOUT_EXTRA_M + 4.0):
-				continue
-			var staleness = _clock_s - max(seen, 0.0) if seen >= 0.0 else 100000.0
-			var score = staleness - 2.0 * center.distance_to(_scout.global_position_yless)
-			if best == null or score > best[0]:
-				best = [score, center]
+	var best = _scout_map.next_target(
+		_match().map.size,
+		_scout.global_position_yless,
+		_clock_s,
+		func(center): return is_dangerous(center, SCOUT_EXTRA_M + 4.0)
+	)
 	if best == null:
 		return null
-	return NavigationServer3D.map_get_closest_point(_terrain_map(), best[1])
-
-
-func _mark_seen(position, radius):
-	var size = _match().map.size
-	var reach = int(ceil(radius / SCOUT_CELL_M))
-	var center = _cell_of(position)
-	for dx in range(-reach, reach + 1):
-		for dz in range(-reach, reach + 1):
-			var cell = center + Vector2i(dx, dz)
-			if cell.x < 0 or cell.y < 0 or cell.x * SCOUT_CELL_M >= size.x:
-				continue
-			if cell.y * SCOUT_CELL_M >= size.y:
-				continue
-			var cell_center = Vector3(
-				(cell.x + 0.5) * SCOUT_CELL_M, 0, (cell.y + 0.5) * SCOUT_CELL_M
-			)
-			if cell_center.distance_to(position * Vector3(1, 0, 1)) > radius:
-				continue
-			var previous = _scout_cells.get(cell, 0.0)
-			if previous < 0.0 and -previous > _clock_s:
-				continue  # keep avoiding it
-			_scout_cells[cell] = _clock_s
-
-
-func _map_seen_share():
-	var size = _match().map.size
-	var total = int(ceil(size.x / SCOUT_CELL_M)) * int(ceil(size.y / SCOUT_CELL_M))
-	return min(1.0, float(_scout_cells.size()) / max(total, 1))
-
-
-func _cell_of(position):
-	return Vector2i(int(position.x / SCOUT_CELL_M), int(position.z / SCOUT_CELL_M))
+	return NavigationServer3D.map_get_closest_point(_terrain_map(), best)
 
 
 func _scout_scene():
