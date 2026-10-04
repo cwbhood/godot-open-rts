@@ -1,0 +1,57 @@
+{
+  "_comment": "Timing of the starter city build-up (seconds). Read by tools/blender/build_construction.py (the animation) and tools/audio/make_construction_sounds.py (the matching sound track). Positions are metres in the command centre's model space, Blender axes (x right, y = front, z up).",
+  "fps": 30,
+  "length_s": 6.5,
+  "stages": [
+    {"bone": "Stage0", "start_s": 0.25, "land_s": 0.75},
+    {"bone": "Stage1", "start_s": 0.95, "land_s": 1.6},
+    {"bone": "Stage2", "start_s": 1.85, "land_s": 2.7},
+    {"bone": "Stage3", "start_s": 2.95, "land_s": 3.8},
+    {"bone": "Stage4", "start_s": 4.0, "land_s": 4.6}
+  ],
+  "scaffold": [
+    {"bone": "Scaffold0", "up_s": 0.8, "down_s": 5.15},
+    {"bone": "Scaffold1", "up_s": 1.65, "down_s": 5.0},
+    {"bone": "Scaffold2", "up_s": 2.7, "down_s": 4.85}
+  ],
+  "cranes": [
+    {"tag": "A", "at": [2.6, -2.4], "up_s": 0.0, "down_s": 5.4,
+     "swing_t_s": [0.9, 1.6, 2.4, 3.2, 4.0, 4.8, 5.3],
+     "swing_deg": [60, 150, 70, 145, 65, 150, 100],
+     "trolley_t_s": [0.9, 1.6, 2.4, 3.2, 4.0, 4.8, 5.3],
+     "trolley_m": [0.0, 0.9, -0.2, 0.8, 0.0, 1.0, -0.6],
+     "hook_t_s": [0.9, 1.3, 1.6, 2.0, 2.4, 2.8, 3.2, 3.6, 4.0, 4.4, 4.8, 5.3],
+     "hook_m": [1.0, 0.8, 1.6, 0.8, 2.6, 0.8, 1.5, 0.8, 2.6, 0.8, 1.2, 0.6]},
+    {"tag": "B", "at": [-2.65, 2.15], "up_s": 0.15, "down_s": 5.5,
+     "swing_t_s": [1.0, 1.9, 2.7, 3.5, 4.3, 5.1, 5.45],
+     "swing_deg": [-130, -40, -125, -35, -130, -45, -90],
+     "trolley_t_s": [1.0, 1.9, 2.7, 3.5, 4.3, 5.1, 5.45],
+     "trolley_m": [-0.2, 1.0, -0.3, 0.9, -0.2, 0.8, -0.6],
+     "hook_t_s": [1.0, 1.5, 1.9, 2.3, 2.7, 3.1, 3.5, 3.9, 4.3, 4.7, 5.1, 5.45],
+     "hook_m": [1.0, 2.6, 0.8, 1.6, 0.8, 2.6, 0.8, 1.4, 0.8, 2.6, 1.0, 0.6]}
+  ],
+  "workers": [
+    {"tag": "1", "kind": "hammer", "at": [-0.6, -2.05], "facing_deg": 0, "in_s": 0.4, "out_s": 6.0, "period_s": 0.42, "phase_s": 0.0},
+    {"tag": "2", "kind": "hammer", "at": [2.15, -0.35], "facing_deg": 90, "in_s": 0.55, "out_s": 6.05, "period_s": 0.46, "phase_s": 0.15},
+    {"tag": "3", "kind": "hammer", "at": [0.95, 1.8], "facing_deg": 180, "in_s": 0.7, "out_s": 6.1, "period_s": 0.4, "phase_s": 0.25},
+    {"tag": "4", "kind": "plank", "path": [[-2.05, 1.45], [-2.1, -1.35]], "speed_mps": 0.55, "in_s": 0.3, "out_s": 6.0},
+    {"tag": "5", "kind": "beam", "path": [[1.3, 2.25], [2.25, 0.65]], "speed_mps": 0.5, "in_s": 0.5, "out_s": 6.05},
+    {"tag": "6", "kind": "plank", "path": [[-1.45, 2.35], [0.25, 2.35]], "speed_mps": 0.6, "in_s": 0.6, "out_s": 6.1}
+  ],
+  "dust": [
+    {"bone": "DustS0a", "t_s": 0.6, "at": [-1.8, 1.7], "size": 1.3},
+    {"bone": "DustS0b", "t_s": 0.65, "at": [1.8, -1.7], "size": 1.3},
+    {"bone": "DustS1a", "t_s": 1.5, "at": [-1.55, 0.95], "size": 1.1},
+    {"bone": "DustS1b", "t_s": 1.55, "at": [1.55, -1.3], "size": 1.1},
+    {"bone": "DustS2a", "t_s": 2.6, "at": [1.35, 0.75, 0.42], "size": 1.0},
+    {"bone": "DustS2b", "t_s": 2.65, "at": [-1.35, -1.2, 0.42], "size": 1.0},
+    {"bone": "DustS3a", "t_s": 3.7, "at": [-0.95, -0.35, 1.08], "size": 0.9},
+    {"bone": "DustS3b", "t_s": 3.75, "at": [0.45, 0.4, 1.08], "size": 0.9},
+    {"bone": "DustS4a", "t_s": 4.5, "at": [1.0, -0.75, 1.8], "size": 0.8},
+    {"bone": "DustEndA", "t_s": 5.15, "at": [-1.75, -1.75], "size": 1.4},
+    {"bone": "DustEndB", "t_s": 5.2, "at": [1.75, 0.9], "size": 1.4},
+    {"bone": "DustEndC", "t_s": 5.25, "at": [-1.8, 0.8], "size": 1.3},
+    {"bone": "DustEndD", "t_s": 5.95, "at": [2.6, -2.4], "size": 1.5},
+    {"bone": "DustEndE", "t_s": 6.0, "at": [-2.65, 2.15], "size": 1.5}
+  ]
+}

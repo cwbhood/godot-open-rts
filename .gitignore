@@ -5,3 +5,4 @@ tmp/
 misc/
 build/
 build_info.json
+__pycache__/

@@ -189,3 +189,4 @@ It needs track. The first time it runs a leg it [b]lays rail[/b] as it goes, slo
 A new train picks its own line: the busiest far extractors and storages no other train serves. Right-click your extractors or storages with the train selected to add or remove stops, and right-click a command center to move its depot; the Auto line button hands the planning back. Trucks leave the stops of a train alone unless they overflow.
 
 When to use what: trucks are cheap and flexible for scattered extractors close to home; a storage plus a train is best for a far cluster. A train is a big target, so guard its line. Trains cost 0.5 oil/min upkeep and can be recycled like trucks."
+CITY_BUILD_UP_SKIP,Building your city... press Space or click to skip

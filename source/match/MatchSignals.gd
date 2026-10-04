@@ -16,6 +16,7 @@ signal match_finished_with_victory
 signal match_finished_with_defeat
 signal terrain_targeted(position)
 signal unit_spawned(unit)
+signal starter_city_spawned(player, command_center)  # a player's first city is placed
 signal unit_targeted(unit)
 signal unit_command_issued(command)  # a player order from UnitCommandHandler
 signal unit_selected(unit)

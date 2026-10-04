@@ -113,3 +113,29 @@ material.
    double-sided).
 5. Run `python3.11 tools/blender/build_assets.py --only <name>` and check the tile
    in `tools/blender/previews/<category>.png`.
+
+## Starter city build-up animation
+
+`build_construction.py` builds `assets/models/ironbound/construction/city_build_up.glb`,
+the few seconds of construction shown when a match starts (played by
+`source/match/city/CityBuildUp.gd`):
+
+```sh
+python3.11 tools/blender/build_construction.py            # about 5 seconds
+python3.11 tools/blender/build_construction.py --preview  # plus previews/city_build_up.jpg
+```
+
+* The whole site is **one skinned mesh**: every moving piece (crane masts, jibs,
+  trolleys, cables, hooks, the five command-centre stages, three scaffold lifts,
+  six workers and their hammer arms, dust puffs) is a bone with rigid weights.
+  It costs one mesh instance with one draw call per material, about 11k triangles,
+  and it is freed when the animation ends. Pieces that are off stage are scaled to
+  almost zero.
+* The command-centre stages are cut by height from the same mesh `build_assets.py`
+  exports (same bevel and baked AO), so the last frame matches `command_center.glb`
+  and the game swaps the real model in without a jump. Rebuild this file after
+  changing `command_center`.
+* All timing lives in `construction_timeline.json`; `tools/audio/make_construction_sounds.py`
+  reads the same file, so rebuild the sound after changing it.
+* The animation is the glTF animation `build`; the root keeps the command centre's
+  model space (front +Y, origin at the footprint centre).
