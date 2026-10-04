@@ -29,6 +29,8 @@ func populate(map):
 
 
 func _add(model_name, pos: Vector2, scale_range = Vector2(0.85, 1.2), sink = 0.0):
+	if _is_drowned(model_name, pos):
+		return
 	var height = _map.get_height(pos) - sink
 	var basis = Basis(Vector3.UP, _rng.randf() * TAU).scaled(
 		Vector3.ONE * _rng.randf_range(scale_range.x, scale_range.y)
@@ -36,6 +38,16 @@ func _add(model_name, pos: Vector2, scale_range = Vector2(0.85, 1.2), sink = 0.0
 	if not model_name in _transforms:
 		_transforms[model_name] = []
 	_transforms[model_name].append(Transform3D(basis, Vector3(pos.x, height, pos.y)))
+
+
+func _is_drowned(model_name, pos: Vector2) -> bool:
+	"""props stay on land; reeds may stand in lakes and shallows but not out at sea"""
+	var water = _map.water
+	if water == null or not water.has_more_than_lakes():
+		return false
+	if model_name == "reeds":
+		return water.depth_fast(pos) == water.Depth.DEEP and water.deep_distance(pos, false) < 0.0
+	return water.depth_fast(pos) != water.Depth.LAND
 
 
 func _pick(names):
