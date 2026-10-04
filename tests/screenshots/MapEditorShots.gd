@@ -75,7 +75,20 @@ func _ready():
 	)
 	editor._save()
 	print("editor deposit at sea status: ", editor._ui.status.text)
+	_remove_test_maps()
 	get_tree().quit()
+
+
+func _remove_test_maps():
+	"""the saved test maps would show up in the Play menu and fail the fair start check of
+	tools/validate_data.gd (#18), which reads the user's custom maps too"""
+	for id in ["editor_smoke_test", "editor_island_test"]:
+		for path in [
+			"user://mods/custom_maps/maps/%s.tscn" % id,
+			"user://mods/custom_maps/data/maps/%s.json" % id
+		]:
+			if FileAccess.file_exists(path):
+				DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 
 func _frames(count):
