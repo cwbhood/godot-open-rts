@@ -78,7 +78,11 @@ func _shares_enemy_with(other):
 
 
 func _offer(diplomacy, other, kind):
-	var price = Diplomacy.ai_asking_price(_player, other, kind)
+	var price = (
+		_price_to_meet(other, kind)
+		if Diplomacy.is_ai(other)
+		else Diplomacy.ai_asking_price(_player, other, kind)
+	)
 	if price == null:
 		return false
 	var offered = price["offered"]
@@ -95,3 +99,17 @@ func _offer(diplomacy, other, kind):
 	else:
 		MatchSignals.diplomacy_offered.emit(_player, other, kind, offered, requested)
 	return true
+
+
+func _price_to_meet(other_ai, kind):
+	"""another AI answers by its own price, so offer that, as long as the treaty is
+	worth it to us; otherwise two AIs that both want something never make peace"""
+	var theirs = Diplomacy.ai_asking_price(other_ai, _player, kind)
+	if theirs == null:
+		return null
+	var cost = (
+		Trade.value_for(_player, theirs["requested"]) - Trade.value_for(_player, theirs["offered"])
+	)
+	if cost > Diplomacy.treaty_worth(_player, other_ai, kind):
+		return null
+	return {"offered": theirs["requested"], "requested": theirs["offered"]}
