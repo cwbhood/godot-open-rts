@@ -71,6 +71,7 @@ func _ready():
 		voice.max_distance = 0.0
 		voice.panning_strength = 0.7
 		voice.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		voice.bus = &"Effects"
 		add_child(voice)
 		_voices.append(voice)
 	add_child(_listener)
