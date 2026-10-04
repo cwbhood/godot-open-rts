@@ -463,10 +463,14 @@ func _save_report(report):
 
 
 func _copy_to_qa_output(report, path):
-	"""QA runs pass --out=DIR; their reports also land there next to report.txt"""
+	"""QA runs pass --out=DIR; their reports also land there next to report.txt. Runs that
+	pass --out=FILE (Simulate, MatchPerf: a .json summary) get them next to that file."""
 	for argument in report.get("args", []):
 		if argument.begins_with("--out="):
 			var out = argument.substr(6)
+			# a directory named like the summary file would stop the run writing it at the end
+			if out.get_extension() != "":
+				out = out.get_base_dir()
 			DirAccess.make_dir_recursive_absolute(out)
 			for extension in [".json", ".txt"]:
 				DirAccess.copy_absolute(
