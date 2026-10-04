@@ -20,6 +20,7 @@ const AutoAttackingBattlegroup = preload(
 )
 
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
+const NO_ROOM_RETRY_S = 30.0  # after finding no free spot, wait before searching again
 # better units replace the basic ones as the city reaches higher tiers
 const UPGRADES = {
 	"res://source/match/units/Tank.tscn": "res://source/match/units/HeavyTank.tscn",
@@ -43,6 +44,7 @@ var _secondary_unit_scene = null
 var _number_of_pending_unit_resource_requests = {}
 var _battlegroup_under_forming = null
 var _battlegroups = []
+var _no_room = false  # no free spot was found lately
 
 @onready var _ai = get_parent()
 
@@ -175,6 +177,8 @@ func _construct_structure(structure_scene):
 	var workers = get_tree().get_nodes_in_group("units").filter(
 		func(unit): return unit is Worker and unit.player == _player
 	)
+	if _no_room:
+		return
 	var unit_to_spawn = structure_scene.instantiate()
 	var reference_position_for_placement = (
 		ccs[0].global_position if not ccs.is_empty() else workers[0].global_position
@@ -187,6 +191,11 @@ func _construct_structure(structure_scene):
 		),
 		get_tree()
 	)
+	if placement_position == Vector3.INF:  # the base is full
+		unit_to_spawn.free()
+		_no_room = true
+		get_tree().create_timer(NO_ROOM_RETRY_S).timeout.connect(func(): _no_room = false)
+		return
 	var target_transform = Transform3D(Basis(), placement_position).looking_at(
 		placement_position + Vector3(-1, 0, 1), Vector3.UP
 	)

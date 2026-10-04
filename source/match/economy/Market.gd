@@ -120,6 +120,10 @@ func ship(sender, receiver, goods):
 		),
 		get_tree()
 	)
+	if position == Vector3.INF:  # no room for a caravan by the depot: deliver right away
+		caravan.free()
+		receiver.add_resources(goods)
+		return
 	MatchSignals.setup_and_spawn_unit.emit(caravan, Transform3D(Basis(), position), sender)
 	caravan.remove_from_group("controlled_units")
 	caravan.add_to_group("caravans")

@@ -117,6 +117,11 @@ func _finalize_production(former_queue_element):
 			get_tree()
 		)
 	)
+	if placement_position == Vector3.INF:  # no free spot left: squeeze it in at the door
+		placement_position = (
+			_unit.global_position * Vector3(1, 0, 1)
+			+ Vector3(0, 0, _unit.radius + produced_unit.radius)
+		)
 	MatchSignals.setup_and_spawn_unit.emit(
 		produced_unit, Transform3D(Basis(), placement_position), _unit.player
 	)
