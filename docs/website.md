@@ -12,6 +12,18 @@ footer and every page's text. Edit it, then regenerate and commit both:
 python3 tools/site/build.py site
 ```
 
+The About page reads `tools/site/creator.json` (name, bio, principles, links). Edit that
+file to change the creator text; the photo is `site/assets/img/creator.webp`,
+`creator-sm.webp` and `creator.jpg` (square, 640 px).
+
+SEO: every page gets its own title, description, canonical URL, Open Graph and Twitter
+card (share image `site/assets/img/share.jpg`, 1200x630) and JSON-LD (VideoGame and
+SoftwareApplication on the home page, Person on About, breadcrumbs elsewhere).
+`build.py` also writes `sitemap.xml`, `robots.txt` and the web manifest. If the site
+moves to a custom domain, change `BASE` at the top of `build.py` and rebuild. Fonts are
+self-hosted in `site/assets/fonts/` (SIL Open Font License), so pages make no requests
+to Google.
+
 Preview locally with `python3 -m http.server -d site 8000` and open http://localhost:8000.
 Images live in `site/assets/img/` as WebP (a `-sm` copy for thumbnails), the video in
 `site/assets/video/`.

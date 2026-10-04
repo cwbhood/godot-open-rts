@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Writes the Ironbound site pages into site/. Shared header and footer live here."""
 import html
+import json
 import pathlib
 import sys
 
 OUT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "site")
 REPO = "https://github.com/cwbhood/godot-open-rts"
+# Where the site is published. Change this if a custom domain is added.
+BASE = "https://cwbhood.github.io/godot-open-rts/"
+HERE = pathlib.Path(__file__).resolve().parent
+CREATOR = json.loads((HERE / "creator.json").read_text())
 LATEST = REPO + "/releases/latest/download/"
 
 NAV = [
@@ -17,6 +22,7 @@ NAV = [
     ("open-source.html", "Open source"),
     ("support.html", "Crash reports"),
     ("community.html", "Community"),
+    ("about.html", "About"),
 ]
 
 MARK = (
@@ -37,7 +43,7 @@ def esc(text):
     return html.escape(text, quote=True)
 
 
-def page(filename, title, description, body, preview=False):
+def page(filename, title, description, body, preview=False, schema=None, noindex=False):
     nav_items = []
     for href, label in NAV:
         current = ' aria-current="page"' if href == filename else ""
@@ -45,19 +51,42 @@ def page(filename, title, description, body, preview=False):
     current = ' aria-current="page"' if filename == "download.html" else ""
     nav_items.append(f'<li><a class="nav-cta" href="download.html"{current}>Download</a></li>')
     nav = "\n".join(nav_items)
-    full_title = "Ironbound" if filename == "index.html" else f"{title} | Ironbound"
+    full_title = title if filename == "index.html" else f"{title} | Ironbound"
+    url = BASE + ("" if filename == "index.html" else filename)
+    share = BASE + "assets/img/share.jpg"
+    robots = '<meta name="robots" content="noindex">' if noindex else '<meta name="robots" content="index, follow, max-image-preview:large">'
+    # The 404 page is served at any missing path, so it pins its links to the site root.
+    canonical = f'<base href="{BASE}">' if noindex else f'<link rel="canonical" href="{url}">'
+    ld = ""
+    if schema:
+        ld = '<script type="application/ld+json">' + json.dumps(schema, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + "</script>"
     head = f"""<title>{esc(full_title)}</title>
 <meta name="description" content="{esc(description)}">
+{robots}
+{canonical}
+<meta name="author" content="{esc(CREATOR["name"])}">
 <meta name="theme-color" content="#14110d">
+<meta property="og:site_name" content="Ironbound">
 <meta property="og:title" content="{esc(full_title)}">
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:type" content="website">
-<meta property="og:image" content="assets/img/clouds.webp">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{share}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Ironbound title over tanks and helicopters fighting beside an oasis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(full_title)}">
+<meta name="twitter:description" content="{esc(description)}">
+<meta name="twitter:image" content="{share}">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Big+Shoulders+Stencil+Display:wght@700;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
-<link rel="stylesheet" href="assets/site.css">"""
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="preload" href="assets/fonts/big-shoulders-stencil-display-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+{ld}"""
     content = f"""<a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap">
@@ -78,7 +107,7 @@ def page(filename, title, description, body, preview=False):
   <div class="wrap">
     <div class="stack">
       <a class="brand" href="index.html">{MARK}Ironbound</a>
-      <p>A free, open source real-time strategy game made with Godot. MIT licensed. No accounts, no ads, no tracking on this site.</p>
+      <p>A free, open source real-time strategy game made with Godot. Created by <a href="about.html">Destin Jones</a>. MIT licensed. No accounts, no ads, no cookies and no tracking on this site.</p>
     </div>
     <div>
       <h2>Play</h2>
@@ -95,6 +124,7 @@ def page(filename, title, description, body, preview=False):
         <li><a href="roadmap.html">Roadmap</a></li>
         <li><a href="open-source.html">Licence, credits and mods</a></li>
         <li><a href="support.html">Crash reports</a></li>
+        <li><a href="about.html">About the creator</a></li>
       </ul>
     </div>
     <div>
@@ -108,7 +138,7 @@ def page(filename, title, description, body, preview=False):
     </div>
   </div>
 </footer>
-<script src="assets/site.js"></script>"""
+<script src="assets/site.js" defer></script>"""
     if preview:
         return head + "\n" + content + "\n"
     return f"""<!doctype html>
@@ -169,7 +199,7 @@ LIGHTBOX = """<dialog class="lightbox" aria-label="Screenshot">
 # ---------------------------------------------------------------- home
 HOME = f"""
 <section class="hero" aria-labelledby="hero-title">
-  <div class="hero-media"><img src="assets/img/clouds.webp" alt="" width="1600" height="900" fetchpriority="high"></div>
+  <div class="hero-media"><img src="assets/img/clouds.webp" srcset="assets/img/clouds-sm.webp 720w, assets/img/clouds.webp 1600w" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high"></div>
   <div class="wrap hero-body">
     <p class="eyebrow">Open source real-time strategy &middot; Godot 4.7</p>
     <h1 id="hero-title">Ironbound <span>The city builds itself.</span></h1>
@@ -749,21 +779,131 @@ NOT_FOUND = f"""
 <section><div class="wrap"><div class="shot"><img src="assets/img/sandstorm.webp" alt="A sandstorm over the desert" width="1600" height="900"></div></div></section>
 """
 
+# ---------------------------------------------------------------- about the creator
+def about_body():
+    c = CREATOR
+    bio = "".join(f"<p>{esc(x)}</p>" for x in c["bio"])
+    principles = "".join(f'<div class="card"><h3>{esc(t)}</h3><p>{esc(d)}</p></div>' for t, d in c["principles"])
+    links = " &middot; ".join(f'<a href="{esc(u)}" rel="me">{esc(n)}</a>' for n, u in c["links"])
+    return f"""
+<div class="wrap page-head">
+  <p class="eyebrow">About the creator</p>
+  <h1>{esc(c["name"])}</h1>
+  <p>{esc(c["headline"])}</p>
+</div>
+<section aria-label="Biography">
+  <div class="wrap creator">
+    <picture class="creator-photo">
+      <source srcset="assets/img/creator-sm.webp 320w, assets/img/creator.webp 640w" sizes="(max-width: 52rem) 60vw, 20rem" type="image/webp">
+      <img src="assets/img/creator.jpg" alt="{esc(c["photo_alt"])}" width="640" height="640">
+    </picture>
+    <div class="prose">
+      <p class="eyebrow">{esc(c["role"])}</p>
+      {bio}
+      <p class="small muted">Find me on {links}.</p>
+    </div>
+  </div>
+</section>
+<section aria-labelledby="how-built">
+  <div class="wrap">
+    <div class="section-head"><p class="eyebrow">The method</p><h2 id="how-built">How Ironbound is built</h2></div>
+    <div class="cards">{principles}</div>
+  </div>
+</section>
+"""
+
+
+PERSON = {
+    "@type": "Person",
+    "@id": BASE + "about.html#person",
+    "name": CREATOR["name"],
+    "url": BASE + "about.html",
+    "image": BASE + "assets/img/creator.jpg",
+    "jobTitle": CREATOR["role"],
+    "sameAs": [u for _, u in CREATOR["links"]],
+}
+WEBSITE = {"@type": "WebSite", "@id": BASE + "#website", "url": BASE, "name": "Ironbound", "inLanguage": "en", "publisher": {"@id": BASE + "about.html#person"}}
+GAME = {
+    "@type": ["VideoGame", "SoftwareApplication"],
+    "@id": BASE + "#game",
+    "name": "Ironbound",
+    "url": BASE,
+    "description": "A free, open source real-time strategy game made with Godot, where your city builds itself and you run the economy, trade and the army.",
+    "image": BASE + "assets/img/share.jpg",
+    "screenshot": [BASE + "assets/img/" + n + ".webp" for n in ("battle", "city-handover", "start-zones", "twin-isles")],
+    "genre": ["Real-time strategy", "City builder", "Strategy"],
+    "gamePlatform": ["Windows", "Linux", "macOS"],
+    "operatingSystem": "Windows 10, Linux, macOS",
+    "applicationCategory": "GameApplication",
+    "playMode": "SinglePlayer",
+    "gameEngine": "Godot Engine 4.7",
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": True,
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "downloadUrl": BASE + "download.html",
+    "author": {"@id": BASE + "about.html#person"},
+    "creator": {"@id": BASE + "about.html#person"},
+    "isBasedOn": "https://github.com/lampe-games/godot-open-rts",
+    "trailer": {
+        "@type": "VideoObject",
+        "name": "Ironbound starter city build-up",
+        "description": "Cranes and workers raise the command center at the start of a match.",
+        "thumbnailUrl": BASE + "assets/img/build-up-poster.webp",
+        "contentUrl": BASE + "assets/video/city-build-up.mp4",
+        "uploadDate": "2026-10-04",
+    },
+}
+SOURCE = {"@type": "SoftwareSourceCode", "name": "Ironbound source code", "codeRepository": REPO, "programmingLanguage": "GDScript", "license": "https://opensource.org/licenses/MIT", "author": {"@id": BASE + "about.html#person"}}
+
+
+def graph(*nodes):
+    return {"@context": "https://schema.org", "@graph": list(nodes)}
+
+
+def crumbs(filename, title):
+    return {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Ironbound", "item": BASE},
+        {"@type": "ListItem", "position": 2, "name": title, "item": BASE + filename},
+    ]}
+
+
 PAGES = [
-    ("index.html", "Ironbound", "Ironbound is a free, open source real-time strategy game where your city builds itself and you run the economy, trade and the army. Download for Windows, Linux and macOS.", HOME),
-    ("download.html", "Download", "Download Ironbound for Windows, Linux or macOS. Free, open source, no account.", DOWNLOAD),
-    ("play.html", "How to play", "The Ironbound manual: controls, constructors, supply lines, power, city tiers, trade and unit orders.", PLAY),
-    ("factions.html", "Factions", "The Foundry League and the Sandline Syndicate: two factions in Ironbound.", FACTIONS),
-    ("changelog.html", "Changelog", "What changed in Ironbound, newest first.", CHANGELOG),
-    ("roadmap.html", "Roadmap", "What is next for Ironbound.", ROADMAP),
-    ("open-source.html", "Open source", "Ironbound's licence, asset credits, modding guides and how to contribute.", OPEN),
-    ("support.html", "Crash reports", "How Ironbound crash reports work and what they contain.", SUPPORT),
-    ("community.html", "Community", "Where to find the Ironbound project.", COMMUNITY),
+    ("index.html", "Ironbound: free open source RTS where your city builds itself", "Ironbound is a free, open source real-time strategy game made with Godot. Your city builds itself; you run the mines, supply lines, trade and army. Download for Windows, Linux and macOS.", HOME),
+    ("download.html", "Download", "Download Ironbound free for Windows, Linux or macOS. Open source, no account, no installer. Checksums and first-run help for unsigned builds.", DOWNLOAD),
+    ("play.html", "How to play", "The Ironbound manual: controls, constructors, supply lines, power, city tiers, trade, diplomacy and unit orders for this Godot RTS.", PLAY),
+    ("factions.html", "Factions", "Meet the Foundry League and the Sandline Syndicate, the two factions of Ironbound: heavy industry against caravan traders.", FACTIONS),
+    ("changelog.html", "Changelog", "Every change to Ironbound, newest first, from the first fork of Open RTS to the current test build.", CHANGELOG),
+    ("roadmap.html", "Roadmap", "What comes next for Ironbound: the first public build, two factions, polish, and play in the browser.", ROADMAP),
+    ("open-source.html", "Open source, credits and mods", "Ironbound is MIT licensed. Asset credits, how to mod units, maps and resources, and how to contribute to this open source Godot RTS.", OPEN),
+    ("support.html", "Crash reports", "How Ironbound's opt-in crash reports work, what they contain, and where they are stored on your computer.", SUPPORT),
+    ("community.html", "Community", "Where to find the Ironbound project: source code, issues, pull requests and releases on GitHub.", COMMUNITY),
+    ("about.html", "About the creator, Destin Jones", "Destin Jones created Ironbound, an open source RTS built in public by vibe coding with Claude as the building partner.", about_body()),
     ("404.html", "Page not found", "This page does not exist.", NOT_FOUND),
 ]
 
 for filename, title, description, body in PAGES:
-    (OUT / filename).write_text(page(filename, title, description, body))
+    if filename == "index.html":
+        schema = graph(WEBSITE, GAME, PERSON, SOURCE)
+    elif filename == "about.html":
+        schema = graph(WEBSITE, dict(PERSON, description=" ".join(CREATOR["bio"][:1])), {"@type": "ProfilePage", "url": BASE + filename, "mainEntity": {"@id": BASE + "about.html#person"}}, crumbs(filename, "About the creator"))
+    elif filename == "404.html":
+        schema = None
+    else:
+        schema = graph(crumbs(filename, title))
+    noindex = filename == "404.html"
+    (OUT / filename).write_text(page(filename, title, description, body, schema=schema, noindex=noindex))
     if len(sys.argv) > 2 and filename == "index.html":
-        pathlib.Path(sys.argv[2]).write_text(page(filename, title, description, body, preview=True))
-print("wrote", len(PAGES), "pages")
+        pathlib.Path(sys.argv[2]).write_text(page(filename, title, description, body, preview=True, schema=schema))
+
+urls = "".join(
+    f"  <url><loc>{BASE + ('' if f == 'index.html' else f)}</loc><changefreq>weekly</changefreq><priority>{'1.0' if f == 'index.html' else '0.7'}</priority></url>\n"
+    for f, *_ in PAGES if f != "404.html"
+)
+(OUT / "sitemap.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n')
+(OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {BASE}sitemap.xml\n")
+(OUT / "assets" / "site.webmanifest").write_text(json.dumps({
+    "name": "Ironbound", "short_name": "Ironbound", "start_url": "../index.html", "display": "browser",
+    "background_color": "#14110d", "theme_color": "#14110d",
+    "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}],
+}, indent=2) + "\n")
+print("wrote", len(PAGES), "pages, sitemap.xml, robots.txt")

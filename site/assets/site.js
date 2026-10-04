@@ -67,9 +67,13 @@
 	}
 
 	if (!window.fetch) return;
-	fetch("https://api.github.com/repos/" + REPO + "/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
+	// The list endpoint answers 200 with [] when nothing is published yet, so the
+	// console stays clean before the first release.
+	fetch("https://api.github.com/repos/" + REPO + "/releases?per_page=5", { headers: { Accept: "application/vnd.github+json" } })
 		.then(function (response) { if (!response.ok) throw new Error(response.status); return response.json(); })
-		.then(function (release) {
+		.then(function (list) {
+			var release = (list || []).filter(function (r) { return !r.draft && !r.prerelease; })[0];
+			if (!release) throw new Error("no release");
 			var date = (release.published_at || "").slice(0, 10);
 			if (line) line.textContent = release.name || release.tag_name + (date ? " · " + date : "");
 			(release.assets || []).forEach(function (asset) {
