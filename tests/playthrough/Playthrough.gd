@@ -10,7 +10,9 @@ extends Node
 #     --ai=balanced,raider --minutes=25 --out=/tmp/play
 #
 # The match is started from the real Play menu. Writes report.json and report.txt to
-# --out and exits with code 1 when it found problems.
+# --out and exits with code 1 when it found problems. A crash, freeze or error storm also
+# leaves crash_report.txt/json in --out (see source/crash/CrashReporter.gd); after a hard
+# crash it appears there on the next Godot launch, or run tools/crash/Collect.tscn.
 
 const Human = preload("res://source/match/players/human/Human.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
@@ -115,6 +117,8 @@ func _ready():
 	Engine.max_physics_steps_per_frame = int(_args["steps"])
 	DirAccess.make_dir_recursive_absolute(_args["out"])
 	OS.add_logger(_logger)
+	# a frozen match writes a crash report (copied to --out) and ends the run after 3 minutes
+	CrashReporter.set_hang_exit(180.0)
 	MatchSignals.match_finished_with_victory.connect(func(): _result = "victory")
 	MatchSignals.match_finished_with_defeat.connect(func(): _result = "defeat")
 	_say("start map=%s ai=%s minutes=%s" % [_args["map"], _args["ai"], _args["minutes"]])
@@ -759,33 +763,24 @@ func _log_economy():
 			}
 		)
 	_timeline.append(line)
-	_say(
-		(
-			"t=%d fps=%.1f %s"
-			% [
-				line["t"],
-				line["fps"],
-				" | ".join(
-					line["players"].map(
-						func(p):
-							return (
-								"P%d %s T%d sci=%s pop=%s u=%d s=%d x=%d %s"
-								% [
-									p["p"],
-									p["ai"],
-									p["tier"],
-									p["science"],
-									p["pop"],
-									p["units"],
-									p["structures"],
-									p["extractors"],
-									p["stock"]
-								]
-							)
-					)
-				)
-			]
-		)
+	var summaries = line["players"].map(_player_summary)
+	_say("t=%d fps=%.1f %s" % [line["t"], line["fps"], " | ".join(summaries)])
+
+
+func _player_summary(p):
+	return (
+		"P%d %s T%d sci=%s pop=%s u=%d s=%d x=%d %s"
+		% [
+			p["p"],
+			p["ai"],
+			p["tier"],
+			p["science"],
+			p["pop"],
+			p["units"],
+			p["structures"],
+			p["extractors"],
+			p["stock"]
+		]
 	)
 
 
@@ -1149,6 +1144,9 @@ func _finish():
 	if _finished:
 		return
 	_finished = true
+	var crash_report = CrashReporter.own_report()
+	if crash_report != null:
+		_finding("crash reporter", "%s, see crash_report.txt" % crash_report["kind"])
 	var report = {
 		"args": _args,
 		"result": _result,
