@@ -35,6 +35,7 @@ from contextlib import contextmanager
 import bpy  # noqa: I001  (bpy must be imported before bmesh/mathutils)
 import bmesh
 from mathutils import Euler, Matrix, Vector, noise
+from mathutils.bvhtree import BVHTree
 
 # --------------------------------------------------------------------------
 # Paths / options
@@ -146,7 +147,7 @@ PALETTE = {
     "HazardBlack":     ((0.10, 0.10, 0.10), 0.7, 0.0, False),
     "Rubber":          ((0.09, 0.09, 0.09), 0.9, 0.0, False),
     "Track":           ((0.17, 0.16, 0.15), 0.8, 0.0, False),
-    "Glass":           ((0.16, 0.24, 0.30), 0.15, 0.0, False),
+    "Glass":           ((0.07, 0.10, 0.13), 0.3, 0.0, False),
     "Lamp":            ((1.00, 0.92, 0.65), 0.4, 0.0, False),
     "Wood":            ((0.60, 0.43, 0.25), 0.85, 0.0, False),
     "WoodDark":        ((0.40, 0.28, 0.17), 0.85, 0.0, False),
@@ -175,7 +176,64 @@ PALETTE = {
     "Helipad":         ((0.30, 0.31, 0.32), 0.9, 0.0, False),
     "Gold":            ((0.86, 0.66, 0.26), 0.35, 0.6, False),
     "Flame":           ((1.00, 0.55, 0.10), 0.6, 0.0, False),
+    # --- vehicle and structure art (high contrast against the sand) ---
+    "HullOlive":       ((0.36, 0.41, 0.22), 0.7, 0.0, False),
+    "HullOliveDark":   ((0.23, 0.27, 0.15), 0.7, 0.0, False),
+    "Graphite":        ((0.21, 0.23, 0.26), 0.5, 0.3, False),
+    "Ochre":           ((0.72, 0.50, 0.20), 0.7, 0.0, False),
+    "OchreDark":       ((0.48, 0.32, 0.13), 0.7, 0.0, False),
+    "Burgundy":        ((0.50, 0.12, 0.13), 0.55, 0.0, False),
+    "DesertRed":       ((0.62, 0.24, 0.14), 0.65, 0.0, False),
+    "Amber":           ((0.95, 0.62, 0.07), 0.6, 0.0, False),
+    "Container":       ((0.16, 0.40, 0.48), 0.6, 0.2, False),
+    "ContainerDark":   ((0.10, 0.27, 0.33), 0.6, 0.2, False),
+    "SteelBlue":       ((0.28, 0.36, 0.44), 0.55, 0.3, False),
+    "Metal":           ((0.58, 0.59, 0.60), 0.35, 0.7, False),
+    "Tread":           ((0.12, 0.11, 0.11), 0.85, 0.0, False),
+    "TubeFrame":       ((0.14, 0.14, 0.15), 0.4, 0.6, False),
+    "Missile":         ((0.88, 0.88, 0.84), 0.5, 0.0, False),
+    "Warhead":         ((0.80, 0.18, 0.12), 0.5, 0.0, False),
+    "Ammo":            ((0.32, 0.34, 0.20), 0.8, 0.0, False),
+    "Jerrycan":        ((0.30, 0.38, 0.18), 0.7, 0.0, False),
+    "RotorDisc":       ((0.18, 0.18, 0.19), 0.6, 0.0, True),
+    "Fatigue":         ((0.55, 0.48, 0.32), 0.85, 0.0, False),
+    "FatigueDark":     ((0.38, 0.34, 0.22), 0.85, 0.0, False),
+    "Skin":            ((0.70, 0.50, 0.36), 0.8, 0.0, False),
+    "TailLight":       ((0.90, 0.10, 0.06), 0.4, 0.0, False),
+    "Glow":            ((0.30, 0.90, 1.00), 0.4, 0.0, False),
+    "WindowLit":       ((1.00, 0.80, 0.45), 0.4, 0.0, False),
+    "Plinth":          ((0.30, 0.30, 0.31), 0.9, 0.0, False),
+    "Paving":          ((0.62, 0.55, 0.45), 0.9, 0.0, False),
+    "WallConcrete":    ((0.60, 0.59, 0.56), 0.85, 0.0, False),
+    "WallDark":        ((0.38, 0.38, 0.37), 0.85, 0.0, False),
+    "RoofSlate":       ((0.24, 0.25, 0.27), 0.7, 0.0, False),
+    "RoofFlat":        ((0.45, 0.42, 0.38), 0.9, 0.0, False),
+    "RoofMetal":       ((0.52, 0.54, 0.55), 0.5, 0.4, False),
+    "RoofMetalDark":   ((0.36, 0.38, 0.39), 0.5, 0.4, False),
+    "SteelBlueDark":   ((0.18, 0.24, 0.30), 0.55, 0.3, False),
+    "BrickRed":        ((0.56, 0.25, 0.17), 0.85, 0.0, False),
+    "BrickDark":       ((0.36, 0.17, 0.12), 0.85, 0.0, False),
+    "RustRed":         ((0.62, 0.20, 0.12), 0.7, 0.2, False),
+    "DoorDark":        ((0.16, 0.17, 0.18), 0.6, 0.2, False),
+    "DoorSlat":        ((0.30, 0.31, 0.32), 0.6, 0.2, False),
+    "DoorBlue":        ((0.15, 0.36, 0.55), 0.7, 0.0, False),
+    "DoorGreen":       ((0.16, 0.44, 0.34), 0.7, 0.0, False),
+    "LineWhite":       ((0.92, 0.92, 0.88), 0.8, 0.0, False),
+    "LineYellow":      ((0.96, 0.76, 0.12), 0.8, 0.0, False),
+    "Insulator":       ((0.45, 0.62, 0.55), 0.3, 0.0, False),
+    "Steam":           ((0.95, 0.95, 0.95), 0.9, 0.0, False),
+    "SolarCell":       ((0.08, 0.14, 0.32), 0.2, 0.3, False),
+    "SolarCellLight":  ((0.12, 0.22, 0.45), 0.2, 0.3, False),
+    "OreHeap":         ((0.42, 0.30, 0.24), 0.95, 0.0, False),
+    "Plank":           ((0.78, 0.62, 0.40), 0.85, 0.0, False),
+    "Plaster":         ((0.84, 0.74, 0.60), 0.9, 0.0, False),
+    "PlasterDark":     ((0.62, 0.50, 0.38), 0.9, 0.0, False),
+    "PlasterWarm":     ((0.82, 0.62, 0.44), 0.9, 0.0, False),
+    "PlasterWarmDark": ((0.58, 0.40, 0.27), 0.9, 0.0, False),
 }
+
+# emissive strength per material (glTF emissive, picked up by Godot's glow)
+EMISSIVE = {"Lamp": 1.2, "TailLight": 1.5, "Glow": 2.5, "WindowLit": 0.9}
 
 
 def get_mat(name):
@@ -194,6 +252,9 @@ def get_mat(name):
     m.roughness = rough
     m.metallic = metal
     m.use_backface_culling = not double
+    if name in EMISSIVE:
+        bsdf.inputs["Emission Color"].default_value = (*lin, 1.0)
+        bsdf.inputs["Emission Strength"].default_value = EMISSIVE[name]
     return m
 
 
@@ -515,6 +576,115 @@ class Model:
                 ob.location = p.origin
         return objs
 
+
+
+# --------------------------------------------------------------------------
+# Finishing pass: bevelled edges and baked ambient occlusion
+# --------------------------------------------------------------------------
+# Units and buildings get a narrow bevel on every hard edge, so edges catch the
+# light and silhouettes read at game zoom, and ambient occlusion baked into the
+# COLOR_0 vertex colours (Godot multiplies the albedo by it), so crevices, the
+# ground contact and the undersides darken. Values are linear multipliers.
+
+FINISH = {
+    "units": {"bevel": 0.012, "ao_dist": 0.3, "ao_min": 0.38, "ground_h": 0.22,
+              "ground_dark": 0.72},
+    "buildings": {"bevel": 0.022, "ao_dist": 0.7, "ao_min": 0.42, "ground_h": 0.5,
+                  "ground_dark": 0.75},
+}
+AO_RAYS = 20
+
+
+def _hemisphere_dirs(count):
+    """Cosine-weighted directions around +Z (deterministic)."""
+    dirs = []
+    golden = math.pi * (3.0 - math.sqrt(5.0))
+    for i in range(count):
+        u = (i + 0.5) / count
+        r = math.sqrt(u)
+        a = golden * i
+        dirs.append(Vector((r * math.cos(a), r * math.sin(a), math.sqrt(max(0.0, 1 - u)))))
+    return dirs
+
+
+def _bevel(ob, width):
+    mod = ob.modifiers.new("Bevel", "BEVEL")
+    mod.width = width
+    mod.segments = 1
+    mod.limit_method = "ANGLE"
+    mod.angle_limit = math.radians(35)
+    mod.use_clamp_overlap = True
+    mod.miter_outer = "MITER_ARC"
+
+
+def finish_objects(objs, category):
+    cfg = FINISH.get(category)
+    if cfg is None:
+        return
+    for ob in objs.values():
+        _bevel(ob, cfg["bevel"])
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    for ob in objs.values():
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        old = ob.data
+        ob.modifiers.clear()
+        ob.data = me
+        name = old.name
+        bpy.data.meshes.remove(old)
+        me.name = name
+    bpy.context.view_layer.update()
+    # occluders: every part in world space plus a ground plane
+    verts, polys = [], []
+    for ob in objs.values():
+        mw = ob.matrix_world
+        base = len(verts)
+        verts += [mw @ v.co for v in ob.data.vertices]
+        polys += [[base + i for i in p.vertices] for p in ob.data.polygons]
+    base = len(verts)
+    g = 60.0
+    verts += [Vector((-g, -g, -0.001)), Vector((g, -g, -0.001)), Vector((g, g, -0.001)),
+              Vector((-g, g, -0.001))]
+    polys.append([base, base + 1, base + 2, base + 3])
+    bvh = BVHTree.FromPolygons(verts, polys)
+    dirs = _hemisphere_dirs(AO_RAYS)
+    maxd = cfg["ao_dist"]
+    for ob in objs.values():
+        me = ob.data
+        mw = ob.matrix_world
+        nm = mw.to_3x3().inverted().transposed()
+        attr = me.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
+        cache = {}
+        for poly in me.polygons:
+            n = (nm @ poly.normal).normalized()
+            t = n.orthogonal().normalized()
+            b = n.cross(t)
+            for li in poly.loop_indices:
+                vi = me.loops[li].vertex_index
+                key = (vi, round(n.x, 2), round(n.y, 2), round(n.z, 2))
+                c = cache.get(key)
+                if c is None:
+                    p = mw @ me.vertices[vi].co
+                    # pull the sample point slightly into the face so the rays
+                    # do not start exactly on shared edges
+                    centre = mw @ poly.center
+                    p = p + (centre - p) * 0.02 + n * 0.002
+                    occ = 0.0
+                    for d in dirs:
+                        w = t * d.x + b * d.y + n * d.z
+                        hit = bvh.ray_cast(p, w, maxd)
+                        if hit[0] is not None:
+                            occ += 1.0 - (hit[3] / maxd) ** 1.5
+                    ao = 1.0 - occ / len(dirs)
+                    ao = cfg["ao_min"] + (1.0 - cfg["ao_min"]) * ao
+                    h = min(max(p.z / cfg["ground_h"], 0.0), 1.0)
+                    h = h * h * (3 - 2 * h)
+                    ao *= cfg["ground_dark"] + (1.0 - cfg["ground_dark"]) * h
+                    c = (ao, ao, ao, 1.0)
+                    cache[key] = c
+                attr.data[li].color = c
+        me.color_attributes.active_color = attr
+        me.color_attributes.render_color_index = 0
 
 # --------------------------------------------------------------------------
 # Registry
@@ -1071,411 +1241,700 @@ def timber_stack(M, depleted):
 # ==========================================================================
 # UNITS  (front = +Y)
 # ==========================================================================
+# Readability rules for the game camera (orthographic, 30 degrees down, a unit is
+# 60-120 px tall at play zoom): dark, saturated hulls that stand out from the
+# sand, big team-coloured plates on the surfaces seen from above, chunky
+# silhouettes with one or two signature shapes per unit, and fine detail only
+# as dark accents. Every model is built at its in-game size (model_scale 1).
 
-def cab_mat(body, roof="TeamColor"):
-    def fn(c, n):
+
+def hazard(c, n, size=0.09):
+    return "HazardBlack" if int(math.floor((c.x + c.y + c.z) / size)) % 2 else "SafetyYellow"
+
+
+def plate_mat(top, side, bottom=None, thr=0.7):
+    return by_normal(top, side, bottom or side, thr=thr)
+
+
+def lamp_pair(P, x, y, z, size=(0.07, 0.03, 0.045), m="Lamp"):
+    for sx in (-1, 1):
+        P.box(size, loc=(sx * x, y, z), m=m)
+
+
+def road_track(P, x, length, width, height, wheels=5, skirt=None, skirt_team=False,
+               skirt_h=0.12):
+    """Tank track along Y centred at x: belt with sprocket/idler bulges, road
+    wheels on the outer face and an optional armoured skirt on top."""
+    L, h = length / 2, height
+    b = h * 0.5
+    prof = [(-L + b, 0.0), (L - b, 0.0), (L - b * 0.2, h * 0.38), (L, h * 0.62),
+            (L - b * 0.45, h), (-L + b * 0.45, h), (-L, h * 0.62), (-L + b * 0.2, h * 0.38)]
+    P.extrude_x(prof, x - width / 2, x + width / 2, m="Tread")
+    side = 1 if x >= 0 else -1
+    wr = h * 0.36
+    face = x + side * width / 2
+    for i in range(wheels):
+        y = -L + b * 0.9 + (2 * L - 1.8 * b) * i / max(wheels - 1, 1)
+        P.cyl(wr, 0.03, loc=(face + side * 0.012, y, wr + 0.02), rot=(0, 90, 0),
+              m="Metal", n=8, base=False)
+        P.cyl(wr * 0.45, 0.04, loc=(face + side * 0.02, y, wr + 0.02), rot=(0, 90, 0),
+              m="DarkMetal", n=6, base=False)
+    # drive sprocket (rear) and idler (front)
+    for y, r in ((-L + b * 0.55, h * 0.3), (L - b * 0.55, h * 0.26)):
+        P.cyl(r, 0.035, loc=(face + side * 0.015, y, h * 0.6), rot=(0, 90, 0), m="Metal",
+              n=8, base=False)
+    if skirt:
+        sk = skirt
+        P.box((width * 1.12, length * 0.94, skirt_h), loc=(x + side * 0.01, -0.01, h - 0.02),
+              base=True, m=sk)
+        if skirt_team:
+            P.box((width * 1.14, length * 0.9, 0.02), loc=(x + side * 0.01, -0.01,
+                                                          h - 0.02 + skirt_h),
+                  base=True, m="TeamColor")
+
+
+def tire(P, x, y, r, w, z=None, rim="Metal"):
+    """Chunky tyre with axis along X, centred at (x, y, z)."""
+    z = r if z is None else z
+    side = 1 if x >= 0 else -1
+    P.cyl(r, w, loc=(x, y, z), rot=(0, 90, 0), m="Rubber", n=10, base=False)
+    P.cyl(r * 0.78, w * 0.7, loc=(x, y, z), rot=(0, 90, 0), m="Tread", n=10, base=False)
+    P.cyl(r * 0.5, w * 1.08, loc=(x, y, z), rot=(0, 90, 0), m=rim, n=6, base=False)
+    P.cyl(r * 0.18, w * 1.2, loc=(x + side * 0.002, y, z), rot=(0, 90, 0), m="DarkMetal",
+          n=6, base=False)
+
+
+def cab(P, y0, y1, w, z0, h, body, roof="TeamColor", slope=0.12):
+    """Cab-over truck cab from y0 (back) to y1 (front) on z0."""
+    lower = h * 0.45
+    P.box((w, y1 - y0, lower), loc=(0, (y0 + y1) / 2, z0), base=True, m=body)
+    prof = [(y0, z0 + lower), (y1, z0 + lower), (y1 - slope, z0 + h), (y0, z0 + h)]
+
+    def m(c, n):
         if n.z > 0.85:
             return roof
-        if n.y > 0.3 and n.z > 0.15:
+        if n.y > 0.25:
             return "Glass"
         return body
-    return fn
-
-
-def truck_cab(P, y0, y1, w, z0, body, roof="TeamColor"):
-    """Cab-over truck cab occupying y0..y1, standing on z0."""
-    P.box((w, y1 - y0, 0.24), loc=(0, (y0 + y1) / 2, z0), base=True, m=body)
-    P.extrude_x([(y0, z0 + 0.24), (y1, z0 + 0.24), (y1 - 0.1, z0 + 0.46), (y0, z0 + 0.46)],
-                -w / 2 * 0.96, w / 2 * 0.96, m=cab_mat(body, roof))
+    P.extrude_x(prof, -w / 2, w / 2, m=m)
     for sx in (-1, 1):
-        P.box((0.02, (y1 - y0) * 0.45, 0.13), loc=(sx * w / 2 * 0.96, y1 - (y1 - y0) * 0.38,
-                                                   z0 + 0.34), m="Glass")
-        P.box((0.04, 0.03, 0.08), loc=(sx * (w / 2 + 0.03), y1 - 0.08, z0 + 0.38),
+        # side windows, mirrors
+        P.box((0.012, (y1 - y0) * 0.42, h * 0.3),
+              loc=(sx * (w / 2 + 0.004), y1 - (y1 - y0) * 0.36, z0 + lower + h * 0.25),
+              m="Glass")
+        P.box((0.03, 0.025, 0.09), loc=(sx * (w / 2 + 0.04), y1 - 0.05, z0 + lower + 0.12),
               m="DarkMetal")
-    P.box((w * 1.02, 0.06, 0.08), loc=(0, y1 + 0.02, z0 + 0.02), m="DarkMetal")  # bumper
-    P.box((w * 0.5, 0.02, 0.1), loc=(0, y1 + 0.005, z0 + 0.14), m="DarkMetal")   # grille
-    for sx in (-1, 1):
-        P.box((0.08, 0.02, 0.05), loc=(sx * w * 0.36, y1 + 0.005, z0 + 0.14), m="Lamp")
+        P.beam((sx * w / 2, y1 - 0.05, z0 + lower + 0.1),
+               (sx * (w / 2 + 0.04), y1 - 0.05, z0 + lower + 0.1), 0.012, m="DarkMetal")
+    P.box((w * 1.04, 0.07, 0.08), loc=(0, y1 + 0.025, z0 + 0.03), m="DarkMetal")  # bumper
+    P.box((w * 0.56, 0.02, lower * 0.5), loc=(0, y1 + 0.006, z0 + lower * 0.5),
+          m="DarkMetal")  # grille
+    lamp_pair(P, w * 0.37, y1 + 0.008, z0 + lower * 0.55, size=(0.08, 0.02, 0.05))
+    P.box((w * 0.7, (y1 - y0) * 0.4, 0.03), loc=(0, (y0 + y1) / 2 - 0.02, z0 + h),
+          base=True, m="DarkMetal")  # roof rack
+    P.box((0.06, 0.06, 0.04), loc=(w * 0.25, y0 + 0.08, z0 + h + 0.02), base=True,
+          m="Lamp")  # beacon
 
 
-def six_wheels(P, axles, track, r=0.14, w=0.12):
-    for y in axles:
-        for sx in (-1, 1):
-            wheel(P, sx * track, y, r, w)
+def chassis(P, y0, y1, w, z, h=0.08):
+    P.box((w, y1 - y0, h), loc=(0, (y0 + y1) / 2, z), base=True, m="DarkMetal")
 
+
+def mud_guard(P, x, y, r, w, m):
+    P.box((w * 1.2, r * 2.2, 0.025), loc=(x, y, r * 2 + 0.02), base=True, m=m)
+
+
+def antenna(P, x, y, z, h=0.35):
+    P.cyl(0.015, 0.04, loc=(x, y, z), m="DarkMetal", n=5)
+    P.cyl(0.006, h, loc=(x, y, z + 0.03), m="DarkMetal", n=4)
+
+
+# ---- trucks --------------------------------------------------------------
 
 @register("units", "hauler")
 def hauler(M):
+    """Supply truck: the hauler carries goods between extractors and depots."""
     P = M.main
-    six_wheels(P, (0.47, -0.22, -0.5), 0.3)
-    P.box((0.4, 1.38, 0.09), loc=(0, -0.02, 0.2), m="Gunmetal")
-    truck_cab(P, 0.26, 0.72, 0.68, 0.18, "Khaki")
+    r, tw = 0.13, 0.11
+    for y in (0.4, -0.2, -0.44):
+        for sx in (-1, 1):
+            tire(P, sx * 0.27, y, r, tw)
+    chassis(P, -0.6, 0.55, 0.36, 0.12)
+    cab(P, 0.22, 0.6, 0.62, 0.16, 0.44, "Ochre")
     for sx in (-1, 1):
-        P.box((0.15, 0.3, 0.03), loc=(sx * 0.3, 0.47, 0.3), m="Khaki")  # front fender
-    P.cyl(0.025, 0.36, loc=(0.24, 0.22, 0.38), m="DarkMetal", n=6)
-    # cargo bed
-    P.box((0.72, 0.98, 0.07), loc=(0, -0.24, 0.28), base=True, m="WoodDark")
+        mud_guard(P, sx * 0.27, 0.4, r, tw, "Ochre")
+    P.cyl(0.03, 0.34, loc=(-0.26, 0.17, 0.3), m="DarkMetal", n=6)  # exhaust stack
+    # cargo bed with drop sides
+    P.box((0.66, 0.84, 0.06), loc=(0, -0.21, 0.26), base=True, m="WoodDark")
     for sx in (-1, 1):
-        P.box((0.04, 0.98, 0.15), loc=(sx * 0.34, -0.24, 0.35), base=True, m="Khaki")
-        P.box((0.07, 0.98, 0.025), loc=(sx * 0.34, -0.24, 0.5), base=True, m="TeamColor")
-    P.box((0.72, 0.04, 0.15), loc=(0, -0.71, 0.35), base=True, m="Khaki")
-    P.box((0.72, 0.04, 0.22), loc=(0, 0.23, 0.35), base=True, m="Khaki")
-    crates = [(-0.15, -0.05, 0.27, 0.25, "Wood"), (0.15, -0.08, 0.24, 0.22, "WoodDark"),
-              (-0.14, -0.42, 0.26, 0.24, "WoodDark"), (0.15, -0.44, 0.25, 0.26, "Wood"),
-              (0.0, -0.25, 0.22, 0.2, "Canvas")]
-    for i, (x, y, s, h, m) in enumerate(crates):
-        z = 0.35 if i < 4 else 0.35 + 0.25
-        P.box((s, s, h), loc=(x, y, z), base=True, rot=(0, 0, (i * 13) % 20 - 10),
-              m=lambda c, n, m=m: "WoodDark" if abs(n.z) < 0.5 and m == "Wood" else m)
-    P.box((0.6, 0.04, 0.05), loc=(0, -0.74, 0.27), m="DarkMetal")
+        P.box((0.035, 0.84, 0.13), loc=(sx * 0.315, -0.21, 0.32), base=True, m="Ochre")
+        for k in range(4):
+            P.box((0.04, 0.03, 0.14), loc=(sx * 0.32, -0.58 + k * 0.245, 0.32), base=True,
+                  m="OchreDark")
+    P.box((0.66, 0.035, 0.13), loc=(0, -0.62, 0.32), base=True, m="Ochre")
+    P.box((0.66, 0.04, 0.28), loc=(0, 0.2, 0.32), base=True, m="OchreDark")  # headboard
+    # load: crates, barrels and a team-coloured tarp over the front stack
+    P.box((0.5, 0.36, 0.2), loc=(0, -0.05, 0.32), base=True, m="Wood")
+    P.prism([(-0.27, -0.2), (0.27, -0.2), (0.27, 0.2), (-0.27, 0.2)], 0.1,
+            loc=(0, -0.05, 0.52), top_scale=(0.7, 0.85), m="TeamColor")
+    for x, y in ((-0.16, -0.42), (0.0, -0.44), (0.16, -0.42)):
+        P.cyl(0.07, 0.2, loc=(x, y, 0.32), m="SteelBlue", n=8)
+        P.cyl(0.072, 0.02, loc=(x, y, 0.42), m="DarkMetal", n=8)
+    P.box((0.56, 0.04, 0.05), loc=(0, -0.64, 0.2), m="DarkMetal")
+    lamp_pair(P, 0.24, -0.665, 0.22, size=(0.06, 0.02, 0.04), m="TailLight")
+
+
+@register("units", "trade_truck")
+def trade_truck(M):
+    """Trade caravan: semi truck with a ribbed shipping container."""
+    P = M.main
+    r, tw = 0.13, 0.11
+    for y in (0.48, 0.2, -0.38, -0.6):
+        for sx in (-1, 1):
+            tire(P, sx * 0.28, y, r, tw)
+    chassis(P, -0.75, 0.66, 0.36, 0.12)
+    cab(P, 0.28, 0.7, 0.64, 0.16, 0.46, "Burgundy")
     for sx in (-1, 1):
-        P.box((0.06, 0.02, 0.04), loc=(sx * 0.27, -0.75, 0.3), m="RedPaint")
+        mud_guard(P, sx * 0.28, 0.48, r, tw, "Burgundy")
+        P.cyl(0.035, 0.42, loc=(sx * 0.27, 0.24, 0.28), m="Metal", n=6)  # chrome stacks
+        P.cyl(0.075, 0.24, loc=(sx * 0.25, 0.08, 0.2), rot=(90, 0, 0), m="Metal",
+              n=8, base=False)  # fuel tanks
+    # container with corrugated (ribbed) long sides
+    P.box((0.64, 1.0, 0.44), loc=(0, -0.25, 0.3), base=True,
+          m=plate_mat("TeamColor", "Container"))
+    for sx in (-1, 1):
+        for k in range(9):
+            P.box((0.02, 0.05, 0.4), loc=(sx * 0.325, -0.69 + k * 0.111, 0.32), base=True,
+                  m="ContainerDark")
+    for y in (-0.745, 0.245):
+        P.box((0.68, 0.03, 0.46), loc=(0, y, 0.29), base=True, m="ContainerDark")
+    for sx in (-1, 1):  # door bars at the back
+        P.box((0.02, 0.012, 0.4), loc=(sx * 0.1, -0.765, 0.31), base=True, m="Metal")
+    P.box((0.6, 0.04, 0.05), loc=(0, -0.78, 0.2), m="DarkMetal")
+    lamp_pair(P, 0.26, -0.8, 0.22, size=(0.06, 0.02, 0.04), m="TailLight")
 
 
 @register("units", "tanker_truck")
 def tanker_truck(M):
+    """Fuel tanker (kept for mods; the trade caravan uses trade_truck)."""
     P = M.main
-    six_wheels(P, (0.47, -0.22, -0.5), 0.3)
-    P.box((0.4, 1.38, 0.09), loc=(0, -0.02, 0.2), m="Gunmetal")
-    truck_cab(P, 0.26, 0.72, 0.68, 0.18, "SandPaint")
+    r, tw = 0.13, 0.11
+    for y in (0.4, -0.22, -0.48):
+        for sx in (-1, 1):
+            tire(P, sx * 0.27, y, r, tw)
+    chassis(P, -0.66, 0.55, 0.36, 0.12)
+    cab(P, 0.22, 0.6, 0.62, 0.16, 0.44, "HullOlive")
     for sx in (-1, 1):
-        P.box((0.15, 0.3, 0.03), loc=(sx * 0.3, 0.47, 0.3), m="SandPaint")
-    P.cyl(0.025, 0.36, loc=(-0.24, 0.22, 0.38), m="DarkMetal", n=6)
-    tank_prof = [(0.0, 0.0), (0.18, 0.005), (0.27, 0.05), (0.29, 0.12), (0.29, 0.83),
-                 (0.27, 0.9), (0.18, 0.945), (0.0, 0.95)]
-    with P.at(loc=(0, -0.74, 0.55), rot=(-90, 0, 0)):
-        P.lathe(tank_prof, m="Steel", n=12, phase=0)
-        P.lathe([(0.3, 0.38), (0.3, 0.56)], m="TeamColor", n=12, phase=0)
-        P.lathe([(0.3, 0.12), (0.3, 0.17)], m="Gunmetal", n=12, phase=0)
-        P.lathe([(0.3, 0.78), (0.3, 0.83)], m="Gunmetal", n=12, phase=0)
-    P.box((0.12, 0.8, 0.03), loc=(0, -0.3, 0.85), m="DarkMetal")
-    P.cyl(0.07, 0.05, loc=(0, -0.3, 0.84), m="Gunmetal", n=8)
-    for x in (-0.2, 0.2):
-        P.box((0.05, 0.05, 0.3), loc=(x, 0.21, 0.28), base=True, m="Gunmetal")
-    P.cyl(0.04, 0.12, loc=(0.12, -0.78, 0.36), rot=(90, 0, 0), m="DarkMetal", n=6)
-    P.box((0.6, 0.04, 0.05), loc=(0, -0.78, 0.27), m="DarkMetal")
+        mud_guard(P, sx * 0.27, 0.4, r, tw, "HullOlive")
+    with P.at(loc=(0, -0.66, 0.5), rot=(-90, 0, 0)):
+        prof = [(0.0, 0.0), (0.2, 0.0), (0.27, 0.05), (0.27, 0.8), (0.2, 0.85), (0.0, 0.85)]
+        P.lathe(prof, m="Metal", n=12, phase=0)
+        P.lathe([(0.275, 0.34), (0.275, 0.5)], m="TeamColor", n=12, phase=0)
+    P.box((0.1, 0.7, 0.03), loc=(0, -0.24, 0.77), m="DarkMetal")
 
 
 @register("units", "artillery_truck")
 def artillery_truck(M):
+    """Rocket artillery: six-wheeler with a raised launcher pod."""
     P = M.main
-    six_wheels(P, (0.5, -0.2, -0.5), 0.3)
-    P.box((0.42, 1.42, 0.09), loc=(0, -0.02, 0.2), m="Gunmetal")
-    truck_cab(P, 0.3, 0.76, 0.68, 0.18, "Olive", roof="TeamColor")
+    r, tw = 0.14, 0.12
+    for y in (0.5, -0.12, -0.42):
+        for sx in (-1, 1):
+            tire(P, sx * 0.3, y, r, tw)
+    chassis(P, -0.66, 0.66, 0.4, 0.13)
+    cab(P, 0.3, 0.72, 0.68, 0.18, 0.46, "HullOlive")
     for sx in (-1, 1):
-        P.box((0.15, 0.3, 0.03), loc=(sx * 0.3, 0.5, 0.3), m="Olive")
-    P.box((0.7, 1.0, 0.07), loc=(0, -0.22, 0.27), base=True, m="OliveDark")
-    for sx in (-1, 1):  # stabiliser jacks
-        P.box((0.05, 0.05, 0.25), loc=(sx * 0.37, -0.68, 0.06), base=True, m="SafetyYellow")
-    P.cyl(0.24, 0.07, loc=(0, -0.3, 0.34), m="Gunmetal", n=10)
-    P.box((0.3, 0.3, 0.16), loc=(0, -0.3, 0.41), base=True, m="Olive")
-    with P.at(loc=(0, -0.25, 0.6), rot=(22, 0, 0)):
-        top = by_normal("TeamColor", "Olive", "OliveDark", thr=0.8)
-        P.box((0.56, 0.78, 0.3), loc=(0, 0.0, 0.0), m=top)
+        mud_guard(P, sx * 0.3, 0.5, r, tw, "HullOlive")
+        P.box((0.05, 0.05, 0.2), loc=(sx * 0.37, -0.62, 0.02), base=True, m=hazard)  # jacks
+        P.box((0.1, 0.1, 0.02), loc=(sx * 0.37, -0.62, 0.0), base=True, m="DarkMetal")
+    P.box((0.7, 0.92, 0.08), loc=(0, -0.22, 0.27), base=True, m="HullOliveDark")
+    P.cyl(0.22, 0.08, loc=(0, -0.3, 0.35), m="DarkMetal", n=12)  # turntable
+    P.box((0.3, 0.34, 0.12), loc=(0, -0.3, 0.43), base=True, m="HullOlive")
+    with P.at(loc=(0, -0.28, 0.66), rot=(24, 0, 0)):
+        P.box((0.62, 0.86, 0.3), m=plate_mat("TeamColor", "HullOlive", "HullOliveDark",
+                                             thr=0.8))
         for i in range(4):
             for j in range(2):
-                P.cyl(0.045, 0.02, loc=(-0.195 + i * 0.13, 0.39, -0.065 + j * 0.13),
-                      rot=(-90, 0, 0), m="DarkMetal", n=6)
-        P.box((0.58, 0.05, 0.32), loc=(0, -0.3, 0), m="OliveDark")
-    for sx in (-1, 1):
-        P.beam((sx * 0.12, -0.3, 0.48), (sx * 0.12, -0.05, 0.52), 0.05, m="Gunmetal")
-
-
-def tank_hull(P, L, W, track_w, track_h, hull_m, deck_h, front_slope=0.22):
-    """Tracks + lower hull + deck. Returns deck top height."""
-    tx = W / 2 - track_w / 2
-    for sx in (-1, 1):
-        track_unit(P, sx * tx, L, track_w, track_h)
-    hw = W / 2 - track_w + 0.02
-    P.extrude_x([(-L / 2 + 0.04, 0.1), (L / 2 - 0.1, 0.1), (L / 2, track_h),
-                 (-L / 2 + 0.02, track_h)], -hw, hw, m=hull_m)
-    zt = track_h + deck_h
-    P.extrude_x([(-L / 2, track_h), (L / 2, track_h), (L / 2 + 0.02, track_h + 0.03),
-                 (L / 2 - front_slope, zt), (-L / 2 + 0.04, zt), (-L / 2, zt - 0.06)],
-                -W / 2, W / 2, m=hull_m)
-    return zt
-
-
-@register("units", "tank_light")
-def tank_light(M):
-    P = M.main
-    L, W = 1.2, 0.78
-    zt = tank_hull(P, L, W, 0.2, 0.28, "SandPaint", 0.13)
-    for sx in (-1, 1):
-        P.box((0.09, 0.66, 0.02), loc=(sx * 0.31, -0.06, zt), base=True, m="TeamColor")
-        P.box((0.07, 0.05, 0.04), loc=(sx * 0.22, L / 2 - 0.12, zt - 0.02), m="Lamp")
-    P.box((0.3, 0.18, 0.05), loc=(0, -0.44, zt), base=True, m="DarkMetal")
-    for sx in (-1, 1):
-        P.cyl(0.03, 0.08, loc=(sx * 0.2, -0.6, zt - 0.06), rot=(90, 0, 0), m="DarkMetal",
-              n=6)
-    T = M.part("Turret", origin=(0, -0.04, zt))
-    with T.at(loc=(0, -0.04, zt)):
-        T.prism([(-0.2, -0.22), (0.2, -0.22), (0.25, -0.02), (0.15, 0.2), (-0.15, 0.2),
-                 (-0.25, -0.02)], 0.16, top_scale=0.82,
-                m=by_normal("TeamColor", "SandPaint", thr=0.8))
-        T.box((0.16, 0.08, 0.1), loc=(0, 0.2, 0.08), m="Khaki")
-        T.cyl(0.028, 0.52, loc=(0, 0.22, 0.08), rot=(-90, 0, 0), m="Gunmetal", n=6)
-        T.cyl(0.04, 0.07, loc=(0, 0.7, 0.08), rot=(-90, 0, 0), m="DarkMetal", n=6)
-        T.cyl(0.06, 0.035, loc=(0.08, -0.08, 0.15), m="Khaki", n=6)
-        T.beam((-0.15, -0.16, 0.15), (-0.17, -0.2, 0.45), 0.012, m="DarkMetal")
-
-
-@register("units", "tank_heavy")
-def tank_heavy(M):
-    P = M.main
-    L, W = 1.6, 1.04
-    zt = tank_hull(P, L, W, 0.28, 0.36, "Olive", 0.15, front_slope=0.28)
-    for sx in (-1, 1):
-        P.box((0.04, 1.3, 0.17), loc=(sx * 0.535, 0.0, 0.2), base=True, m="OliveDark")
-        P.box((0.12, 1.0, 0.02), loc=(sx * 0.43, -0.08, zt), base=True, m="TeamColor")
-        P.box((0.08, 0.05, 0.05), loc=(sx * 0.3, L / 2 - 0.15, zt - 0.02), m="Lamp")
-    for i in range(3):
-        P.box((0.5, 0.06, 0.03), loc=(0, -0.5 - i * 0.09, zt), base=True, m="DarkMetal")
-    for sx in (-1, 1):
-        P.cyl(0.06, 0.16, loc=(sx * 0.3, -0.82, zt - 0.08), rot=(90, 0, 0), m="Rust", n=8)
-    T = M.part("Turret", origin=(0, -0.06, zt))
-    with T.at(loc=(0, -0.06, zt)):
-        T.prism([(-0.3, -0.34), (0.3, -0.34), (0.37, 0.0), (0.24, 0.3), (-0.24, 0.3),
-                 (-0.37, 0.0)], 0.21, top_scale=0.85,
-                m=by_normal("TeamColor", "Olive", thr=0.8))
-        T.box((0.42, 0.18, 0.15), loc=(0, -0.38, 0.1), m="OliveDark")
-        T.box((0.32, 0.1, 0.14), loc=(0, 0.3, 0.1), m="OliveDark")
+                P.cyl(0.05, 0.02, loc=(-0.21 + i * 0.14, 0.43, -0.07 + j * 0.14),
+                      rot=(-90, 0, 0), m="DarkMetal", n=8)
+                P.cyl(0.03, 0.022, loc=(-0.21 + i * 0.14, 0.432, -0.07 + j * 0.14),
+                      rot=(-90, 0, 0), m="Warhead", n=6)
+        P.box((0.64, 0.04, 0.32), loc=(0, -0.43, 0), m="HullOliveDark")
         for sx in (-1, 1):
-            T.cyl(0.036, 0.72, loc=(sx * 0.08, 0.32, 0.1), rot=(-90, 0, 0), m="Gunmetal", n=6)
-            T.cyl(0.05, 0.08, loc=(sx * 0.08, 0.98, 0.1), rot=(-90, 0, 0), m="DarkMetal", n=6)
-        T.cyl(0.08, 0.06, loc=(0.12, -0.12, 0.2), m="OliveDark", n=8)
-        T.cyl(0.018, 0.2, loc=(0.12, -0.04, 0.29), rot=(-90, 0, 0), m="DarkMetal", n=4)
-        T.beam((-0.22, -0.25, 0.2), (-0.24, -0.3, 0.55), 0.012, m="DarkMetal")
-
-
-@register("units", "constructor")
-def constructor(M):
-    P = M.main
-    L = 1.15
+            P.box((0.03, 0.8, 0.04), loc=(sx * 0.32, 0, 0.13), m="DarkMetal")
     for sx in (-1, 1):
-        track_unit(P, sx * 0.33, L, 0.2, 0.28)
-    P.box((0.46, 1.0, 0.2), loc=(0, -0.02, 0.1), base=True, m="Gunmetal")
-    P.box((0.86, 1.0, 0.13), loc=(0, -0.02, 0.28), base=True, m="SafetyYellow")
-    zt = 0.41
-    # cab (front left) with roll-over frame
-    cx, cy = -0.2, 0.2
-    P.box((0.34, 0.32, 0.27), loc=(cx, cy, zt), base=True, m="Glass")
-    P.box((0.4, 0.38, 0.05), loc=(cx, cy, zt + 0.27), base=True, m="TeamColor")
-    for dx in (-1, 1):
-        for dy in (-1, 1):
-            P.box((0.04, 0.04, 0.27), loc=(cx + dx * 0.17, cy + dy * 0.16, zt), base=True,
-                  m="SafetyYellow")
-    # engine block (rear)
-    P.box((0.8, 0.34, 0.2), loc=(0, -0.33, zt), base=True,
-          m=by_normal("SafetyYellow", "SafetyYellow", thr=0.8))
-    for i in range(4):
-        P.box((0.5, 0.035, 0.02), loc=(-0.05, -0.22 - i * 0.07, zt + 0.2), base=True,
-              m="DarkMetal")
-    P.box((0.2, 0.3, 0.02), loc=(0.27, -0.33, zt + 0.2), base=True, m="TeamColor")
-    P.cyl(0.03, 0.3, loc=(-0.32, -0.4, zt + 0.15), m="DarkMetal", n=6)
-    # dozer blade
-    blade = [(0.6, 0.0), (0.68, 0.04), (0.71, 0.14), (0.69, 0.25), (0.64, 0.32),
-             (0.6, 0.32), (0.63, 0.24), (0.645, 0.14), (0.62, 0.05), (0.58, 0.02)]
-    P.extrude_x(blade, -0.5, 0.5, m=lambda c, n: "Steel" if n.y > 0.4 and c.z < 0.08
-                else "SafetyYellow")
-    P.box((1.0, 0.05, 0.04), loc=(0, 0.67, 0.31), base=True, m="HazardBlack")
-    for sx in (-1, 1):
-        P.beam((sx * 0.44, 0.6, 0.16), (sx * 0.44, 0.1, 0.18), 0.06, m="Gunmetal")
-    P.beam((0, 0.6, 0.22), (0, 0.42, 0.38), 0.06, m="Gunmetal")  # lift ram
-    # crane
-    px, py = 0.2, -0.02
-    P.cyl(0.15, 0.06, loc=(px, py, zt), m="Gunmetal", n=10)
-    P.box((0.2, 0.22, 0.16), loc=(px, py, zt + 0.06), base=True, m="SafetyYellow")
-    p0 = Vector((px, py - 0.02, zt + 0.16))
-    tip = Vector((px, -0.62, 1.1))
-    P.beam(p0, tip, 0.075, m="SafetyYellow")
-    P.beam(p0.lerp(tip, 0.88), tip, 0.08, m="HazardBlack")
-    P.beam((px, py + 0.05, zt + 0.1), p0.lerp(tip, 0.45), 0.04, m="Gunmetal")  # ram
-    hook = tip + Vector((0, 0, -0.42))
-    P.beam(tip, hook, 0.012, m="DarkMetal")
-    P.box((0.07, 0.05, 0.08), loc=hook, m="SafetyYellow")
-    P.box((0.12, 0.04, 0.05), loc=(cx, cy + 0.17, zt + 0.22), m="Lamp")
-
-
-@register("units", "scout_buggy")
-def scout_buggy(M):
-    P = M.main
-    for sx in (-1, 1):
-        for y in (0.3, -0.28):
-            wheel(P, sx * 0.28, y, 0.15, 0.12, n=8)
-            P.beam((sx * 0.1, y, 0.2), (sx * 0.22, y, 0.15), 0.035, m="Gunmetal")
-    tub = [(-0.4, 0.13), (0.3, 0.13), (0.45, 0.22), (0.43, 0.29), (0.14, 0.31),
-           (-0.1, 0.3), (-0.42, 0.3)]
-    P.extrude_x(tub, -0.2, 0.2, m=lambda c, n: "TeamColor" if n.z > 0.8 and c.y > 0.1
-                else "SandPaint")
-    for sx in (-1, 1):
-        P.box((0.1, 0.3, 0.02), loc=(sx * 0.27, 0.3, 0.31), m="SandPaint")
-        P.box((0.1, 0.26, 0.02), loc=(sx * 0.27, -0.28, 0.31), m="SandPaint")
-    for sx in (-1, 1):
-        P.box((0.13, 0.13, 0.04), loc=(sx * 0.09, -0.02, 0.3), base=True, m="DarkMetal")
-        P.box((0.13, 0.03, 0.15), loc=(sx * 0.09, -0.08, 0.3), base=True, m="DarkMetal")
-    rc = "Gunmetal"
-    for sx in (-1, 1):
-        P.beam((sx * 0.19, 0.12, 0.3), (sx * 0.15, 0.02, 0.58), 0.03, m=rc)
-        P.beam((sx * 0.19, -0.3, 0.3), (sx * 0.15, -0.22, 0.56), 0.03, m=rc)
-        P.beam((sx * 0.15, 0.02, 0.58), (sx * 0.15, -0.22, 0.56), 0.03, m=rc)
-    P.beam((-0.15, 0.02, 0.58), (0.15, 0.02, 0.58), 0.03, m=rc)
-    P.beam((-0.15, -0.22, 0.56), (0.15, -0.22, 0.56), 0.03, m=rc)
-    P.beam((-0.2, 0.46, 0.2), (0.2, 0.46, 0.2), 0.03, m=rc)
-    for sx in (-1, 1):
-        P.beam((sx * 0.2, 0.46, 0.2), (sx * 0.2, 0.42, 0.32), 0.03, m=rc)
-        P.box((0.06, 0.02, 0.04), loc=(sx * 0.12, 0.44, 0.27), m="Lamp")
-    # machine gun on the rear post
-    P.cyl(0.02, 0.32, loc=(0, -0.3, 0.3), m="DarkMetal", n=4)
-    P.box((0.07, 0.2, 0.07), loc=(0, -0.28, 0.65), m="Gunmetal")
-    P.cyl(0.015, 0.3, loc=(0, -0.18, 0.66), rot=(-90, 0, 0), m="DarkMetal", n=4)
-    P.cyl(0.13, 0.07, loc=(0, -0.44, 0.28), rot=(90, 0, 0), m="Rubber", n=8, base=False)
+        P.beam((sx * 0.12, -0.32, 0.5), (sx * 0.12, -0.08, 0.58), 0.05, m="Metal")
 
 
 @register("units", "aa_halftrack")
 def aa_halftrack(M):
+    """Missile halftrack: wheels in front, tracks behind, two missile racks and a
+    radar on a rotating mount."""
     P = M.main
     for sx in (-1, 1):
-        wheel(P, sx * 0.3, 0.45, 0.14, 0.12)
-    with P.at(loc=(0, -0.28, 0)):
+        tire(P, sx * 0.29, 0.42, 0.13, 0.11)
+        road_track(P, sx * 0.29, 0.62, 0.15, 0.24, wheels=3)
+    with P.at(loc=(0, -0.24, 0)):
+        pass
+    chassis(P, -0.62, 0.58, 0.42, 0.12)
+    cab(P, 0.2, 0.62, 0.66, 0.17, 0.42, "HullOlive")
+    for sx in (-1, 1):
+        mud_guard(P, sx * 0.29, 0.42, 0.13, 0.11, "HullOlive")
+        P.box((0.04, 0.72, 0.1), loc=(sx * 0.33, -0.25, 0.24), base=True, m="HullOlive")
+    P.box((0.68, 0.84, 0.08), loc=(0, -0.24, 0.26), base=True, m="HullOliveDark")
+    P.cyl(0.2, 0.07, loc=(0, -0.28, 0.34), m="DarkMetal", n=12)
+    P.box((0.24, 0.26, 0.16), loc=(0, -0.28, 0.41), base=True,
+          m=plate_mat("TeamColor", "HullOlive"))
+    for sx in (-1, 1):
+        with P.at(loc=(sx * 0.21, -0.3, 0.55), rot=(28, 0, 0)):
+            P.box((0.16, 0.6, 0.14), m=plate_mat("TeamColor", "HullOliveDark", thr=0.8))
+            for j in (-1, 1):
+                P.cyl(0.032, 0.62, loc=(j * 0.04, -0.3, 0.1), rot=(-90, 0, 0), m="Missile",
+                      n=6, base=True)
+                P.cone(0.032, 0.1, loc=(j * 0.04, 0.32, 0.1), rot=(-90, 0, 0), m="Warhead",
+                       n=6)
+    with P.at(loc=(0, -0.42, 0.57)):
+        P.cyl(0.02, 0.14, m="DarkMetal", n=5)
+        P.box((0.26, 0.03, 0.12), loc=(0, 0, 0.18), rot=(15, 0, 0), m="Metal")
+        P.box((0.28, 0.01, 0.02), loc=(0, 0.02, 0.24), rot=(15, 0, 0), m="TeamColor")
+
+
+# ---- light vehicles ------------------------------------------------------
+
+@register("units", "raider_technical")
+def raider_technical(M):
+    """Raider: armoured pickup with a pintle cannon, for hitting supply lines."""
+    P = M.main
+    r, tw = 0.14, 0.12
+    for y in (0.3, -0.3):
         for sx in (-1, 1):
-            track_unit(P, sx * 0.27, 0.72, 0.18, 0.26, wheels=3)
-    P.box((0.44, 1.25, 0.1), loc=(0, -0.02, 0.18), m="Gunmetal")
-    hood = [(0.06, 0.2), (0.6, 0.2), (0.66, 0.3), (0.62, 0.42), (0.2, 0.46), (0.06, 0.46)]
-    P.extrude_x(hood, -0.25, 0.25, m="Olive")
-    P.box((0.14, 0.38, 0.015), loc=(0, 0.36, 0.445), rot=(-6, 0, 0), m="TeamColor")
+            tire(P, sx * 0.3, y, r, tw)
+            mud_guard(P, sx * 0.3, y, r, tw, "Rust")
+    chassis(P, -0.48, 0.48, 0.38, 0.12)
+    body = "DesertRed"
+    # hood + cab + bed in one side profile
+    prof = [(-0.5, 0.18), (0.52, 0.18), (0.54, 0.32), (0.36, 0.37), (0.16, 0.38),
+            (0.06, 0.56), (-0.12, 0.56), (-0.14, 0.38), (-0.5, 0.38)]
+
+    def m(c, n):
+        if n.z > 0.8 and c.z > 0.5:
+            return "TeamColor"  # cab roof
+        if n.z > 0.8 and c.y > 0.15:
+            return "TeamColor"  # hood
+        if n.y > 0.3 and c.z > 0.4:
+            return "Glass"
+        return body
+    P.extrude_x(prof, -0.32, 0.32, m=m)
     for sx in (-1, 1):
-        P.box((0.14, 0.32, 0.03), loc=(sx * 0.3, 0.45, 0.31), m="Olive")
-        P.box((0.06, 0.02, 0.04), loc=(sx * 0.16, 0.66, 0.36), m="Lamp")
-    P.box((0.66, 0.06, 0.24), loc=(0, 0.05, 0.42), base=True, m="Olive")  # armour shield
+        P.box((0.01, 0.14, 0.11), loc=(sx * 0.322, -0.03, 0.46), m="Glass")
+    P.box((0.6, 0.34, 0.02), loc=(0, -0.31, 0.38), base=True, m="DarkMetal")  # bed floor
+    P.box((0.66, 0.06, 0.08), loc=(0, 0.54, 0.2), m="DarkMetal")  # bull bar
     for sx in (-1, 1):
-        P.box((0.18, 0.02, 0.05), loc=(sx * 0.14, 0.085, 0.57), m="Window")
-    P.box((0.7, 0.8, 0.06), loc=(0, -0.3, 0.28), base=True, m="OliveDark")
+        P.beam((sx * 0.22, 0.56, 0.2), (sx * 0.22, 0.5, 0.36), 0.025, m="DarkMetal")
+    lamp_pair(P, 0.2, 0.535, 0.3, size=(0.07, 0.02, 0.04))
+    # roll bar and gun
     for sx in (-1, 1):
-        P.box((0.04, 0.8, 0.13), loc=(sx * 0.33, -0.3, 0.34), base=True, m="Olive")
-        P.box((0.07, 0.8, 0.02), loc=(sx * 0.33, -0.3, 0.47), base=True, m="TeamColor")
-    P.box((0.7, 0.04, 0.13), loc=(0, -0.68, 0.34), base=True, m="Olive")
-    T = M.part("Turret", origin=(0, -0.32, 0.34))
-    with T.at(loc=(0, -0.32, 0.34)):
-        T.cyl(0.2, 0.06, m="Gunmetal", n=10)
-        T.box((0.14, 0.2, 0.14), loc=(0, 0, 0.06), base=True, m="OliveDark")
-        T.box((0.06, 0.1, 0.06), loc=(0, -0.12, 0.12), base=True, m="DarkMetal")  # seat
-        with T.at(loc=(0, 0.02, 0.24), rot=(40, 0, 0)):
-            for sx in (-1, 1):
-                T.box((0.13, 0.3, 0.15), loc=(sx * 0.14, 0, 0), m="Olive")
-                for dz in (-0.04, 0.04):
-                    T.cyl(0.02, 0.55, loc=(sx * 0.14, 0.14, dz), rot=(-90, 0, 0),
-                          m="DarkMetal", n=5)
-                    T.cyl(0.03, 0.06, loc=(sx * 0.14, 0.66, dz), rot=(-90, 0, 0),
-                          m="DarkMetal", n=5)
-            T.box((0.56, 0.03, 0.24), loc=(0, 0.17, 0.0), m="TeamColor")
+        P.beam((sx * 0.27, -0.16, 0.38), (sx * 0.24, -0.18, 0.66), 0.035, m="DarkMetal")
+    P.beam((-0.25, -0.18, 0.66), (0.25, -0.18, 0.66), 0.035, m="DarkMetal")
+    P.cyl(0.03, 0.22, loc=(0, -0.3, 0.38), m="DarkMetal", n=6)
+    with P.at(loc=(0, -0.3, 0.62)):
+        P.box((0.14, 0.22, 0.1), m="Gunmetal")
+        P.box((0.2, 0.02, 0.12), loc=(0, 0.12, 0.02), m="Gunmetal")  # shield
+        P.cyl(0.022, 0.42, loc=(0, 0.1, 0.0), rot=(-90, 0, 0), m="DarkMetal", n=6)
+        P.cyl(0.032, 0.06, loc=(0, 0.5, 0.0), rot=(-90, 0, 0), m="DarkMetal", n=6)
+    P.box((0.18, 0.14, 0.1), loc=(0.18, -0.4, 0.4), base=True, m="Ammo")
+    P.cyl(0.05, 0.16, loc=(-0.2, -0.42, 0.4), m="Jerrycan", n=6)
 
 
-def rotor(R, hub, radius, blades, m="DarkMetal", width=0.075, phase=0.0):
+@register("units", "scout_buggy")
+def scout_buggy(M):
+    """Scout buggy: open tube-frame dune buggy with big rear wheels."""
+    P = M.main
+    for sx in (-1, 1):
+        tire(P, sx * 0.29, 0.28, 0.12, 0.1)
+        tire(P, sx * 0.3, -0.26, 0.15, 0.13)
+    P.box((0.36, 0.86, 0.06), loc=(0, 0.0, 0.12), base=True, m="DarkMetal")
+    # nose with team-coloured panel
+    P.prism([(-0.2, 0.1), (0.2, 0.1), (0.15, 0.46), (-0.15, 0.46)], 0.12,
+            loc=(0, 0, 0.17), top_scale=(0.92, 0.95),
+            m=plate_mat("TeamColor", "Khaki"))
+    P.box((0.42, 0.3, 0.1), loc=(0, -0.3, 0.17), base=True, m="Khaki")  # engine
+    P.cyl(0.03, 0.1, loc=(0.1, -0.46, 0.23), rot=(90, 0, 0), m="Metal", n=6)
+    for x in (-0.09, 0.09):  # seats
+        P.box((0.13, 0.13, 0.05), loc=(x, -0.04, 0.17), base=True, m="Ammo")
+        P.box((0.13, 0.04, 0.16), loc=(x, -0.12, 0.2), base=True, m="Ammo")
+    tube = 0.025
+    for sx in (-1, 1):
+        a = (sx * 0.2, 0.2, 0.2)
+        b = (sx * 0.16, 0.04, 0.5)
+        c = (sx * 0.16, -0.2, 0.5)
+        d = (sx * 0.2, -0.22, 0.24)
+        P.beam(a, b, tube, m="TubeFrame", n=6)
+        P.beam(b, c, tube, m="TubeFrame", n=6)
+        P.beam(c, d, tube, m="TubeFrame", n=6)
+    P.beam((-0.16, 0.04, 0.5), (0.16, 0.04, 0.5), tube, m="TubeFrame", n=6)
+    P.beam((-0.16, -0.2, 0.5), (0.16, -0.2, 0.5), tube, m="TubeFrame", n=6)
+    P.box((0.36, 0.3, 0.02), loc=(0, -0.08, 0.51), base=True, m="TeamColor")  # sun roof
+    P.box((0.3, 0.06, 0.05), loc=(0, 0.47, 0.24), m="DarkMetal")
+    lamp_pair(P, 0.1, 0.49, 0.25, size=(0.05, 0.02, 0.04))
+    P.cyl(0.02, 0.06, loc=(0, 0.04, 0.52), m="Lamp", n=6)
+    antenna(P, -0.15, -0.22, 0.5, 0.3)
+
+
+# ---- tanks ---------------------------------------------------------------
+
+def tank_body(P, L, W, track_w, track_h, hull, deck_h, glacis=0.3, skirt=True):
+    """Tracks, hull and upper deck. Returns the deck height."""
+    tx = W / 2 - track_w / 2
+    for sx in (-1, 1):
+        road_track(P, sx * tx, L, track_w, track_h, wheels=5 if L > 1.3 else 4,
+                   skirt=hull if skirt else None, skirt_team=skirt)
+    hw = W / 2 - track_w + 0.02
+    P.extrude_x([(-L / 2 + 0.05, 0.1), (L / 2 - 0.14, 0.1), (L / 2 - 0.02, track_h),
+                 (-L / 2 + 0.02, track_h)], -hw, hw, m=hull)
+    zt = track_h + deck_h
+    P.extrude_x([(-L / 2 + 0.01, track_h), (L / 2 - 0.02, track_h), (L / 2, track_h + 0.04),
+                 (L / 2 - glacis, zt), (-L / 2 + 0.06, zt), (-L / 2, zt - 0.05)],
+                -W / 2 + track_w * 0.4, W / 2 - track_w * 0.4,
+                m=plate_mat(hull, hull, thr=0.95))
+    return zt
+
+
+def engine_deck(P, y, w, d, z, slats=5):
+    P.box((w, d, 0.015), loc=(0, y, z), base=True, m="DarkMetal")
+    for i in range(slats):
+        P.box((w * 0.9, 0.02, 0.03), loc=(0, y - d / 2 + d * (i + 0.5) / slats, z),
+              base=True, m="Metal")
+
+
+def tool_box(P, x, y, z, sx, sy, sz, m="HullOliveDark"):
+    P.box((sx, sy, sz), loc=(x, y, z), base=True, m=m)
+
+
+@register("units", "tank_light")
+def tank_light(M):
+    """Medium tank (TANK): sloped hull, faceted turret, long gun."""
+    P = M.main
+    L, W = 1.5, 1.0
+    zt = tank_body(P, L, W, 0.24, 0.3, "HullOlive", 0.14)
+    engine_deck(P, -0.5, 0.42, 0.32, zt)
+    lamp_pair(P, 0.3, L / 2 - 0.22, zt - 0.02, size=(0.08, 0.06, 0.05))
+    for sx in (-1, 1):
+        tool_box(P, sx * 0.34, -0.55, zt, 0.12, 0.3, 0.07)
+        P.cyl(0.035, 0.12, loc=(sx * 0.2, -L / 2 + 0.02, zt - 0.08), rot=(90, 0, 0),
+              m="DarkMetal", n=6)  # exhausts
+    T = M.part("Turret", origin=(0, -0.02, zt))
+    with T.at(loc=(0, -0.02, zt)):
+        T.prism([(-0.26, -0.3), (0.26, -0.3), (0.33, -0.05), (0.2, 0.26), (-0.2, 0.26),
+                 (-0.33, -0.05)], 0.2, top_scale=0.8,
+                m=plate_mat("TeamColor", "HullOlive", thr=0.8))
+        T.box((0.4, 0.14, 0.12), loc=(0, -0.36, 0.1), m="HullOliveDark")  # bustle
+        T.box((0.46, 0.06, 0.03), loc=(0, -0.46, 0.06), m="DarkMetal")  # basket
+        T.box((0.2, 0.12, 0.14), loc=(0, 0.28, 0.1), m="HullOliveDark")  # mantlet
+        T.cyl(0.036, 0.7, loc=(0, 0.32, 0.11), rot=(-90, 0, 0), m="Gunmetal", n=8)
+        T.cyl(0.05, 0.14, loc=(0, 0.66, 0.11), rot=(-90, 0, 0), m="Gunmetal", n=8)
+        T.cyl(0.056, 0.08, loc=(0, 1.0, 0.11), rot=(-90, 0, 0), m="DarkMetal", n=8)
+        T.cyl(0.08, 0.06, loc=(0.12, -0.1, 0.19), m="HullOliveDark", n=8)  # cupola
+        T.cyl(0.07, 0.02, loc=(0.12, -0.1, 0.25), m="DarkMetal", n=8)
+        T.cyl(0.012, 0.18, loc=(0.12, -0.02, 0.28), rot=(-90, 0, 0), m="DarkMetal", n=4)
+        for sx in (-1, 1):  # smoke dischargers
+            for k in range(2):
+                T.cyl(0.02, 0.07, loc=(sx * (0.24 - k * 0.04), 0.14, 0.14),
+                      rot=(-60, 0, sx * 20), m="DarkMetal", n=5)
+        antenna(T, -0.2, -0.28, 0.2, 0.42)
+
+
+@register("units", "tank_heavy")
+def tank_heavy(M):
+    """Heavy tank: wide, boxy, twin guns, extra armour."""
+    P = M.main
+    L, W = 1.8, 1.2
+    zt = tank_body(P, L, W, 0.3, 0.36, "HullOliveDark", 0.16, glacis=0.36)
+    engine_deck(P, -0.6, 0.5, 0.4, zt, slats=6)
+    lamp_pair(P, 0.36, L / 2 - 0.26, zt - 0.02, size=(0.09, 0.06, 0.06))
+    for sx in (-1, 1):  # bolted applique plates on the glacis
+        P.box((0.26, 0.2, 0.03), loc=(sx * 0.18, L / 2 - 0.2, zt - 0.06),
+              rot=(-22, 0, 0), m="HullOlive")
+        tool_box(P, sx * 0.42, -0.62, zt, 0.14, 0.4, 0.08, m="HullOlive")
+        P.cyl(0.045, 0.14, loc=(sx * 0.25, -L / 2 + 0.02, zt - 0.1), rot=(90, 0, 0),
+              m="DarkMetal", n=6)
+    T = M.part("Turret", origin=(0, -0.06, zt))
+    with T.at(loc=(0, -0.06, zt)):
+        T.prism([(-0.34, -0.4), (0.34, -0.4), (0.42, -0.04), (0.28, 0.34), (-0.28, 0.34),
+                 (-0.42, -0.04)], 0.25, top_scale=0.84,
+                m=plate_mat("TeamColor", "HullOliveDark", thr=0.8))
+        for sx in (-1, 1):  # side armour blocks
+            T.box((0.06, 0.4, 0.18), loc=(sx * 0.42, -0.08, 0.1), rot=(0, 0, 0),
+                  m="HullOlive")
+        T.box((0.5, 0.18, 0.16), loc=(0, -0.46, 0.12), m="HullOlive")
+        T.box((0.36, 0.12, 0.18), loc=(0, 0.36, 0.12), m="HullOlive")
+        for sx in (-1, 1):
+            T.cyl(0.042, 0.78, loc=(sx * 0.09, 0.4, 0.13), rot=(-90, 0, 0), m="Gunmetal", n=8)
+            T.cyl(0.058, 0.1, loc=(sx * 0.09, 1.12, 0.13), rot=(-90, 0, 0), m="DarkMetal",
+                  n=8)
+        T.cyl(0.1, 0.07, loc=(0.16, -0.14, 0.24), m="HullOlive", n=8)
+        T.cyl(0.09, 0.02, loc=(0.16, -0.14, 0.31), m="DarkMetal", n=8)
+        T.cyl(0.015, 0.22, loc=(0.16, -0.04, 0.34), rot=(-90, 0, 0), m="DarkMetal", n=4)
+        antenna(T, -0.26, -0.34, 0.25, 0.5)
+        antenna(T, 0.3, -0.38, 0.25, 0.3)
+
+
+@register("units", "tank_battle")
+def tank_battle(M):
+    """Battle tank (Electric tier): low angular graphite hull, railgun with
+    glowing coils."""
+    P = M.main
+    L, W = 1.85, 1.22
+    zt = tank_body(P, L, W, 0.28, 0.32, "Graphite", 0.15, glacis=0.48)
+    for sx in (-1, 1):  # glow strips along the skirts
+        P.box((0.02, L * 0.7, 0.025), loc=(sx * (W / 2 + 0.04), 0.0, 0.33), m="Glow")
+    lamp_pair(P, 0.4, L / 2 - 0.3, zt - 0.03, size=(0.12, 0.05, 0.03), m="Glow")
+    P.box((0.6, 0.42, 0.04), loc=(0, -0.62, zt), base=True, m="DarkMetal")
+    for i in range(3):
+        P.box((0.5, 0.05, 0.02), loc=(0, -0.74 + i * 0.12, zt + 0.04), base=True,
+              m="Glow" if i == 1 else "Metal")
+    T = M.part("Turret", origin=(0, -0.08, zt))
+    with T.at(loc=(0, -0.08, zt)):
+        T.prism([(-0.3, -0.46), (0.3, -0.46), (0.42, -0.2), (0.36, 0.2), (0.12, 0.42),
+                 (-0.12, 0.42), (-0.36, 0.2), (-0.42, -0.2)], 0.22, top_scale=0.78,
+                m=plate_mat("TeamColor", "Graphite", thr=0.8))
+        T.box((0.22, 0.1, 0.03), loc=(0, -0.2, 0.22), base=True, m="Glow")  # sensor bar
+        # railgun: armoured shroud, two rails and glowing coil rings
+        T.box((0.2, 0.5, 0.14), loc=(0, 0.6, 0.12), m=plate_mat("Graphite", "Graphite"))
+        for sx in (-1, 1):
+            T.box((0.045, 0.62, 0.07), loc=(sx * 0.045, 1.1, 0.12), m="Gunmetal")
+        for k in range(3):
+            T.box((0.21, 0.025, 0.15), loc=(0, 0.42 + k * 0.17, 0.12), m="Glow")
+        T.box((0.16, 0.08, 0.1), loc=(0, 1.42, 0.12), m="DarkMetal")
+        for sx in (-1, 1):
+            T.box((0.06, 0.3, 0.1), loc=(sx * 0.3, -0.3, 0.26), m="Graphite")  # pods
+            T.box((0.065, 0.02, 0.06), loc=(sx * 0.3, -0.14, 0.27), m="Glow")
+        antenna(T, -0.22, -0.4, 0.22, 0.3)
+
+
+@register("units", "constructor")
+def constructor(M):
+    """Worker: tracked engineering vehicle with dozer blade and crane arm."""
+    P = M.main
+    L = 0.98
+    for sx in (-1, 1):
+        road_track(P, sx * 0.31, L, 0.18, 0.24, wheels=4)
+    P.box((0.44, 0.84, 0.16), loc=(0, -0.02, 0.1), base=True, m="DarkMetal")
+    body = "Amber"
+    P.box((0.8, 0.86, 0.12), loc=(0, -0.02, 0.24), base=True, m=body)
+    zt = 0.36
+    # engine block behind, with grille
+    P.box((0.56, 0.32, 0.18), loc=(0.08, -0.3, zt), base=True, m=plate_mat(body, body))
+    P.box((0.5, 0.02, 0.12), loc=(0.08, -0.465, zt + 0.08), m="DarkMetal")
+    P.cyl(0.03, 0.18, loc=(0.28, -0.24, zt + 0.18), m="DarkMetal", n=6)
+    # cab, front left, glass all round with team roof
+    with P.at(loc=(-0.18, 0.14, zt)):
+        P.box((0.34, 0.34, 0.06), base=True, m=body)
+        P.box((0.3, 0.3, 0.24), loc=(0, 0, 0.06), base=True,
+              m=plate_mat("TeamColor", "Glass", thr=0.8))
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                P.box((0.03, 0.03, 0.24), loc=(sx * 0.15, sy * 0.15, 0.06), base=True,
+                      m="DarkMetal")
+        P.box((0.36, 0.36, 0.04), loc=(0, 0, 0.3), base=True, m="TeamColor")
+        P.box((0.08, 0.04, 0.03), loc=(0.08, 0.17, 0.33), base=True, m="Lamp")
+    # dozer blade with hazard stripes
+    P.extrude_x([(0.5, 0.0), (0.56, 0.0), (0.6, 0.12), (0.57, 0.28), (0.52, 0.28),
+                 (0.52, 0.04)], -0.46, 0.46, m=hazard)
+    for sx in (-1, 1):
+        P.beam((sx * 0.3, 0.42, 0.2), (sx * 0.3, 0.53, 0.14), 0.05, m="Metal")
+    # crane arm on a slewing ring, rear right
+    with P.at(loc=(0.22, -0.1, zt + 0.18)):
+        P.cyl(0.09, 0.05, m="DarkMetal", n=8)
+        P.beam((0, 0, 0.04), (-0.08, 0.32, 0.46), 0.06, m=body)
+        P.beam((-0.08, 0.32, 0.46), (-0.12, 0.5, 0.3), 0.04, m=body)
+        P.beam((0, -0.02, 0.06), (-0.05, 0.18, 0.28), 0.03, m="Metal")  # ram
+        P.cyl(0.006, 0.18, loc=(-0.12, 0.5, 0.12), m="DarkMetal", n=4)
+        P.box((0.05, 0.05, 0.05), loc=(-0.12, 0.5, 0.1), m="DarkMetal")
+    lamp_pair(P, 0.3, 0.43, 0.33, size=(0.06, 0.02, 0.04))
+
+
+# ---- aircraft ------------------------------------------------------------
+
+def rotor(R, hub, radius, blades, m="DarkMetal", width=0.075, phase=0.0, tip="TeamColor"):
     R.cyl(0.05, 0.06, loc=hub, m="Gunmetal", n=6)
     for i in range(blades):
         a = phase + 360.0 * i / blades
         with R.at(loc=(hub[0], hub[1], hub[2] + 0.03), rot=(0, 0, a)):
             R.box((radius, width, 0.014), loc=(radius / 2, 0, 0), m=m)
-            R.box((0.08, width * 1.02, 0.016), loc=(radius - 0.06, 0, 0), m="SafetyYellow")
+            R.box((0.1, width * 1.02, 0.016), loc=(radius - 0.07, 0, 0), m=tip)
 
 
 @register("units", "helicopter_attack")
 def helicopter_attack(M):
+    """Gunship: slim tandem-cockpit attack helicopter with rocket pods."""
     P = M.main
-    body = by_normal("Olive", "Olive", "OliveDark", thr=0.5)
-    zc = 0.42
-    pts = [(0, -0.32, zc + 0.02), (0, -0.12, zc), (0, 0.2, zc - 0.01), (0, 0.45, zc - 0.03),
-           (0, 0.66, zc - 0.07), (0, 0.8, zc - 0.1)]
-    rad = [(0.12, 0.1), (0.17, 0.14), (0.17, 0.13), (0.14, 0.11), (0.1, 0.08), (0.04, 0.04)]
-    P.sweep(pts, rad, m=body, n=8)
-    P.sweep([(0, -0.3, zc + 0.04), (0, -0.7, zc + 0.08), (0, -1.0, zc + 0.12)],
-            [(0.08, 0.06), (0.06, 0.045), (0.045, 0.035)], m=body, n=6)
-    P.extrude_x([(-0.9, zc + 0.08), (-1.04, zc + 0.1), (-1.12, zc + 0.42), (-1.02, zc + 0.42)],
-                -0.015, 0.015, m="TeamColor")
-    P.box((0.42, 0.1, 0.02), loc=(0, -0.92, zc + 0.12), m="TeamColor")
-    P.box((0.1, 0.62, 0.03), loc=(0, -0.62, zc + 0.12), rot=(-4, 0, 0), m="TeamColor")
-    P.box((0.16, 0.3, 0.03), loc=(0, -0.12, zc + 0.2), m="TeamColor")
-    P.ico(1.0, loc=(0, 0.46, zc + 0.1), scale=(0.1, 0.17, 0.1), m="Glass", subdiv=2)
-    P.ico(1.0, loc=(0, 0.22, zc + 0.15), scale=(0.11, 0.17, 0.1), m="Glass", subdiv=2)
+    body = "HullOliveDark"
+    z = 0.12
+    prof = [(0.0, 0.0), (0.06, 0.06), (0.11, 0.18), (0.13, 0.4), (0.13, 0.62), (0.11, 0.78),
+            (0.07, 0.9), (0.0, 0.94)]
+    with P.at(loc=(0, -0.36, z + 0.17), rot=(-90, 0, 0)):
+        P.lathe(prof, m=plate_mat("TeamColor", body, thr=0.8), n=8, phase=math.pi / 8,
+                scale=(1.0, 1.25, 1.0))
+    # tandem canopy
+    P.ico(0.1, loc=(0, 0.3, z + 0.27), scale=(0.8, 1.6, 0.75), m="Glass", subdiv=1)
+    P.ico(0.1, loc=(0, 0.06, z + 0.32), scale=(0.85, 1.4, 0.8), m="Glass", subdiv=1)
+    # engine humps
     for sx in (-1, 1):
-        P.cyl(0.07, 0.34, loc=(sx * 0.13, -0.18, zc + 0.12), rot=(-90, 0, 0), m="OliveDark",
-              n=8)
-        P.cyl(0.05, 0.04, loc=(sx * 0.13, -0.22, zc + 0.12), rot=(90, 0, 0), m="DarkMetal",
-              n=8)
-    # stub wings + weapons
-    P.box((0.86, 0.17, 0.035), loc=(0, 0.04, zc - 0.02), m=by_normal("TeamColor", "Olive"))
+        P.cyl(0.07, 0.26, loc=(sx * 0.12, -0.08, z + 0.3), rot=(-90, 0, 0), m=body, n=8,
+              base=False)
+        P.cyl(0.05, 0.02, loc=(sx * 0.12, -0.22, z + 0.3), rot=(-90, 0, 0), m="DarkMetal",
+              n=8, base=False)
+    # tail boom, fin, stabiliser
+    P.cyl(0.055, 0.72, r2=0.03, loc=(0, -0.3, z + 0.22), rot=(90, 0, 0), m=body, n=6,
+          base=True)
+    P.prism([(-0.02, 0), (0.02, 0), (0.02, 0.2), (-0.02, 0.2)], 0.24,
+            loc=(0, -1.06, z + 0.2), rot=(0, 0, 0), m="TeamColor", top_shift=(0, -0.06))
+    P.box((0.36, 0.08, 0.02), loc=(0, -0.95, z + 0.22), m=body)
+    # stub wings with rocket pods
+    P.box((0.66, 0.16, 0.025), loc=(0, -0.02, z + 0.19), m=body)
     for sx in (-1, 1):
-        P.cyl(0.055, 0.28, loc=(sx * 0.34, -0.08, zc - 0.09), rot=(-90, 0, 0), m="Gunmetal",
-              n=8)
-        P.cyl(0.03, 0.3, loc=(sx * 0.22, -0.1, zc - 0.08), rot=(-90, 0, 0), m="WhitePaint",
-              n=6)
-    P.ico(0.05, loc=(0, 0.62, zc - 0.13), m="DarkMetal", subdiv=1)
-    P.cyl(0.012, 0.2, loc=(0, 0.64, zc - 0.14), rot=(-90, 0, 0), m="DarkMetal", n=4)
-    # skids
+        for k, xo in enumerate((0.2, 0.3)):
+            P.cyl(0.04, 0.24, loc=(sx * xo, -0.12, z + 0.14), rot=(-90, 0, 0),
+                  m="Gunmetal" if k else "Missile", n=8)
+            P.cyl(0.03, 0.01, loc=(sx * xo, 0.125, z + 0.14), rot=(-90, 0, 0),
+                  m="DarkMetal", n=8)
+    # chin gun and skids
+    P.cyl(0.04, 0.05, loc=(0, 0.38, z + 0.1), m="DarkMetal", n=6)
+    P.cyl(0.015, 0.2, loc=(0, 0.4, z + 0.09), rot=(-90, 0, 0), m="DarkMetal", n=4)
     for sx in (-1, 1):
-        P.sweep([(sx * 0.2, -0.32, 0.02), (sx * 0.2, 0.38, 0.02), (sx * 0.2, 0.48, 0.07)],
-                0.018, m="DarkMetal", n=4)
-        for y in (-0.15, 0.25):
-            P.beam((sx * 0.2, y, 0.02), (sx * 0.1, y, zc - 0.08), 0.025, m="DarkMetal")
-    hub = (0, -0.02, zc + 0.36)
-    P.cyl(0.035, 0.2, loc=(0, -0.02, zc + 0.16), m="Gunmetal", n=6)
-    R = M.part("Rotor", origin=hub)
-    rotor(R, hub, 0.82, 4)
-    th = (0.05, -1.06, zc + 0.3)
-    RT = M.part("RotorTail", origin=th)
-    RT.cyl(0.03, 0.03, loc=th, rot=(0, 90, 0), m="Gunmetal", n=6, base=False)
-    for a in (0, 90):
-        with RT.at(loc=th, rot=(a, 0, 0)):
-            RT.box((0.012, 0.04, 0.32), m="DarkMetal")
+        P.beam((sx * 0.18, -0.28, 0.0), (sx * 0.18, 0.26, 0.0), 0.025, m="DarkMetal", n=6)
+        for y in (-0.16, 0.14):
+            P.beam((sx * 0.18, y, 0.0), (sx * 0.08, y, z + 0.1), 0.02, m="DarkMetal")
+    P.box((0.05, 0.03, 0.02), loc=(0, 0.5, z + 0.2), m="Lamp")
+    R = M.part("Rotor", origin=(0, -0.04, z + 0.44))
+    R.cyl(0.02, 0.06, loc=(0, -0.04, z + 0.38), m="DarkMetal", n=6)
+    rotor(R, (0, -0.04, z + 0.44), 0.78, 4)
+    RT = M.part("RotorTail", origin=(0.04, -1.08, z + 0.34))
+    with RT.at(loc=(0.04, -1.08, z + 0.34), rot=(0, 90, 0)):
+        rotor(RT, (0, 0, 0), 0.17, 2, width=0.04)
 
 
 @register("units", "helicopter_transport")
 def helicopter_transport(M):
+    """Transport helicopter: tandem rotors on a boxy fuselage."""
     P = M.main
-    body = by_normal("Khaki", "Khaki", "OliveDark", thr=0.5)
-    zc = 0.42
-    pts = [(0, -0.98, zc + 0.12), (0, -0.82, zc + 0.04), (0, -0.55, zc), (0, 0.45, zc),
-           (0, 0.68, zc - 0.03), (0, 0.84, zc - 0.08), (0, 0.9, zc - 0.1)]
-    rad = [(0.16, 0.16), (0.27, 0.26), (0.3, 0.28), (0.3, 0.28), (0.26, 0.25), (0.15, 0.17),
-           (0.06, 0.08)]
-    sq = [(1, 0), (0.85, 0.85), (0, 1), (-0.85, 0.85), (-1, 0), (-0.85, -0.85), (0, -1),
-          (0.85, -0.85)]
-    P.sweep(pts, rad, m=body, profile=sq)
-    # nose glazing
-    P.extrude_x([(0.62, zc + 0.08), (0.8, zc - 0.02), (0.78, zc + 0.08), (0.64, zc + 0.2)],
-                -0.2, 0.2, m="Glass")
-    for i in range(6):
-        for sx in (-1, 1):
-            P.box((0.02, 0.07, 0.07), loc=(sx * 0.29, 0.3 - i * 0.17, zc + 0.08), m="Glass")
-    # pylons
-    P.extrude_x([(-1.02, zc + 0.12), (-0.42, zc + 0.24), (-0.5, zc + 0.56),
-                 (-0.88, zc + 0.58)], -0.13, 0.13, m=body)
-    P.extrude_x([(0.3, zc + 0.24), (0.74, zc + 0.12), (0.7, zc + 0.32), (0.45, zc + 0.38)],
-                -0.12, 0.12, m=body)
-    P.box((0.14, 1.02, 0.03), loc=(0, -0.04, zc + 0.27), base=True, m="TeamColor")
-    P.box((0.18, 0.32, 0.02), loc=(0, -0.72, zc + 0.57), base=True, m="TeamColor")
-    # sponsons and wheels
+    body = "Khaki"
+    z = 0.14
+    # fuselage as an extruded side profile
+    prof = [(-0.66, z + 0.1), (0.5, z + 0.04), (0.64, z + 0.18), (0.64, z + 0.36),
+            (0.52, z + 0.46), (-0.5, z + 0.46), (-0.68, z + 0.56), (-0.76, z + 0.5),
+            (-0.72, z + 0.3)]
+
+    def m(c, n):
+        if n.z > 0.8:
+            return "TeamColor"
+        if n.y > 0.3 and c.z > z + 0.25:
+            return "Glass"
+        return body
+    P.extrude_x(prof, -0.21, 0.21, m=m)
     for sx in (-1, 1):
-        P.box((0.14, 0.7, 0.16), loc=(sx * 0.3, -0.05, zc - 0.2), base=True, taper=(0.8, 0.95),
-              m=body)
-        for y in (0.5, -0.45):
-            wheel(P, sx * 0.3, y, 0.075, 0.06, n=6)
-        P.cyl(0.04, 0.08, loc=(sx * 0.2, -0.62, zc + 0.36), rot=(90, 0, 0), m="DarkMetal",
-              n=6)
-    hub1 = (0, 0.55, zc + 0.46)
-    hub2 = (0, -0.72, zc + 0.68)
-    P.cyl(0.04, 0.1, loc=(0, 0.55, zc + 0.34), m="Gunmetal", n=6)
-    P.cyl(0.04, 0.1, loc=(0, -0.72, zc + 0.56), m="Gunmetal", n=6)
-    R1 = M.part("Rotor", origin=hub1)
-    rotor(R1, hub1, 0.85, 3, phase=15)
-    R2 = M.part("Rotor2", origin=hub2)
-    rotor(R2, hub2, 0.85, 3, phase=75)
+        P.box((0.07, 0.62, 0.12), loc=(sx * 0.24, -0.04, z + 0.08), base=True, m=body)  # sponsons
+        for k in range(4):
+            P.box((0.01, 0.08, 0.07), loc=(sx * 0.212, 0.3 - k * 0.2, z + 0.3), m="Glass")
+    P.box((0.3, 0.3, 0.12), loc=(0, -0.62, z + 0.46), base=True, m=body)  # rear pylon
+    P.box((0.28, 0.22, 0.08), loc=(0, 0.42, z + 0.46), base=True, m=body)  # front pylon
+    for sx in (-1, 1):  # engine pods on the rear pylon
+        P.cyl(0.06, 0.28, loc=(sx * 0.18, -0.48, z + 0.52), rot=(90, 0, 0), m="Gunmetal", n=8,
+              base=False)
+    for x, y in ((-0.16, 0.32), (0.16, 0.32), (-0.18, -0.42), (0.18, -0.42)):
+        P.beam((x, y, 0.0), (x * 0.9, y, z + 0.08), 0.025, m="DarkMetal")
+        tire(P, x, y, 0.05, 0.04)
+    P.box((0.05, 0.03, 0.02), loc=(0, 0.65, z + 0.2), m="Lamp")
+    R = M.part("Rotor", origin=(0, 0.44, z + 0.6))
+    R.cyl(0.02, 0.06, loc=(0, 0.44, z + 0.54), m="DarkMetal", n=6)
+    rotor(R, (0, 0.44, z + 0.6), 0.68, 3)
+    R2 = M.part("Rotor2", origin=(0, -0.62, z + 0.66))
+    rotor(R2, (0, -0.62, z + 0.66), 0.68, 3, phase=60.0)
+
+
+@register("units", "drone")
+def drone(M):
+    """Recon drone: quadcopter with a camera ball and team-coloured shell."""
+    P = M.main
+    z = 0.1
+    P.ico(0.14, loc=(0, 0, z + 0.06), scale=(1.0, 1.3, 0.55), m="Graphite", subdiv=1)
+    P.prism([(-0.1, -0.14), (0.1, -0.14), (0.12, 0.08), (0.0, 0.18), (-0.12, 0.08)], 0.05,
+            loc=(0, 0, z + 0.1), top_scale=0.7, m=plate_mat("TeamColor", "Graphite", thr=0.8))
+    P.ico(0.05, loc=(0, 0.14, z - 0.0), m="DarkMetal", subdiv=1)
+    P.cyl(0.025, 0.02, loc=(0, 0.185, z - 0.0), rot=(-90, 0, 0), m="Glass", n=6)
+    P.box((0.04, 0.02, 0.01), loc=(0, 0.18, z + 0.13), m="Glow")
+    for i, (sx, sy) in enumerate(((1, 1), (-1, 1), (-1, -1), (1, -1))):
+        tip = (sx * 0.28, sy * 0.28, z + 0.08)
+        P.beam((sx * 0.06, sy * 0.06, z + 0.07), tip, 0.035, m="Graphite")
+        P.cyl(0.035, 0.06, loc=tip, m="DarkMetal", n=6)
+        P.beam((sx * 0.22, sy * 0.22, z + 0.06), (sx * 0.2, sy * 0.2, 0.0), 0.015,
+               m="DarkMetal")
+        name = "Rotor" if i == 0 else "Rotor%d" % (i + 1)
+        R = M.part(name, origin=(tip[0], tip[1], tip[2] + 0.06))
+        with R.at(loc=(tip[0], tip[1], tip[2] + 0.07)):
+            R.box((0.26, 0.03, 0.01), m="DarkMetal")
+            R.box((0.04, 0.032, 0.012), loc=(0.11, 0, 0), m="TeamColor")
+            R.box((0.04, 0.032, 0.012), loc=(-0.11, 0, 0), m="TeamColor")
+
+
+# ---- infantry ------------------------------------------------------------
+
+def soldier(P, x, y, rot=0.0, weapon="rifle", kneel=False, s=1.0):
+    """A 0.42 m tall low-poly soldier (the game's vehicle scale) with a
+    team-coloured helmet and vest."""
+    with P.at(loc=(x, y, 0), rot=(0, 0, rot), scale=s):
+        leg_h = 0.1 if kneel else 0.17
+        if kneel:
+            P.box((0.05, 0.12, 0.05), loc=(0.04, -0.03, 0.0), base=True, m="Fatigue")
+            P.box((0.05, 0.05, 0.1), loc=(-0.04, 0.05, 0.0), base=True, m="Fatigue")
+        else:
+            for sx in (-1, 1):
+                P.box((0.055, 0.06, leg_h), loc=(sx * 0.035, 0, 0.0), base=True, m="Fatigue")
+                P.box((0.06, 0.08, 0.03), loc=(sx * 0.035, 0.01, 0.0), base=True,
+                      m="DarkMetal")  # boots
+        P.box((0.14, 0.09, 0.15), loc=(0, 0, leg_h), base=True, taper=(1.0, 0.9),
+              m="FatigueDark")
+        P.box((0.15, 0.1, 0.09), loc=(0, 0.002, leg_h + 0.05), base=True, m="TeamColor")
+        P.box((0.1, 0.05, 0.1), loc=(0, -0.07, leg_h + 0.04), base=True, m="Fatigue")
+        P.box((0.07, 0.07, 0.07), loc=(0, 0.0, leg_h + 0.15), base=True, m="Skin")
+        P.ico(0.055, loc=(0, -0.005, leg_h + 0.21), scale=(1, 1.05, 0.7), m="TeamColor",
+              subdiv=1)
+        P.box((0.04, 0.12, 0.04), loc=(-0.08, 0.04, leg_h + 0.1), m="FatigueDark")  # arm
+        P.box((0.04, 0.1, 0.04), loc=(0.08, 0.06, leg_h + 0.1), m="FatigueDark")
+        if weapon == "rifle":
+            P.box((0.025, 0.24, 0.035), loc=(0.02, 0.12, leg_h + 0.11), m="DarkMetal")
+        elif weapon == "rocket":
+            P.cyl(0.03, 0.3, loc=(0.07, -0.08, leg_h + 0.2), rot=(-90, 0, 0), m="HullOlive",
+                  n=6)
+            P.cyl(0.036, 0.04, loc=(0.07, 0.22, leg_h + 0.2), rot=(-90, 0, 0), m="Warhead",
+                  n=6)
+
+
+@register("units", "militia_squad")
+def militia_squad(M):
+    """Militia: a fire team of four behind a low sandbag arc."""
+    P = M.main
+    soldier(P, -0.16, 0.12, rot=-8)
+    soldier(P, 0.17, 0.1, rot=10, weapon="rocket")
+    soldier(P, -0.04, -0.2, rot=4, kneel=True)
+    soldier(P, 0.24, -0.22, rot=-14, kneel=True)
+    for i in range(5):
+        a = math.radians(55 + i * 17.5)
+        P.box((0.15, 0.08, 0.07), loc=(math.cos(a) * 0.46, math.sin(a) * 0.46 - 0.04, 0.0),
+              rot=(0, 0, math.degrees(a) + 90), base=True, taper=(0.9, 0.7), m="Sandbag")
+    P.cyl(0.05, 0.16, loc=(-0.3, -0.18, 0.0), m="Jerrycan", n=6)
+    P.box((0.12, 0.08, 0.07), loc=(-0.26, -0.34, 0.0), base=True, m="Ammo")
 
 
 # ==========================================================================
 # BUILDINGS  (front = +Y)
 # ==========================================================================
+# Built at in-game size: the footprint fills the structure's radius (command
+# centre 4 m, factories 3.2 m, power plant 2.3 m, extractors 1.9 m, turrets 1.3 m,
+# city buildings 2 m). Military structures stand on a dark concrete pad so the
+# footprint reads against the sand; roofs are dark with team-coloured trims and
+# panels; walls are mid-grey concrete, brick or steel, never sand-coloured.
 
 def lattice(P, base_half, top_half, z0, z1, levels, m="Steel", w=0.05, leg_w=None,
             diag=True):
@@ -1593,115 +2052,818 @@ def banded_cyl(P, x, y, z0, r0, r1, h, band_h, mats, n=10, top=None):
     P.add(bm, fn, xform((x, y, 0)))
 
 
-@register("buildings", "oil_derrick")
-def oil_derrick(M):
-    P = M.main
-    P.box((1.3, 2.5, 0.08), loc=(0, -0.05, 0), base=True, m="Concrete")
-    piv = Vector((0, -0.05, 1.25))
-    for sx in (-1, 1):
-        for y in (0.32, -0.42):
-            P.beam((sx * 0.32, y, 0.08), (sx * 0.06, piv.y, piv.z - 0.1), 0.07, m="Gunmetal")
-        P.beam((sx * 0.21, 0.13, 0.5), (sx * 0.21, -0.23, 0.5), 0.04, m="Gunmetal")
-    P.box((0.22, 0.16, 0.1), loc=(0, piv.y, piv.z - 0.08), m="DarkMetal")
-    P.box((0.34, 0.42, 0.38), loc=(0, -0.85, 0.08), base=True, m="Gunmetal")
-    for sx in (-1, 1):
-        P.cyl(0.3, 0.07, loc=(sx * 0.22, -0.85, 0.46), rot=(0, 90, 0), m="Rust", n=8,
-              base=False)
-        P.beam((sx * 0.22, -0.85, 0.62), (sx * 0.2, -0.86, piv.z - 0.06), 0.045,
-               m="DarkMetal")
-    P.box((0.36, 0.32, 0.3), loc=(0, -1.15, 0.08), base=True,
-          m=by_normal("TeamColor", "SafetyYellow", thr=0.8))
-    P.box((0.2, 0.08, 0.05), loc=(0, -0.98, 0.28), m="DarkMetal")
-    # wellhead
-    wy = 1.06
-    P.cyl(0.12, 0.12, loc=(0, wy, 0.08), m="Gunmetal", n=8)
-    P.cyl(0.06, 0.3, loc=(0, wy, 0.2), m="Gunmetal", n=6)
-    P.cyl(0.08, 0.02, loc=(0.09, wy, 0.38), rot=(0, 90, 0), m="RedPaint", n=6)
-    P.sweep([(0, wy, 0.3), (0.45, wy, 0.3), (0.62, 0.6, 0.3), (0.85, -0.15, 0.3)], 0.035,
-            m="DarkMetal", n=5)
-    storage_tank(P, 0.95, -0.55, 0.3, 0.75, wall="Rust", roof="Gunmetal", n=10)
-    for k in range(5):
-        P.box((0.04, 0.12, 0.012), loc=(1.25, -0.55, 0.12 + k * 0.14), m="Steel")
-    gz = 0.42
-    for (a, b) in (((-0.48, -0.5), (-0.48, -1.25)), ((0.48, -0.5), (0.48, -1.25)),
-                   ((-0.48, -0.5), (-0.3, -0.5)), ((0.48, -0.5), (0.3, -0.5))):
-        P.beam((a[0], a[1], gz), (b[0], b[1], gz), 0.03, m="SafetyYellow", caps=False)
-        P.beam((a[0], a[1], 0.08), (a[0], a[1], gz), 0.03, m="SafetyYellow", caps=False)
-    for x, y in ((-0.48, -1.25), (0.48, -1.25)):
-        P.beam((x, y, 0.08), (x, y, gz), 0.03, m="SafetyYellow", caps=False)
-    P.box((0.28, 0.16, 0.36), loc=(-0.45, 0.65, 0.08), base=True, m="Gunmetal")
-    P.box((0.2, 0.02, 0.12), loc=(-0.45, 0.735, 0.3), m="Lamp")
-    P.box((0.34, 0.22, 0.03), loc=(-0.45, 0.65, 0.44), base=True, m="TeamColor")
-    B = M.part("Beam", origin=piv)
-    B.box((0.13, 1.9, 0.16), loc=(0, piv.y + 0.1, piv.z + 0.05),
-          m=by_normal("TeamColor", "SafetyYellow", thr=0.8))
-    hz = piv.z + 0.05
-    B.extrude_x([(0.98, hz + 0.28), (1.1, hz + 0.2), (1.17, hz + 0.02), (1.14, hz - 0.18),
-                 (1.05, hz - 0.34), (0.98, hz - 0.12)], -0.09, 0.09,
-                m=by_normal("SafetyYellow", "SafetyYellow", thr=0.9))
-    B.beam((0, 1.12, hz - 0.3), (0, wy, 0.52), 0.02, m="DarkMetal")
-    B.box((0.52, 0.1, 0.08), loc=(0, -0.86, piv.z - 0.04), m="DarkMetal")
+def pad(P, sx, sy, h=0.07, m="Plinth", stripes=True, chamfer=0.12):
+    """Dark concrete slab with chamfered corners and hazard-striped corner marks."""
+    hx, hy, c = sx / 2, sy / 2, chamfer
+    poly = [(-hx + c, -hy), (hx - c, -hy), (hx, -hy + c), (hx, hy - c), (hx - c, hy),
+            (-hx + c, hy), (-hx, hy - c), (-hx, -hy + c)]
+    P.prism(poly, h, top_scale=((sx - 0.08) / sx, (sy - 0.08) / sy), m=m)
+    if stripes:
+        for sx_, sy_ in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
+            P.box((0.36, 0.06, 0.012), loc=(sx_ * (hx - 0.3), sy_ * (hy - 0.1), h), base=True,
+                  m=hazard)
+            P.box((0.06, 0.36, 0.012), loc=(sx_ * (hx - 0.1), sy_ * (hy - 0.3), h), base=True,
+                  m=hazard)
+    return h
 
+
+def windows_row(P, x0, x1, y, z, count, w=0.14, h=0.16, lit=(0, 2), m="Window", facing="y"):
+    """A row of windows on a wall facing +Y (facing="y") or +X (facing="x");
+    windows whose index is in `lit` glow."""
+    for i in range(count):
+        t = x0 + (x1 - x0) * (i + 0.5) / count
+        mat = "WindowLit" if i in lit else m
+        if facing == "y":
+            P.box((w, 0.03, h), loc=(t, y, z), m=mat)
+            P.box((w + 0.04, 0.035, 0.025), loc=(t, y, z - h / 2 - 0.01), m="WallDark")
+        else:
+            P.box((0.03, w, h), loc=(y, t, z), m=mat)
+            P.box((0.035, w + 0.04, 0.025), loc=(y, t, z - h / 2 - 0.01), m="WallDark")
+
+
+def parapet(P, cx, cy, sx, sy, z, m="TeamColor", w=0.07, h=0.07):
+    roof_trim(P, cx, cy, sx, sy, z, m=m, w=w, h=h)
+
+
+def vent(P, x, y, z, r=0.08):
+    P.cyl(r, 0.08, loc=(x, y, z), m="Metal", n=8)
+    P.cyl(r * 1.15, 0.025, loc=(x, y, z + 0.08), m="DarkMetal", n=8)
+
+
+def ac_unit(P, x, y, z):
+    P.box((0.2, 0.16, 0.1), loc=(x, y, z), base=True, m="Metal")
+    P.cyl(0.055, 0.012, loc=(x, y, z + 0.1), m="DarkMetal", n=8)
+
+
+def crate_stack(P, x, y, z=0.0, seed=0):
+    r = rng_for(seed)
+    for i in range(3):
+        s = r.uniform(0.14, 0.2)
+        P.box((s, s, s), loc=(x + r.uniform(-0.12, 0.12), y + r.uniform(-0.12, 0.12),
+                              z + (0.0 if i < 2 else 0.18)),
+              rot=(0, 0, r.uniform(-20, 20)), base=True,
+              m="Wood" if i % 2 else "Ammo")
+
+
+def barrel_group(P, x, y, z=0.0, n=3, m="SteelBlue"):
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        P.cyl(0.06, 0.16, loc=(x + math.cos(a) * 0.08, y + math.sin(a) * 0.08, z), m=m, n=8)
+        P.cyl(0.062, 0.015, loc=(x + math.cos(a) * 0.08, y + math.sin(a) * 0.08, z + 0.1),
+              m="DarkMetal", n=8)
+
+
+def lamp_post(P, x, y, z=0.0, h=0.7):
+    P.cyl(0.02, h, loc=(x, y, z), m="DarkMetal", n=5)
+    P.box((0.1, 0.05, 0.03), loc=(x, y + 0.03, z + h), m="DarkMetal")
+    P.box((0.08, 0.04, 0.01), loc=(x, y + 0.03, z + h - 0.02), m="Lamp")
+
+
+def dish(P, x, y, z, r=0.3, tilt=(-35, 0, 20), team=True):
+    dm = xform((x, y, z), tilt)
+    prof = [(0.0, 0.0), (r * 0.45, r * 0.05), (r * 0.8, r * 0.18), (r, r * 0.32),
+            (r * 0.97, r * 0.35), (r * 0.78, r * 0.23), (r * 0.42, r * 0.1), (0.0, r * 0.05)]
+    P.add(g_lathe(prof, 12), "Metal", dm)
+    if team:
+        P.add(g_cyl(r * 1.01, 0.025, 12, base=True), "TeamColor", dm @ xform((0, 0, r * 0.31)))
+    tip = dm @ Vector((0, 0, r * 0.8))
+    for a in (0, 120, 240):
+        rim = dm @ Vector((math.cos(math.radians(a)) * r * 0.9,
+                           math.sin(math.radians(a)) * r * 0.9, r * 0.3))
+        P.beam(rim, tip, 0.015, m="DarkMetal")
+    P.add(g_cyl(0.035, 0.07, 6), "DarkMetal", dm @ xform((0, 0, r * 0.75)))
+
+
+def corrugated_wall(P, x0, x1, y, z0, z1, m="RoofMetal", dark="RoofMetalDark", pitch=0.08,
+                    axis="x"):
+    """Ribs on a wall facing +Y (axis x) or +X (axis y) for a corrugated look."""
+    n = max(1, int(abs(x1 - x0) / pitch))
+    for i in range(n):
+        t = x0 + (x1 - x0) * (i + 0.5) / n
+        if axis == "x":
+            P.box((pitch * 0.35, 0.02, z1 - z0), loc=(t, y, z0), base=True, m=dark)
+        else:
+            P.box((0.02, pitch * 0.35, z1 - z0), loc=(y, t, z0), base=True, m=dark)
+
+
+def hazard_frame(P, x, y, z, w, h, d=0.05, t=0.06):
+    """Hazard-striped frame round an opening in a wall facing +Y."""
+    P.box((t, d, h), loc=(x - w / 2 - t / 2, y, z), base=True, m=hazard)
+    P.box((t, d, h), loc=(x + w / 2 + t / 2, y, z), base=True, m=hazard)
+    P.box((w + 2 * t, d, t), loc=(x, y, z + h), base=True, m=hazard)
+
+
+def roll_door(P, x, y, z, w, h, lit=True):
+    P.box((w, 0.03, h), loc=(x, y, z), base=True,
+          m=lambda c, n: "DoorDark" if int(math.floor((c.z - z) / 0.05)) % 2 else "DoorSlat")
+    if lit:
+        P.box((w * 0.9, 0.032, 0.03), loc=(x, y, z + h - 0.06), base=True, m="WindowLit")
+
+
+def stripes_ground(P, x, y, w, d, z, n=3, m="LineWhite"):
+    for i in range(n):
+        P.box((w, 0.04, 0.008), loc=(x, y - d / 2 + d * (i + 0.5) / n, z), base=True, m=m)
+
+
+# ---- command centre --------------------------------------------------------
+
+@register("buildings", "command_center")
+def command_center(M):
+    """Command centre and depot: armoured headquarters with a tower, radar and
+    a loading yard."""
+    P = M.main
+    z = pad(P, 4.0, 4.0)
+    # sloped armoured base (bunker plinth)
+    P.prism([(-1.45, -1.15), (1.45, -1.15), (1.45, 1.05), (-1.45, 1.05)], 0.34,
+            loc=(0, -0.2, z), top_scale=(0.97, 0.96), m="WallDark")
+    zb = z + 0.34
+    # main hall
+    hx, hy, hw, hd, hh = 0.0, -0.25, 2.6, 1.8, 0.62
+    P.box((hw, hd, hh), loc=(hx, hy, zb), base=True, m="WallConcrete")
+    P.box((hw + 0.06, hd + 0.06, 0.08), loc=(hx, hy, zb + hh), base=True, m="RoofSlate")
+    parapet(P, hx, hy, hw + 0.06, hd + 0.06, zb + hh + 0.08, w=0.09, h=0.08)
+    windows_row(P, -1.2, -0.45, hy + hd / 2 + 0.005, zb + 0.38, 3, lit=(1,))
+    windows_row(P, 0.45, 1.2, hy + hd / 2 + 0.005, zb + 0.38, 3, lit=(0, 2))
+    windows_row(P, hy - 0.7, hy + 0.7, hx + hw / 2 + 0.005, zb + 0.38, 4, lit=(1, 2),
+                facing="x")
+    # entrance block with team canopy and big door
+    P.box((0.8, 0.3, 0.5), loc=(0, hy + hd / 2 + 0.15, zb), base=True, m="WallDark")
+    roll_door(P, 0, hy + hd / 2 + 0.31, zb, 0.5, 0.36)
+    hazard_frame(P, 0, hy + hd / 2 + 0.32, zb, 0.5, 0.38)
+    P.box((1.0, 0.5, 0.05), loc=(0, hy + hd / 2 + 0.3, zb + 0.5), base=True, m="TeamColor")
+    # ramp down to the pad
+    P.prism([(-0.3, 0), (0.3, 0), (0.3, 0.45), (-0.3, 0.45)], 0.34,
+            loc=(0, hy + hd / 2 + 0.3, z), top_shift=(0, -0.45), top_scale=(1.0, 0.0),
+            m="Plinth")
+    # upper command block
+    ux, uy = -0.3, -0.45
+    P.box((1.3, 1.0, 0.5), loc=(ux, uy, zb + hh + 0.08), base=True, m="WallConcrete")
+    P.box((1.32, 1.02, 0.14), loc=(ux, uy, zb + hh + 0.3), base=True, m="Glass")
+    P.box((1.4, 1.1, 0.07), loc=(ux, uy, zb + hh + 0.58), base=True, m="TeamColor")
+    zu = zb + hh + 0.65
+    ac_unit(P, ux - 0.35, uy - 0.2, zu)
+    vent(P, ux + 0.4, uy + 0.25, zu)
+    # radar on the upper roof
+    with P.at(loc=(ux + 0.15, uy - 0.1, zu)):
+        P.cyl(0.08, 0.2, m="DarkMetal", n=8)
+        P.box((0.7, 0.06, 0.16), loc=(0, 0, 0.28), rot=(12, 0, 0), m="Metal")
+        P.box((0.72, 0.065, 0.03), loc=(0, 0.01, 0.36), rot=(12, 0, 0), m="TeamColor")
+    # comms tower, back right
+    tx, ty = 1.0, -0.75
+    P.cyl(0.32, 1.35, loc=(tx, ty, zb), m="WallConcrete", n=10)
+    P.cyl(0.34, 0.16, loc=(tx, ty, zb + 1.0), m="Glass", n=10)
+    P.cyl(0.38, 0.05, loc=(tx, ty, zb + 0.98), m="DarkMetal", n=10)
+    P.cyl(0.38, 0.08, loc=(tx, ty, zb + 1.35), m="TeamColor", n=10)
+    P.cone(0.3, 0.12, loc=(tx, ty, zb + 1.43), m="RoofSlate", n=10)
+    P.cyl(0.02, 0.9, loc=(tx, ty, zb + 1.55), m="DarkMetal", n=5)
+    P.cyl(0.035, 0.05, loc=(tx, ty, zb + 2.45), m="TailLight", n=6)
+    for k in range(3):
+        P.box((0.3 - k * 0.07, 0.02, 0.02), loc=(tx, ty, zb + 1.8 + k * 0.22), m="DarkMetal")
+    dish(P, -1.0, -0.95, zb + hh + 0.08, r=0.32)
+    # loading yard on the left: crates, barrels, a crane
+    crate_stack(P, -1.55, 1.25, z, seed=3)
+    barrel_group(P, -1.2, 1.55, z)
+    crate_stack(P, 1.5, 1.4, z, seed=4)
+    lamp_post(P, 1.75, 0.8, z)
+    lamp_post(P, -1.75, 0.6, z)
+    stripes_ground(P, 1.0, 1.35, 0.6, 0.6, z, n=3, m="LineYellow")
+    flag(P, -1.6, -1.6, 1.5, z0=z, size=(0.42, 0.26))
+
+
+# ---- factories -----------------------------------------------------------
+
+@register("buildings", "vehicle_factory")
+def vehicle_factory(M):
+    """Vehicle factory: sawtooth-roofed assembly hall, big lit bay door,
+    gantry crane over the apron."""
+    P = M.main
+    z = pad(P, 3.2, 3.2)
+    hx, hy, hw, hd, hh = -0.05, -0.35, 2.5, 1.9, 0.78
+    P.box((hw, hd, hh), loc=(hx, hy, z), base=True,
+          m=lambda c, n: "BrickRed" if c.z < z + 0.3 and abs(n.z) < 0.5 else "SteelBlue")
+    P.box((hw + 0.02, hd + 0.02, 0.06), loc=(hx, hy, z + 0.28), base=True, m="WallDark")
+    corrugated_wall(P, hx - hw / 2, hx - 0.6, hy + hd / 2 + 0.01, z + 0.34, z + hh,
+                    m="SteelBlue", dark="SteelBlueDark", pitch=0.1)
+    corrugated_wall(P, hx + 0.6, hx + hw / 2, hy + hd / 2 + 0.01, z + 0.34, z + hh,
+                    m="SteelBlue", dark="SteelBlueDark", pitch=0.1)
+    corrugated_wall(P, hy - hd / 2, hy + hd / 2, hx + hw / 2 + 0.01, z + 0.34, z + hh,
+                    m="SteelBlue", dark="SteelBlueDark", pitch=0.1, axis="y")
+    # sawtooth roof: 4 teeth running along X, glazed north faces, team stripe on top
+    teeth = 4
+    for i in range(teeth):
+        y0 = hy - hd / 2 + hd * i / teeth
+        y1 = hy - hd / 2 + hd * (i + 1) / teeth
+
+        def tooth(c, n):
+            if n.y < -0.3:
+                return "Glass"
+            if n.z > 0.3:
+                return "RoofMetal"
+            return "SteelBlueDark"
+        P.extrude_x([(y0, z + hh), (y1, z + hh), (y0, z + hh + 0.34)],
+                    hx - hw / 2, hx + hw / 2, m=tooth)
+        P.box((hw, 0.12, 0.02), loc=(hx, y0 + 0.1, z + hh + 0.25), rot=(-41, 0, 0),
+              m="TeamColor")
+    parapet(P, hx, hy, hw + 0.04, hd + 0.04, z + hh - 0.02, m="WallDark", w=0.05, h=0.05)
+    # main bay door
+    bw, bh = 1.0, 0.62
+    roll_door(P, hx, hy + hd / 2 + 0.02, z, bw, bh * 0.6, lit=False)
+    P.box((bw, 0.02, bh * 0.4), loc=(hx, hy + hd / 2 + 0.005, z + bh * 0.6), base=True,
+          m="WindowLit")  # glowing open top of the bay
+    hazard_frame(P, hx, hy + hd / 2 + 0.03, z, bw, bh)
+    P.box((bw + 0.4, 0.3, 0.06), loc=(hx, hy + hd / 2 + 0.15, z + bh + 0.06), base=True,
+          m="TeamColor")
+    # chimneys and office block
+    for x in (-0.9, -0.6):
+        P.cyl(0.09, 1.55, loc=(x, hy - 0.6, z), m="BrickRed", n=8)
+        P.cyl(0.1, 0.12, loc=(x, hy - 0.6, z + 1.55), m="DarkMetal", n=8)
+        P.cyl(0.1, 0.06, loc=(x, hy - 0.6, z + 1.25), m="TeamColor", n=8)
+    ox, oy = 1.15, 0.85
+    P.box((0.6, 0.55, 0.42), loc=(ox, oy, z), base=True, m="WallConcrete")
+    P.box((0.64, 0.6, 0.05), loc=(ox, oy, z + 0.42), base=True, m="TeamColor")
+    windows_row(P, ox - 0.25, ox + 0.25, oy + 0.28, z + 0.26, 2, lit=(0,))
+    windows_row(P, oy - 0.2, oy + 0.2, ox + 0.305, z + 0.26, 2, lit=(1,), facing="x")
+    ac_unit(P, ox, oy, z + 0.47)
+    # gantry crane over the apron
+    for sx in (-1, 1):
+        P.beam((hx + sx * 0.75, 1.2, z), (hx + sx * 0.75, 1.2, z + 0.9), 0.07, m="Amber")
+        P.beam((hx + sx * 0.75, 0.6, z + 0.9), (hx + sx * 0.75, 1.2, z + 0.9), 0.06, m="Amber")
+    P.beam((hx - 0.8, 1.2, z + 0.92), (hx + 0.8, 1.2, z + 0.92), 0.08,
+           m=lambda c, n: hazard(c, n, 0.12))
+    P.box((0.14, 0.12, 0.1), loc=(hx + 0.2, 1.2, z + 0.82), m="DarkMetal")
+    P.cyl(0.006, 0.4, loc=(hx + 0.2, 1.2, z + 0.42), m="DarkMetal", n=4)
+    P.box((0.14, 0.1, 0.04), loc=(hx + 0.2, 1.2, z + 0.4), m=hazard)
+    stripes_ground(P, hx, 1.1, 1.0, 0.7, z, n=2, m="LineYellow")
+    crate_stack(P, -1.25, 1.2, z, seed=7)
+    barrel_group(P, 1.3, 0.2, z)
+    lamp_post(P, -1.4, 0.55, z)
+
+
+@register("buildings", "aircraft_factory")
+def aircraft_factory(M):
+    """Aircraft factory: arched hangar, control tower and a helipad."""
+    P = M.main
+    z = pad(P, 3.2, 3.2)
+    # arched hangar along Y, open towards +Y
+    hx, hy, r, length = -0.45, -0.25, 0.9, 2.0
+    arch = []
+    n = 10
+    for i in range(n + 1):
+        a = math.pi * i / n
+        arch.append((math.cos(a) * r, math.sin(a) * r * 0.85))
+
+    def hangar(c, nrm):
+        if nrm.y > 0.7 or nrm.y < -0.7:
+            return "SteelBlueDark"
+        k = int(math.floor((c.y - hy + length / 2) / (length / 6)))
+        return "TeamColor" if k in (1, 4) and nrm.z > 0.5 else "RoofMetal"
+    outer = [(hx + x, z + y) for x, y in arch]
+    P.extrude_y(outer, hy - length / 2, hy + length / 2, m=hangar)
+    for k in range(7):  # ribs
+        y = hy - length / 2 + length * k / 6
+        P.sweep([(hx + x * 1.03, y, z + yy * 1.03) for x, yy in arch], 0.025, m="DarkMetal",
+                n=4)
+    # glowing open front with hangar doors slid aside
+    P.extrude_y([(hx + x * 0.9, z + y * 0.9) for x, y in arch], hy + length / 2 - 0.02,
+                hy + length / 2 - 0.01, m="WindowLit")
+    for sx in (-1, 1):
+        P.box((0.45, 0.06, 0.62), loc=(hx + sx * 0.78, hy + length / 2 + 0.04, z), base=True,
+              m=lambda c, n: "DoorDark" if int(math.floor(c.x / 0.08)) % 2 else "DoorSlat")
+    # control tower, back right
+    tx, ty = 1.05, -0.9
+    P.box((0.42, 0.42, 1.2), loc=(tx, ty, z), base=True, taper=0.85, m="WallConcrete")
+    P.box((0.58, 0.58, 0.24), loc=(tx, ty, z + 1.2), base=True, taper=1.12, m="Glass")
+    P.box((0.68, 0.68, 0.06), loc=(tx, ty, z + 1.44), base=True, m="TeamColor")
+    P.cyl(0.08, 0.1, loc=(tx, ty, z + 1.5), m="DarkMetal", n=8)
+    P.ico(0.09, loc=(tx, ty, z + 1.66), m="Metal", subdiv=1)
+    P.cyl(0.012, 0.4, loc=(tx + 0.2, ty - 0.2, z + 1.5), m="DarkMetal", n=4)
+    P.cyl(0.03, 0.04, loc=(tx + 0.2, ty - 0.2, z + 1.9), m="TailLight", n=6)
+    # helipad, front right
+    px, py = 0.95, 0.85
+    P.cyl(0.6, 0.04, loc=(px, py, z), m="Asphalt", n=16)
+    P.cyl(0.6, 0.012, loc=(px, py, z + 0.04), m="LineYellow", n=16)
+    P.cyl(0.54, 0.014, loc=(px, py, z + 0.04), m="Asphalt", n=16)
+    for sx in (-1, 1):
+        P.box((0.06, 0.4, 0.008), loc=(px + sx * 0.14, py, z + 0.054), base=True,
+              m="LineWhite")
+    P.box((0.24, 0.06, 0.008), loc=(px, py, z + 0.054), base=True, m="LineWhite")
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        P.box((0.04, 0.04, 0.03), loc=(px + math.cos(a) * 0.62, py + math.sin(a) * 0.62, z),
+              base=True, m="Lamp")
+    # windsock, fuel tanks, crates
+    P.cyl(0.015, 0.8, loc=(-1.45, 1.35, z), m="DarkMetal", n=4)
+    P.cone(0.06, 0.3, loc=(-1.45, 1.35, z + 0.75), rot=(0, 80, 0), m="Warhead", n=6)
+    for k in range(2):
+        P.cyl(0.14, 0.5, loc=(1.35, -0.1 + k * 0.32, z + 0.18), rot=(0, 90, 0), m="Metal",
+              n=10, base=False)
+        P.cyl(0.145, 0.06, loc=(1.35, -0.1 + k * 0.32, z + 0.18), rot=(0, 90, 0),
+              m="TeamColor", n=10, base=False)
+    crate_stack(P, -1.3, -1.35, z, seed=9)
+    lamp_post(P, 0.25, 1.4, z)
+
+
+# ---- power ---------------------------------------------------------------
+
+@register("buildings", "power_plant")
+def power_plant(M):
+    """Power plant: cooling tower, turbine hall, stack and transformers."""
+    P = M.main
+    z = pad(P, 2.3, 2.3)
+    # cooling tower (hyperboloid), back left
+    cx, cy = -0.45, -0.4
+    prof = [(0.62, 0.0), (0.52, 0.35), (0.44, 0.75), (0.42, 0.95), (0.45, 1.2), (0.43, 1.2),
+            (0.4, 0.95), (0.42, 0.75)]
+    P.add(g_lathe(prof[:6], 14, caps=False),
+          lambda c, n: "Concrete" if c.z < z + 0.95 or c.z > z + 1.12 else "TeamColor",
+          xform((cx, cy, z)))
+    P.cyl(0.4, 0.02, loc=(cx, cy, z + 1.0), m="DarkMetal", n=14)  # dark inside
+    for k in range(6):
+        a = 2 * math.pi * k / 6
+        P.beam((cx + math.cos(a) * 0.62, cy + math.sin(a) * 0.62, z),
+               (cx + math.cos(a) * 0.56, cy + math.sin(a) * 0.56, z + 0.18), 0.04,
+               m="WallDark")
+    # turbine hall, front right
+    hx, hy, hw, hd, hh = 0.38, 0.3, 1.2, 0.9, 0.55
+    P.box((hw, hd, hh), loc=(hx, hy, z), base=True, m="BrickRed")
+    gable_roof(P, hx, hy, hw, hd, z + hh, 0.18, m="RoofSlate", overhang=0.04, ridge="x")
+    P.box((hw + 0.1, 0.04, 0.03), loc=(hx, hy, z + hh + 0.17), m="TeamColor")
+    windows_row(P, hx - 0.5, hx + 0.5, hy + hd / 2 + 0.005, z + 0.33, 4, w=0.12, h=0.22,
+                lit=(0, 1, 2, 3))
+    windows_row(P, hy - 0.3, hy + 0.3, hx + hw / 2 + 0.005, z + 0.33, 2, w=0.12, h=0.22,
+                lit=(0,), facing="x")
+    # stack
+    banded_cyl(P, 0.75, -0.55, z, 0.11, 0.08, 1.6, 0.2, ["Concrete", "Warhead"], n=8,
+               top="DarkMetal")
+    P.cyl(0.14, 0.04, loc=(0.75, -0.55, z + 1.1), m="DarkMetal", n=8)
+    # transformer yard with glowing insulators
+    for k in range(3):
+        x = -0.75 + k * 0.32
+        P.box((0.2, 0.18, 0.2), loc=(x, 0.75, z), base=True, m="SteelBlue")
+        for j in (-1, 1):
+            P.cyl(0.02, 0.14, loc=(x + j * 0.05, 0.75, z + 0.2), m="Insulator", n=5)
+    P.beam((-0.95, 0.95, z + 0.45), (-0.1, 0.95, z + 0.45), 0.03, m="DarkMetal")
+    for x in (-0.95, -0.1):
+        P.beam((x, 0.95, z), (x, 0.95, z + 0.45), 0.035, m="DarkMetal")
+    P.box((0.3, 0.12, 0.02), loc=(-0.52, 0.95, z + 0.46), m="Glow")
+    pipe = [(-0.1, -0.4, z + 0.3), (0.2, -0.1, z + 0.3), (0.2, 0.0, z + 0.3)]
+    P.sweep(pipe, 0.05, m="Metal", n=6)
+
+
+@register("buildings", "solar_plant")
+def solar_plant(M):
+    """Solar plant: rows of tilted panels around an inverter house."""
+    P = M.main
+    z = pad(P, 2.1, 2.1, stripes=False)
+    for row in range(3):
+        y = -0.65 + row * 0.62
+        for col in range(2):
+            x = -0.48 + col * 0.98
+            if row == 2 and col == 1:
+                continue  # inverter house goes here
+            for sx in (-1, 1):
+                P.beam((x + sx * 0.32, y - 0.1, z), (x + sx * 0.32, y - 0.1, z + 0.22), 0.03,
+                       m="DarkMetal")
+                P.beam((x + sx * 0.32, y + 0.12, z), (x + sx * 0.32, y + 0.12, z + 0.1), 0.03,
+                       m="DarkMetal")
+            with P.at(loc=(x, y, z + 0.2), rot=(-28, 0, 0)):
+                P.box((0.86, 0.46, 0.03), m="Metal")
+
+                def cells(c, n, x=x):
+                    if n.z < 0.5:
+                        return "Metal"
+                    i = int(math.floor((c.x - x + 0.43) / 0.143))
+                    return "SolarCell" if i % 2 else "SolarCellLight"
+                P.box((0.82, 0.42, 0.035), loc=(0, 0, 0.004), m=cells)
+                P.box((0.86, 0.04, 0.04), loc=(0, -0.23, 0), m="TeamColor")
+    # inverter house with team roof
+    ix, iy = 0.5, 0.62
+    P.box((0.6, 0.46, 0.36), loc=(ix, iy, z), base=True, m="WallConcrete")
+    P.box((0.66, 0.52, 0.05), loc=(ix, iy, z + 0.36), base=True, m="TeamColor")
+    P.box((0.16, 0.03, 0.26), loc=(ix - 0.12, iy + 0.235, z), base=True, m="DoorDark")
+    P.box((0.14, 0.03, 0.06), loc=(ix + 0.14, iy + 0.235, z + 0.24), m="Glow")
+    ac_unit(P, ix + 0.1, iy - 0.05, z + 0.41)
+    P.beam((ix - 0.3, iy - 0.1, z + 0.3), (-0.5, iy - 0.1, z + 0.3), 0.025, m="DarkMetal")
+
+
+@register("buildings", "power_pylon")
+def power_pylon(M):
+    """Pylon: lattice tower with cross arms, insulators and a team band."""
+    P = M.main
+    for sx, sy in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
+        P.box((0.16, 0.16, 0.1), loc=(sx * 0.32, sy * 0.32, 0), base=True, m="Concrete")
+    lattice(P, 0.32, 0.08, 0.08, 2.5, 6, m="Metal", w=0.035, leg_w=0.05)
+    for z, half in ((1.95, 0.55), (2.3, 0.4)):
+        P.beam((-half, 0, z), (half, 0, z), 0.05, m="Metal")
+        for sx in (-1, 1):
+            P.beam((sx * half, 0, z), (sx * 0.08, 0, z - 0.25), 0.03, m="Metal")
+            P.cyl(0.025, 0.14, loc=(sx * half, 0, z - 0.14), m="Insulator", n=6)
+            P.cyl(0.035, 0.015, loc=(sx * half, 0, z - 0.06), m="Insulator", n=6)
+            P.cyl(0.035, 0.015, loc=(sx * half, 0, z - 0.11), m="Insulator", n=6)
+    P.box((0.3, 0.3, 0.12), loc=(0, 0, 1.2), base=True, taper=0.92, m="TeamColor")
+    P.cone(0.06, 0.2, loc=(0, 0, 2.5), m="Metal", n=4)
+    P.cyl(0.03, 0.04, loc=(0, 0, 2.68), m="TailLight", n=6)
+    P.box((0.12, 0.02, 0.12), loc=(0, 0.18, 0.5), m=hazard)
+
+
+# ---- extractors ------------------------------------------------------------
 
 @register("buildings", "mine")
 def mine(M):
+    """Mine: lattice headframe with sheave wheel, hoist house and ore bin."""
     P = M.main
-    ground_patch(P, 1.95, "OilStain", seed=81, h=0.03, n=16, irregular=0.1)
-    hx, hy = -0.6, 0.4
-    P.box((1.0, 1.0, 0.14), loc=(hx, hy, 0), base=True, m="ConcreteDark")
-    P.box((0.5, 0.5, 0.01), loc=(hx, hy, 0.14), base=True, m="DarkMetal")
-    with P.at(loc=(hx, hy, 0)):
-        lattice(P, 0.42, 0.2, 0.14, 2.6, 4, m="RedPaint", w=0.045)
-        P.box((0.56, 0.56, 0.05), loc=(0, 0, 2.6), base=True, m="Gunmetal")
-        for dy in (-0.09, 0.09):
-            P.cyl(0.32, 0.04, loc=(0, dy, 2.92), rot=(90, 0, 0), m="Gunmetal", n=10,
-                  base=False)
-        P.box((0.08, 0.3, 0.08), loc=(0, 0, 2.92), m="DarkMetal")
-        for dy in (-0.2, 0.2):
-            P.beam((0.2, dy, 2.6), (1.15, dy, 0.14), 0.06, m="RedPaint")
-    # hoist house
-    sx_, sy_ = 0.95, 1.25
-    cx, cy = 0.95, 0.35
-    P.box((sx_, sy_, 0.8), loc=(cx, cy, 0.03), base=True, m="RoofTin")
-    gable_roof(P, cx, cy, sx_, sy_, 0.83, 0.35, "TeamColor", ridge="y")
-    P.box((0.03, 0.4, 0.5), loc=(cx - sx_ / 2, cy - 0.2, 0.03), base=True, m="WoodDark")
-    wall_windows(P, cx, cy, sx_, sy_, 0.55, 2, 2, sides="fr")
-    for dy in (-0.07, 0.07):
-        P.beam((hx + 0.3, hy + dy, 3.15), (cx - sx_ / 2, cy + dy, 0.72), 0.015, m="DarkMetal")
-    # ore pile
-    r = rng_for(82)
-    rings = []
-    for rad, z in ((0.9, 0.0), (0.68, 0.22), (0.42, 0.45), (0.15, 0.6)):
-        ring = []
-        for i in range(9):
-            a = 2 * math.pi * i / 9
-            j = 1 + r.uniform(-0.15, 0.15)
-            ring.append((0.25 + math.cos(a) * rad * j, -1.05 + math.sin(a) * rad * j * 0.8,
-                         z + r.uniform(-0.03, 0.03)))
-        rings.append(ring)
-    rings.append([(0.25, -1.05, 0.68)])
-    P.add(g_rings(rings, True, False),
-          lambda c, n: "Rust" if face_hash(c, 3) == 0 else "CopperRockDark")
-    for i in range(5):
-        a = r.uniform(0, 6.28)
-        rock(P, 0.1, (0.25 + math.cos(a) * 0.95, -1.05 + math.sin(a) * 0.75, 0.05),
-             m="CopperRockDark", seed=83 + i, subdiv=1)
-    # conveyor from shaft to pile
-    a, b = Vector((hx + 0.2, hy - 0.35, 1.35)), Vector((0.2, -0.85, 0.75))
-    P.beam(a, b, 0.16, m="Gunmetal", h=0.06)
-    P.beam(a + Vector((0, 0, 0.04)), b + Vector((0, 0, 0.04)), 0.12, m="HazardBlack",
-           h=0.02)
-    for t in (0.35, 0.75):
-        p = a.lerp(b, t)
-        P.beam((p.x, p.y, 0.03), p, 0.05, m="Gunmetal")
-    # rails and cart
-    for dy in (-0.07, 0.07):
-        P.box((1.5, 0.03, 0.03), loc=(-0.85, -0.45 + dy, 0.03), base=True, m="Steel")
-    P.box((0.3, 0.24, 0.18), loc=(-1.1, -0.45, 0.08), base=True, taper=(1.15, 1.15), m="Rust")
-    P.ico(0.11, loc=(-1.1, -0.45, 0.27), scale=(1.2, 1, 0.5), m="CopperRockDark", subdiv=1)
-    P.box((0.35, 0.3, 0.3), loc=(-1.45, 0.6, 0.03), base=True, m="Wood")
-    P.box((0.28, 0.28, 0.22), loc=(-1.45, 1.0, 0.03), base=True, rot=(0, 0, 15), m="WoodDark")
+    z = pad(P, 1.9, 1.9, stripes=False, m="Plinth")
+    P.prism([(-0.36, -0.36), (0.36, -0.36), (0.36, 0.36), (-0.36, 0.36)], 0.1,
+            loc=(-0.2, -0.15, z), top_scale=0.9, m="DarkMetal")  # shaft collar
+    with P.at(loc=(-0.2, -0.15, z + 0.1)):
+        lattice(P, 0.32, 0.16, 0.0, 1.6, 4, m="RustRed", w=0.04, leg_w=0.06)
+        P.box((0.42, 0.42, 0.06), loc=(0, 0, 1.6), base=True, m="DarkMetal")
+        P.cyl(0.2, 0.05, loc=(0, 0.0, 1.78), rot=(90, 0, 0), m="Metal", n=12, base=False)
+        P.cyl(0.08, 0.07, loc=(0, 0.0, 1.78), rot=(90, 0, 0), m="TeamColor", n=8, base=False)
+        P.beam((0.0, 0.0, 1.6), (0.0, 0.0, 1.78), 0.04, m="DarkMetal")
+        P.beam((0.1, 0.0, 1.62), (0.75, 0.0, 0.45), 0.035, m="RustRed")  # back strut
+        P.cyl(0.004, 1.5, loc=(0.12, 0.0, 0.2), m="DarkMetal", n=3)
+        P.box((0.18, 0.18, 0.16), loc=(0.0, 0.0, 0.5), base=True, m="Amber")  # cage
+    # hoist house, team roof
+    hx, hy = 0.5, -0.15
+    P.box((0.6, 0.62, 0.45), loc=(hx, hy, z), base=True, m="BrickRed")
+    gable_roof(P, hx, hy, 0.6, 0.62, z + 0.45, 0.16, m="TeamColor", overhang=0.04, ridge="y")
+    windows_row(P, hy - 0.2, hy + 0.2, hx + 0.305, z + 0.28, 2, lit=(0,), facing="x")
+    P.box((0.2, 0.03, 0.3), loc=(hx, hy + 0.315, z), base=True, m="DoorDark")
+    # ore bin on stilts with chute and a heap of ore
+    bx, by = -0.15, 0.6
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            P.beam((bx + sx * 0.18, by + sy * 0.15, z), (bx + sx * 0.18, by + sy * 0.15, z + 0.4),
+                   0.04, m="DarkMetal")
+    P.box((0.46, 0.4, 0.24), loc=(bx, by, z + 0.38), base=True, taper=(1.1, 1.1),
+          m="RustRed")
+    P.beam((bx + 0.15, by + 0.1, z + 0.4), (bx + 0.42, by + 0.4, z + 0.18), 0.08,
+           m="DarkMetal")
+    P.ico(0.24, loc=(bx + 0.5, by + 0.45, z), scale=(1.3, 1.1, 0.6), m="OreHeap", subdiv=1,
+          rough=0.3, seed=5)
+    # rail cart
+    P.box((0.6, 0.04, 0.02), loc=(-0.7, 0.3, z), base=True, m="DarkMetal")
+    P.box((0.18, 0.14, 0.12), loc=(-0.7, 0.3, z + 0.04), base=True, m="Metal")
+    P.ico(0.07, loc=(-0.7, 0.3, z + 0.15), scale=(1.1, 0.9, 0.6), m="OreHeap", subdiv=1)
+    lamp_post(P, 0.8, 0.7, z, h=0.6)
 
+
+@register("buildings", "oil_derrick")
+def oil_derrick(M):
+    """Oil derrick: pump jack (animated Beam), storage tank and pipework."""
+    P = M.main
+    z = pad(P, 1.9, 1.9, stripes=False)
+    # pumpjack base frame and motor
+    P.box((0.24, 1.1, 0.08), loc=(-0.15, -0.05, z), base=True, m="DarkMetal")
+    P.box((0.24, 0.26, 0.2), loc=(-0.15, -0.45, z + 0.08), base=True,
+          m=plate_mat("TeamColor", "Amber"))
+    P.cyl(0.18, 0.05, loc=(-0.26, -0.42, z + 0.3), rot=(0, 90, 0), m="DarkMetal", n=10,
+          base=False)  # crank
+    P.cyl(0.18, 0.05, loc=(-0.04, -0.42, z + 0.3), rot=(0, 90, 0), m="DarkMetal", n=10,
+          base=False)
+    for sx in (-1, 1):  # samson post A-frame
+        P.beam((-0.15 + sx * 0.12, -0.25, z + 0.08), (-0.15, 0.02, z + 0.86), 0.05,
+               m="Amber")
+        P.beam((-0.15 + sx * 0.12, 0.25, z + 0.08), (-0.15, 0.02, z + 0.86), 0.05, m="Amber")
+    B = M.part("Beam", origin=(-0.15, 0.02, z + 0.9))
+    with B.at(loc=(-0.15, 0.02, z + 0.9)):
+        B.box((0.08, 1.1, 0.1), loc=(0, 0.05, 0), m=plate_mat("TeamColor", "Amber"))
+        # horse head
+        B.extrude_x([(0.55, -0.32), (0.66, -0.18), (0.66, 0.08), (0.55, 0.08)], -0.06, 0.06,
+                    m="Amber")
+        B.box((0.06, 0.08, 0.14), loc=(0, -0.48, -0.08), m="DarkMetal")
+        B.cyl(0.005, 0.5, loc=(0, 0.63, -0.82), m="DarkMetal", n=3)
+    P.cyl(0.06, 0.16, loc=(-0.15, 0.66, z), m="DarkMetal", n=8)  # wellhead
+    P.cyl(0.03, 0.12, loc=(-0.15, 0.66, z + 0.16), m="Metal", n=6)
+    P.box((0.12, 0.04, 0.04), loc=(-0.15, 0.66, z + 0.12), m="Warhead")
+    # storage tank, team roof
+    storage_tank(P, 0.55, -0.35, 0.36, 0.62, wall="Metal", roof="TeamColor", n=12, z0=z,
+                 band="DarkMetal")
+    P.beam((0.55, -0.35, z + 0.75), (0.55, -0.35, z + 0.8), 0.06, m="DarkMetal")
+    for k in range(5):  # ladder
+        P.box((0.1, 0.02, 0.012), loc=(0.55, 0.02, z + 0.08 + k * 0.12), m="DarkMetal")
+    P.sweep([(-0.15, 0.66, z + 0.08), (0.4, 0.66, z + 0.08), (0.55, 0.0, z + 0.08)], 0.03,
+            m="Metal", n=6)
+    barrel_group(P, 0.55, 0.55, z, m="Warhead")
+    P.box((0.18, 0.12, 0.2), loc=(0.75, 0.7, z), base=True, m="SteelBlue")  # control box
+    P.box((0.08, 0.13, 0.04), loc=(0.75, 0.7, z + 0.12), m="Glow")
+
+
+@register("buildings", "lumber_mill")
+def lumber_mill(M):
+    """Lumber mill: open saw shed, log deck, plank stacks and a chip pile."""
+    P = M.main
+    z = pad(P, 1.9, 1.9, stripes=False, m="Plinth")
+    # open-sided shed on posts with a team roof
+    sx0, sy0, sw, sd = -0.2, 0.0, 1.1, 0.9
+    for px in (-1, 1):
+        for py in (-1, 0, 1):
+            P.box((0.07, 0.07, 0.62), loc=(sx0 + px * sw / 2, sy0 + py * sd / 2, z), base=True,
+                  m="WoodDark")
+    P.box((sw, 0.06, 0.4), loc=(sx0, sy0 - sd / 2, z), base=True, m="Wood")  # back wall
+    gable_roof(P, sx0, sy0, sw, sd, z + 0.62, 0.2, m="TeamColor", overhang=0.08, ridge="x")
+    P.box((sw + 0.2, 0.05, 0.04), loc=(sx0, sy0, z + 0.81), m="WoodDark")
+    # saw bench with circular blade and a log on it
+    P.box((0.8, 0.22, 0.18), loc=(sx0, sy0 + 0.05, z), base=True, m="DarkMetal")
+    P.cyl(0.13, 0.015, loc=(sx0 + 0.05, sy0 + 0.05, z + 0.18), rot=(0, 90, 0), m="Metal",
+          n=12, base=False)
+    P.cyl(0.07, 0.6, loc=(sx0 - 0.1, sy0 + 0.05, z + 0.25), rot=(0, 90, 0), m="LogBark", n=8,
+          base=False)
+    # log deck (left)
+    for row, (n, zz) in enumerate(((4, 0.0), (3, 0.12))):
+        for i in range(n):
+            y = -0.35 + i * 0.14 + row * 0.07
+            P.cyl(0.065, 0.62, loc=(-0.95 + 0.31, y + 0.1, z + 0.065 + zz), rot=(0, 90, 0),
+                  m=lambda c, nrm: "LogEnd" if abs(nrm.x) > 0.8 else "LogBark", n=8,
+                  base=False)
+    # plank stacks (right, front)
+    for k, (x, y) in enumerate(((0.6, 0.65), (0.6, 0.3))):
+        for j in range(4):
+            P.box((0.5, 0.26, 0.04), loc=(x, y, z + j * 0.05), base=True,
+                  rot=(0, 0, (j % 2) * 3), m="Plank" if j % 2 else "Wood")
+    # sawdust pile and conveyor
+    P.ico(0.24, loc=(0.6, -0.55, z), scale=(1.2, 1.0, 0.7), m="WoodChips", subdiv=1,
+          rough=0.15, seed=2)
+    P.beam((0.3, -0.25, z + 0.3), (0.55, -0.5, z + 0.35), 0.08, m="DarkMetal")
+    P.cyl(0.03, 0.3, loc=(-0.6, -0.42, z + 0.6), m="DarkMetal", n=6)  # exhaust
+    lamp_post(P, 0.85, -0.05, z, h=0.55)
+
+
+# ---- defences ------------------------------------------------------------
+
+def defense_base(P):
+    """Round concrete emplacement ringed with sandbags. The game turns a turret's
+    whole model, so the base is rotationally symmetric."""
+    P.cyl(0.64, 0.1, m="Plinth", n=16, r2=0.6)
+    P.cyl(0.5, 0.24, loc=(0, 0, 0.1), m="WallDark", n=16, r2=0.4)
+    P.cyl(0.4, 0.03, loc=(0, 0, 0.33), m=lambda c, n: hazard(c, n, 0.1), n=16)
+    for i in range(12):
+        a = 2 * math.pi * (i + 0.5) / 12
+        P.box((0.17, 0.1, 0.08), loc=(math.cos(a) * 0.6, math.sin(a) * 0.6, 0.1),
+              rot=(0, 0, math.degrees(a) + 90), base=True, taper=(0.9, 0.7), m="Sandbag")
+    return 0.36
+
+
+@register("buildings", "defense_turret")
+def defense_turret(M):
+    """Anti-ground turret: armoured twin-cannon turret on a bunker base."""
+    P = M.main
+    z = defense_base(P)
+    P.cyl(0.26, 0.08, loc=(0, 0, z - 0.02), m="DarkMetal", n=12)
+    T = M.part("Turret", origin=(0, 0, z + 0.06))
+    with T.at(loc=(0, 0, z + 0.06)):
+        T.prism([(-0.24, -0.28), (0.24, -0.28), (0.3, 0.0), (0.18, 0.24), (-0.18, 0.24),
+                 (-0.3, 0.0)], 0.24, top_scale=0.78,
+                m=plate_mat("TeamColor", "HullOliveDark", thr=0.8))
+        T.box((0.3, 0.12, 0.16), loc=(0, 0.25, 0.11), m="HullOlive")
+        for sx in (-1, 1):
+            T.cyl(0.035, 0.5, loc=(sx * 0.07, 0.3, 0.12), rot=(-90, 0, 0), m="Gunmetal", n=8)
+            T.cyl(0.048, 0.08, loc=(sx * 0.07, 0.78, 0.12), rot=(-90, 0, 0), m="DarkMetal",
+                  n=8)
+        T.box((0.34, 0.12, 0.1), loc=(0, -0.3, 0.1), m="HullOlive")
+        T.cyl(0.06, 0.05, loc=(0.1, -0.1, 0.24), m="DarkMetal", n=8)
+        T.box((0.06, 0.03, 0.03), loc=(-0.1, 0.12, 0.25), m="Glow")
+        antenna(T, -0.18, -0.2, 0.22, 0.3)
+
+
+@register("buildings", "defense_aa")
+def defense_aa(M):
+    """Anti-air turret: radar-guided quad missile launcher."""
+    P = M.main
+    z = defense_base(P)
+    P.cyl(0.24, 0.1, loc=(0, 0, z - 0.02), m="DarkMetal", n=12)
+    T = M.part("Turret", origin=(0, 0, z + 0.08))
+    with T.at(loc=(0, 0, z + 0.08)):
+        T.box((0.3, 0.3, 0.16), base=True, m=plate_mat("TeamColor", "HullOliveDark"))
+        for sx in (-1, 1):
+            T.beam((sx * 0.15, 0, 0.12), (sx * 0.24, 0, 0.26), 0.05, m="DarkMetal")
+            with T.at(loc=(sx * 0.27, 0.02, 0.3), rot=(32, 0, 0)):
+                T.box((0.16, 0.46, 0.18), m=plate_mat("TeamColor", "HullOlive", thr=0.8))
+                for i in (-1, 1):
+                    for j in (-1, 1):
+                        T.cyl(0.035, 0.02, loc=(i * 0.04, 0.23, j * 0.045), rot=(-90, 0, 0),
+                              m="Warhead", n=6)
+        T.cyl(0.02, 0.22, loc=(0, -0.1, 0.16), m="DarkMetal", n=5)
+        T.box((0.34, 0.04, 0.14), loc=(0, -0.1, 0.42), rot=(15, 0, 0), m="Metal")
+        T.box((0.35, 0.045, 0.03), loc=(0, -0.09, 0.48), rot=(15, 0, 0), m="TeamColor")
+
+
+# ---- city buildings (built by the city itself, about 2 m across) ------------
+
+def plaster_walls(c, n, base="Plaster", dado="PlasterDark", z_split=0.12):
+    if abs(n.z) < 0.5 and c.z < z_split:
+        return dado
+    return base
+
+
+def door(P, x, y, z, w=0.16, h=0.3, m="DoorBlue"):
+    P.box((w + 0.04, 0.03, h + 0.03), loc=(x, y, z), base=True, m="WoodDark")
+    P.box((w, 0.035, h), loc=(x, y, z), base=True, m=m)
+
+
+def water_tank(P, x, y, z):
+    for sx in (-1, 1):
+        P.beam((x + sx * 0.08, y, z), (x + sx * 0.08, y, z + 0.1), 0.025, m="DarkMetal")
+    P.cyl(0.11, 0.2, loc=(x, y, z + 0.1), rot=(0, 90, 0), m="Metal", n=8, base=False)
+
+
+def satellite(P, x, y, z):
+    dish(P, x, y, z + 0.04, r=0.09, tilt=(-50, 0, 30), team=False)
+
+
+@register_many("buildings", [("house_a", {"seed": 1}), ("house_b", {"seed": 2})])
+def house(M, seed):
+    """City house: two flat-roofed plaster blocks, team awning, rooftop clutter."""
+    P = M.main
+    r = rng_for(seed)
+    P.box((1.9, 1.9, 0.05), base=True, m="Paving")
+    if seed == 1:
+        blocks = [(-0.25, -0.1, 1.1, 1.1, 0.95), (0.5, 0.35, 0.7, 0.8, 0.55)]
+        doors = [(-0.25, 0.45), (0.5, 0.75)]
+        walls, dark, door_m = "Plaster", "PlasterDark", "DoorBlue"
+    else:
+        blocks = [(0.15, -0.2, 1.3, 1.0, 0.7), (-0.45, 0.35, 0.7, 0.7, 1.15)]
+        doors = [(0.35, 0.3), (-0.45, 0.7)]
+        walls, dark, door_m = "PlasterWarm", "PlasterWarmDark", "DoorGreen"
+    z = 0.05
+    for i, (x, y, sx, sy, h) in enumerate(blocks):
+        P.box((sx, sy, h), loc=(x, y, z), base=True,
+              m=lambda c, n: plaster_walls(c, n, walls, dark, z + 0.14))
+        P.box((sx + 0.04, sy + 0.04, 0.04), loc=(x, y, z + h), base=True, m="RoofFlat")
+        parapet(P, x, y, sx + 0.04, sy + 0.04, z + h + 0.04, m=dark, w=0.06, h=0.08)
+        nwin = max(1, int(sx / 0.4))
+        for fl in range(int(h / 0.45)):
+            zz = z + 0.3 + fl * 0.42
+            windows_row(P, x - sx / 2 + 0.1, x + sx / 2 - 0.1, y + sy / 2 + 0.005, zz, nwin,
+                        w=0.12, h=0.16, lit=(fl % 2,) if r.random() < 0.6 else ())
+            windows_row(P, y - sy / 2 + 0.1, y + sy / 2 - 0.1, x + sx / 2 + 0.005, zz,
+                        max(1, int(sy / 0.4)), w=0.12, h=0.16, lit=(), facing="x")
+        # shutters
+        if i == 0:
+            water_tank(P, x - sx / 4, y - sy / 4, z + h + 0.04)
+            ac_unit(P, x + sx / 4, y - sy / 4, z + h + 0.04)
+            satellite(P, x + sx / 4, y + sy / 4, z + h + 0.04)
+    for x, y in doors:
+        door(P, x, y + 0.01, z, m=door_m)
+    # team-coloured awning over the main door, and a rooftop cloth canopy
+    x, y = doors[0]
+    striped_awning(P, x - 0.25, x + 0.25, y + 0.02, z + 0.42, 0.22, 0.08,
+                   ["TeamColor", "AwningCream", "TeamColor", "AwningCream"])
+    bx, by, bsx, bsy, bh = blocks[1]
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            P.beam((bx + sx * bsx * 0.35, by + sy * bsy * 0.35, z + bh + 0.04),
+                   (bx + sx * bsx * 0.35, by + sy * bsy * 0.35, z + bh + 0.32), 0.025,
+                   m="WoodDark")
+    P.box((bsx * 0.78, bsy * 0.78, 0.02), loc=(bx, by, z + bh + 0.32), base=True,
+          m="TeamColor")
+    # outside stair to the lower roof, plants, a parked crate
+    for k in range(4):
+        P.box((0.14, 0.1, 0.08 * (k + 1)), loc=(bx + bsx / 2 + 0.07, by - 0.25 + k * 0.1, z),
+              base=True, m=dark)
+    P.cyl(0.07, 0.08, loc=(-0.75, 0.75, z), m="Terracotta", n=6)
+    P.ico(0.08, loc=(-0.75, 0.75, z + 0.12), m="BushLeaf", subdiv=1, rough=0.2)
+    P.cyl(0.07, 0.08, loc=(0.8, -0.8, z), m="Terracotta", n=6)
+    P.ico(0.08, loc=(0.8, -0.8, z + 0.12), m="BushLeafDark", subdiv=1, rough=0.2)
+
+
+@register("buildings", "apartment")
+def apartment(M):
+    """City apartment block: three storeys, balconies, team awnings on the shop
+    front and a rooftop terrace."""
+    P = M.main
+    P.box((1.9, 1.9, 0.05), base=True, m="Paving")
+    z = 0.05
+    x, y, sx, sy, h = 0.0, -0.05, 1.3, 1.2, 1.55
+    P.box((sx, sy, h), loc=(x, y, z), base=True,
+          m=lambda c, n: plaster_walls(c, n, "PlasterWarm", "BrickRed", z + 0.45))
+    for fl in range(3):
+        zz = z + 0.28 + fl * 0.48
+        if fl == 0:
+            P.box((sx - 0.2, 0.03, 0.26), loc=(x, y + sy / 2 + 0.005, z + 0.04), base=True,
+                  m="WindowLit")  # shop window
+            striped_awning(P, x - sx / 2 + 0.1, x + sx / 2 - 0.1, y + sy / 2 + 0.02, z + 0.4,
+                           0.22, 0.08, ["TeamColor", "AwningCream"] * 3)
+            continue
+        windows_row(P, x - sx / 2 + 0.1, x + sx / 2 - 0.1, y + sy / 2 + 0.005, zz, 3,
+                    w=0.16, h=0.2, lit=(fl % 3,))
+        windows_row(P, y - sy / 2 + 0.1, y + sy / 2 - 0.1, x + sx / 2 + 0.005, zz, 3,
+                    w=0.16, h=0.2, lit=((fl + 1) % 3,), facing="x")
+        for k in (-1, 1):  # balconies
+            P.box((0.3, 0.12, 0.03), loc=(x + k * 0.35, y + sy / 2 + 0.06, zz - 0.12),
+                  base=True, m="PlasterDark")
+            P.box((0.3, 0.015, 0.08), loc=(x + k * 0.35, y + sy / 2 + 0.115, zz - 0.09),
+                  base=True, m="DarkMetal")
+    P.box((sx + 0.06, sy + 0.06, 0.05), loc=(x, y, z + h), base=True, m="RoofFlat")
+    parapet(P, x, y, sx + 0.06, sy + 0.06, z + h + 0.05, m="PlasterDark", w=0.06, h=0.08)
+    zr = z + h + 0.05
+    water_tank(P, x - 0.35, y - 0.3, zr)
+    ac_unit(P, x + 0.35, y - 0.3, zr)
+    ac_unit(P, x + 0.1, y - 0.35, zr)
+    satellite(P, x - 0.4, y + 0.3, zr)
+    P.box((0.5, 0.4, 0.02), loc=(x + 0.25, y + 0.25, zr + 0.3), base=True, m="TeamColor")
+    for i in (-1, 1):
+        for j in (-1, 1):
+            P.beam((x + 0.25 + i * 0.22, y + 0.25 + j * 0.17, zr),
+                   (x + 0.25 + i * 0.22, y + 0.25 + j * 0.17, zr + 0.3), 0.02, m="WoodDark")
+    # side shed and a parked cart
+    P.box((0.4, 0.6, 0.35), loc=(0.82, 0.3, z), base=True, m="PlasterDark")
+    P.box((0.46, 0.66, 0.03), loc=(0.82, 0.3, z + 0.35), base=True, rot=(0, -6, 0),
+          m="RoofMetal")
+    crate_stack(P, -0.75, 0.75, z, seed=11)
+
+
+@register("buildings", "workshop")
+def workshop(M):
+    """City workshop: brick hall with a sawtooth roof, chimney and a yard."""
+    P = M.main
+    P.box((1.9, 1.9, 0.05), base=True, m="Paving")
+    z = 0.05
+    hx, hy, hw, hd, hh = -0.1, -0.2, 1.3, 1.1, 0.55
+    P.box((hw, hd, hh), loc=(hx, hy, z), base=True, m="BrickRed")
+    for i in range(3):
+        y0 = hy - hd / 2 + hd * i / 3
+        y1 = hy - hd / 2 + hd * (i + 1) / 3
+        P.extrude_x([(y0, z + hh), (y1, z + hh), (y0, z + hh + 0.24)], hx - hw / 2,
+                    hx + hw / 2,
+                    m=lambda c, n: "Glass" if n.y < -0.3 else
+                    ("TeamColor" if n.z > 0.3 else "BrickDark"))
+    windows_row(P, hx - 0.5, hx + 0.5, hy + hd / 2 + 0.005, z + 0.36, 3, w=0.18, h=0.2,
+                lit=(0, 2))
+    windows_row(P, hy - 0.4, hy + 0.4, hx + hw / 2 + 0.005, z + 0.36, 3, w=0.18, h=0.2,
+                lit=(1,), facing="x")
+    roll_door(P, hx + 0.35, hy + hd / 2 + 0.01, z, 0.32, 0.26)
+    P.cyl(0.08, 1.15, loc=(hx - 0.45, hy - 0.35, z), m="BrickDark", n=8)
+    P.cyl(0.09, 0.08, loc=(hx - 0.45, hy - 0.35, z + 1.15), m="DarkMetal", n=8)
+    # yard: lean-to, crates, barrels, a cart
+    P.box((0.5, 0.06, 0.4), loc=(0.72, 0.5, z), base=True, m="WoodDark")
+    P.box((0.56, 0.5, 0.025), loc=(0.72, 0.68, z + 0.42), base=True, rot=(8, 0, 0),
+          m="TeamColor")
+    for sx in (-1, 1):
+        P.beam((0.72 + sx * 0.24, 0.9, z), (0.72 + sx * 0.24, 0.9, z + 0.38), 0.03,
+               m="WoodDark")
+    crate_stack(P, 0.7, 0.68, z, seed=12)
+    barrel_group(P, -0.6, 0.72, z, m="Rust")
+    P.box((0.3, 0.2, 0.12), loc=(0.1, 0.75, z + 0.06), base=True, m="Wood")
+    for sx in (-1, 1):
+        P.cyl(0.06, 0.02, loc=(0.1 + sx * 0.16, 0.75, z + 0.06), rot=(0, 90, 0), m="WoodDark",
+              n=8, base=False)
+
+
+@register("buildings", "market")
+def market(M):
+    """City market: a ring of awning stalls round a well, team-coloured stalls
+    mixed with striped ones."""
+    P = M.main
+    P.box((1.9, 1.9, 0.05), base=True, m="Paving")
+    z = 0.05
+    P.cyl(0.18, 0.18, loc=(0, 0, z), m="Sandstone", n=8)
+    P.cyl(0.14, 0.02, loc=(0, 0, z + 0.17), m="Water", n=8)
+    stalls = [(-0.55, 0.5, 0, "TeamColor"), (0.55, 0.5, 0, "AwningRed"),
+              (-0.55, -0.5, 180, "AwningGreen"), (0.55, -0.5, 180, "TeamColor"),
+              (0.0, 0.7, 0, "AwningCream")]
+    goods = ["Goods1", "Goods2", "Goods3"]
+    for i, (x, y, rot, cloth) in enumerate(stalls):
+        with P.at(loc=(x, y, z), rot=(0, 0, rot)):
+            P.box((0.5, 0.3, 0.2), base=True, m="Wood")
+            for k in range(3):
+                P.box((0.12, 0.1, 0.06), loc=(-0.15 + k * 0.15, 0.04, 0.2), base=True,
+                      m=goods[(i + k) % 3])
+            for sx in (-1, 1):
+                for sy in (-1, 1):
+                    P.beam((sx * 0.24, sy * 0.15, 0), (sx * 0.24, sy * 0.15, 0.45), 0.025,
+                           m="WoodDark")
+            P.prism([(-0.3, -0.2), (0.3, -0.2), (0.3, 0.22), (-0.3, 0.22)], 0.08,
+                    loc=(0, 0, 0.45), top_scale=(1.0, 0.1), top_shift=(0, -0.05),
+                    m=lambda c, n, cloth=cloth: cloth if n.z > 0.3 else "AwningCream")
+    barrel_group(P, 0.8, -0.05, z, m="Wood")
+    crate_stack(P, -0.82, -0.02, z, seed=13)
+
+
+@register("buildings", "depot")
+def depot(M):
+    """City warehouse: corrugated store with roll doors and a loading dock."""
+    P = M.main
+    P.box((1.9, 1.9, 0.05), base=True, m="Paving")
+    z = 0.05
+    hx, hy, hw, hd, hh = -0.1, -0.2, 1.4, 1.1, 0.6
+    P.box((hw, hd, hh), loc=(hx, hy, z), base=True, m="RoofMetal")
+    corrugated_wall(P, hx - hw / 2, hx + hw / 2, hy + hd / 2 + 0.01, z, z + hh, pitch=0.09)
+    corrugated_wall(P, hy - hd / 2, hy + hd / 2, hx + hw / 2 + 0.01, z, z + hh, pitch=0.09,
+                    axis="y")
+    gable_roof(P, hx, hy, hw, hd, z + hh, 0.22, m="TeamColor", overhang=0.05, ridge="x")
+    for k, x in enumerate((hx - 0.35, hx + 0.35)):
+        roll_door(P, x, hy + hd / 2 + 0.025, z + 0.12, 0.4, 0.36, lit=k == 0)
+    P.box((hw, 0.3, 0.12), loc=(hx, hy + hd / 2 + 0.15, z), base=True, m="Concrete")  # dock
+    P.box((hw, 0.04, 0.03), loc=(hx, hy + hd / 2 + 0.3, z + 0.1), base=True, m=hazard)
+    crate_stack(P, 0.75, 0.75, z, seed=14)
+    crate_stack(P, -0.6, 0.78, z, seed=15)
+    barrel_group(P, 0.8, 0.0, z)
+    lamp_post(P, -0.85, -0.85, z, h=0.6)
+
+
+# ---- legacy models kept for mods (not used by the game) ---------------------
 
 @register("buildings", "refinery")
 def refinery(M):
@@ -1746,539 +2908,6 @@ def refinery(M):
             P.box((0.08, 0.35, 0.22), loc=(sx * 0.35, 0, 0), base=True, m="ConcreteDark")
         P.cyl(0.2, 1.1, loc=(-0.55, 0, 0.38), rot=(0, 90, 0), m="Steel", n=10)
         P.cyl(0.22, 0.06, loc=(-0.58, 0, 0.38), rot=(0, 90, 0), m="Gunmetal", n=10)
-
-
-@register("buildings", "power_plant")
-def power_plant(M):
-    P = M.main
-    P.box((4.2, 3.8, 0.06), loc=(0, 0, 0), base=True, m="Concrete")
-    z0 = 0.06
-    hx, hy, sx, sy, h = -0.55, 0.45, 2.1, 1.5, 1.2
-    P.box((sx, sy, h), loc=(hx, hy, z0), base=True, m="Brick")
-    P.box((sx + 0.06, sy + 0.06, 0.06), loc=(hx, hy, z0 + h), base=True, m="ConcreteDark")
-    roof_trim(P, hx, hy, sx + 0.06, sy + 0.06, z0 + h + 0.06, m="TeamColor", w=0.1)
-    wall_windows(P, hx, hy, sx, sy, z0 + 0.8, 6, 4, ww=0.18, wh=0.42, sides="fblr")
-    P.box((0.6, 0.04, 0.55), loc=(hx + 0.5, hy + sy / 2, z0), base=True, m="Gunmetal")
-    P.box((0.9, 0.5, 0.25), loc=(hx - 0.3, hy + 0.1, z0 + h + 0.06), base=True, m="Gunmetal")
-    for i in range(3):
-        P.cyl(0.08, 0.12, loc=(hx + 0.4 + i * 0.25, hy - 0.3, z0 + h + 0.06), m="Steel", n=6)
-
-    for x in (-1.2, -0.4):
-        banded_cyl(P, x, -0.85, z0, 0.22, 0.15, 3.8, 0.475, ["WhitePaint", "RedPaint"],
-                   top="DarkMetal")
-        P.box((0.5, 0.5, 0.3), loc=(x, -0.85, z0), base=True, m="ConcreteDark")
-        P.beam((x, -0.6, 0.7), (x, -0.28, 0.7), 0.12, m="Gunmetal")
-    # cooling tower (hyperboloid)
-    cx, cy = 1.15, -0.55
-    prof = [(0.95, 0.0), (0.82, 0.5), (0.64, 1.35), (0.66, 1.9), (0.74, 2.3)]
-    P.add(g_lathe(prof, 14, caps=False), "Concrete", xform((cx, cy, z0)))
-    inner = [(0.7, 2.3), (0.62, 1.9), (0.6, 1.6)]
-    P.add(g_lathe(inner, 14, caps=False), "ConcreteDark", xform((cx, cy, z0)))
-    P.add(g_lathe([(0.6, 1.6), (0, 1.6)], 14, caps=False), "Water", xform((cx, cy, z0)))
-    P.cyl(0.97, 0.12, loc=(cx, cy, z0), m="ConcreteDark", n=14)
-    # transformer yard
-    for i in range(3):
-        x = 0.75 + i * 0.42
-        P.box((0.28, 0.22, 0.3), loc=(x, 1.25, z0), base=True, m="Gunmetal")
-        for k in range(3):
-            P.cyl(0.025, 0.16, loc=(x - 0.08 + k * 0.08, 1.25, z0 + 0.3), m="WhitePaint", n=4)
-    P.box((1.3, 0.04, 0.04), loc=(1.17, 1.25, z0 + 0.7), m="Steel")
-    for x in (0.55, 1.8):
-        P.beam((x, 1.25, z0), (x, 1.25, z0 + 0.72), 0.05, m="Steel")
-    P.beam((hx + sx / 2, 1.0, 0.75), (0.55, 1.25, 0.75), 0.04, m="Gunmetal")
-
-
-@register("buildings", "power_pylon")
-def power_pylon(M):
-    P = M.main
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            P.box((0.14, 0.14, 0.1), loc=(sx * 0.33, sy * 0.33, 0), base=True, m="Concrete")
-    lattice(P, 0.33, 0.12, 0.1, 3.1, 4, m="Steel", w=0.035)
-    for c in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:
-        P.beam((c[0] * 0.12, c[1] * 0.12, 3.1), (0, 0, 4.0), 0.045, m="Steel")
-    for z, half in ((2.65, 1.0), (3.3, 0.75)):
-        P.beam((-half, 0, z), (half, 0, z), 0.07, m="Steel", h=0.06)
-        for sx in (-1, 1):
-            P.beam((sx * 0.14, 0, z - 0.4), (sx * half * 0.8, 0, z), 0.03, m="Steel",
-                   caps=False)
-            P.cyl(0.035, 0.22, loc=(sx * (half - 0.05), 0, z - 0.22), m="Glass", n=4)
-    P.cyl(0.035, 0.22, loc=(0, 0, 3.83), m="Glass", n=4)
-    P.box((0.2, 0.02, 0.2), loc=(0, 0.25, 0.9), rot=(0, 0, 0), m="TeamColor")
-    P.cone(0.08, 0.16, loc=(0, 0, 4.0), m="TeamColor", n=4)
-    P.box((0.5, 0.06, 0.04), loc=(0, 0, 3.3), base=True, m="TeamColor")
-
-
-def defense_base(P):
-    P.cyl(0.68, 0.1, m="Concrete", n=8, r2=0.64)
-    sandbag_ring(P, 0.56, 14, rows=2, z0=0.1)
-    P.cyl(0.26, 0.24, loc=(0, 0, 0.1), m="ConcreteDark", n=8)
-    for a in (0, 90, 180, 270):
-        P.box((0.12, 0.12, 0.08), loc=(math.cos(math.radians(a)) * 0.34,
-                                       math.sin(math.radians(a)) * 0.34, 0.1), base=True,
-              m="Gunmetal")
-
-
-@register("buildings", "defense_turret")
-def defense_turret(M):
-    P = M.main
-    defense_base(P)
-    zt = 0.34
-    T = M.part("Turret", origin=(0, 0, zt))
-    with T.at(loc=(0, 0, zt)):
-        T.cyl(0.24, 0.06, m="Gunmetal", n=10)
-        T.prism([(-0.22, -0.26), (0.22, -0.26), (0.27, 0.0), (0.18, 0.24), (-0.18, 0.24),
-                 (-0.27, 0.0)], 0.24, loc=(0, 0, 0.06), top_scale=0.84,
-                m=by_normal("TeamColor", "Khaki", thr=0.8))
-        T.box((0.24, 0.1, 0.14), loc=(0, 0.25, 0.17), m="OliveDark")
-        for sx in (-1, 1):
-            T.cyl(0.03, 0.5, loc=(sx * 0.06, 0.28, 0.17), rot=(-90, 0, 0), m="Gunmetal", n=6)
-            T.cyl(0.042, 0.06, loc=(sx * 0.06, 0.76, 0.17), rot=(-90, 0, 0), m="DarkMetal",
-                  n=6)
-        T.box((0.08, 0.12, 0.08), loc=(0.15, -0.08, 0.32), m="Gunmetal")
-        T.box((0.06, 0.03, 0.04), loc=(0.15, -0.015, 0.33), m="Glass")
-        T.box((0.14, 0.2, 0.12), loc=(-0.29, -0.05, 0.14), m="OliveDark")
-
-
-@register("buildings", "defense_aa")
-def defense_aa(M):
-    P = M.main
-    defense_base(P)
-    zt = 0.34
-    T = M.part("Turret", origin=(0, 0, zt))
-    with T.at(loc=(0, 0, zt)):
-        T.cyl(0.24, 0.08, m="Gunmetal", n=10)
-        T.box((0.18, 0.22, 0.24), loc=(0, -0.02, 0.08), base=True, m="Khaki")
-        with T.at(loc=(0, 0.0, 0.3), rot=(38, 0, 0)):
-            T.box((0.1, 0.1, 0.1), m="Gunmetal")
-            for sx in (-1, 1):
-                T.box((0.24, 0.5, 0.2), loc=(sx * 0.2, 0.0, 0.0),
-                      m=by_normal("TeamColor", "Olive", "OliveDark", thr=0.6))
-                for i in range(2):
-                    for j in range(2):
-                        T.cyl(0.04, 0.02, loc=(sx * 0.2 - 0.055 + i * 0.11, 0.25,
-                                               -0.045 + j * 0.09), rot=(-90, 0, 0),
-                              m="RedPaint", n=6)
-        T.cyl(0.02, 0.25, loc=(0, -0.2, 0.08), m="Gunmetal", n=4)
-        T.add(g_lathe([(0.0, 0.0), (0.12, 0.03), (0.2, 0.08), (0.18, 0.09), (0.1, 0.05),
-                       (0.0, 0.03)], 8), "WhitePaint", xform((0, -0.2, 0.36), (-60, 0, 0)))
-
-
-@register_many("buildings", [("house_a", {"seed": 1}), ("house_b", {"seed": 2})])
-def house(M, seed):
-    P = M.main
-    if seed == 1:
-        sx, sy, h = 1.5, 1.3, 1.0
-        P.box((sx, sy, h), loc=(0, 0, 0), base=True, taper=0.97, m="Adobe")
-        P.box((sx * 0.97, sy * 0.97, 0.02), loc=(0, 0, h), base=True, m="AdobeDark")
-        roof_trim(P, 0, 0, sx * 0.97, sy * 0.97, h, m="Adobe", w=0.08, h=0.12)
-        roof_trim(P, 0, 0, sx * 0.97, sy * 0.97, h + 0.12, m="TeamColor", w=0.09, h=0.025)
-        for i in range(5):
-            P.cyl(0.035, 0.18, loc=(-0.55 + i * 0.275, sy / 2 - 0.12, h - 0.1),
-                  rot=(-90, 0, 0), m="WoodDark", n=5)
-        P.box((0.3, 0.04, 0.55), loc=(-0.25, sy / 2 - 0.01, 0), base=True, m="WoodDark")
-        striped_awning(P, -0.48, -0.02, sy / 2 - 0.02, 0.72, 0.28, 0.12,
-                       ["TeamColor", "AwningCream", "TeamColor"])
-        for x in (0.35,):
-            P.box((0.24, 0.04, 0.24), loc=(x, sy / 2 - 0.01, 0.55), m="Window")
-            P.box((0.32, 0.05, 0.04), loc=(x, sy / 2, 0.41), m="Wood")
-        wall_windows(P, 0, 0, sx * 0.98, sy * 0.98, 0.6, 2, 2, ww=0.2, wh=0.2, sides="lr")
-        # side annex + stairs to roof
-        P.box((0.7, 0.8, 0.62), loc=(-sx / 2 - 0.3, -0.15, 0), base=True, m="AdobeDark")
-        P.box((0.72, 0.82, 0.05), loc=(-sx / 2 - 0.3, -0.15, 0.62), base=True, m="Adobe")
-        for i in range(5):
-            P.box((0.22, 0.14, 0.2 * (i + 1)), loc=(sx / 2 + 0.11, 0.42 - i * 0.14, 0),
-                  base=True, m="Adobe")
-        # rooftop clutter
-        P.cyl(0.16, 0.3, loc=(0.4, -0.3, h + 0.15), m="WhitePaint", n=8)
-        for dx in (-0.1, 0.1):
-            P.beam((0.4 + dx, -0.3, h), (0.4 + dx, -0.3, h + 0.15), 0.03, m="Steel")
-        P.box((0.4, 0.3, 0.06), loc=(-0.3, -0.25, h + 0.02), base=True, m="Canvas")
-        P.ico(0.1, loc=(-0.3, 0.1, h + 0.06), m="Terracotta", subdiv=1, scale=(1, 1, 1.2))
-        for x in (0.15, 0.62):  # potted plants by the door
-            P.cyl(0.08, 0.14, loc=(x, sy / 2 + 0.12, 0), m="Terracotta", n=6, r2=0.1)
-            P.ico(0.12, loc=(x, sy / 2 + 0.12, 0.2), m="BushLeaf", subdiv=2,
-                  scale=(1, 1, 0.8))
-        P.box((0.38, 0.06, 0.06), loc=(-0.25, sy / 2, 0.58), m="Wood")
-        P.box((0.9, 0.06, 0.4), loc=(-sx / 2 - 0.3, -0.15 + 0.4, 0), base=True, m="Adobe")
-    else:
-        sx, sy, h = 1.6, 1.3, 0.85
-        P.box((sx, sy, h), loc=(0, 0, 0), base=True, m="Stucco")
-        P.box((sx, sy, 0.02), loc=(0, 0, h), base=True, m="ConcreteDark")
-        roof_trim(P, 0, 0, sx, sy, h, m="Stucco", w=0.07, h=0.12)
-        ux, uy, uh = -0.35, -0.2, 0.7
-        P.box((0.85, 0.85, uh), loc=(ux, uy, h), base=True, m="StuccoWarm")
-        P.box((0.89, 0.89, 0.06), loc=(ux, uy, h + uh), base=True, m="Stucco")
-        P.cyl(0.3, 0.12, loc=(ux, uy, h + uh + 0.06), m="Stucco", n=10)
-        P.add(g_lathe([(0.3, 0), (0.27, 0.13), (0.19, 0.24), (0.08, 0.31), (0, 0.33)], 10),
-              "TeamColor", xform((ux, uy, h + uh + 0.18)))
-        P.cyl(0.02, 0.12, loc=(ux, uy, h + uh + 0.5), m="Gold", n=4)
-        wall_windows(P, ux, uy, 0.85, 0.85, h + 0.38, 2, 2, ww=0.14, wh=0.24, sides="fblr")
-        wall_windows(P, 0, 0, sx, sy, 0.5, 3, 2, ww=0.16, wh=0.24, sides="flr")
-        P.box((0.28, 0.04, 0.55), loc=(0.45, sy / 2, 0), base=True, m="Wood")
-        P.cyl(0.14, 0.04, loc=(0.45, sy / 2, 0.55), rot=(90, 0, 0), m="Wood", n=8,
-              base=False)
-        # terrace pergola with team cloth
-        tx, ty = 0.4, 0.25
-        for dx in (-0.3, 0.3):
-            for dy in (-0.25, 0.25):
-                P.beam((tx + dx, ty + dy, h), (tx + dx, ty + dy, h + 0.45), 0.04, m="Wood")
-        P.box((0.7, 0.6, 0.02), loc=(tx, ty, h + 0.45), base=True, m="TeamColor")
-        # garden wall
-        P.box((sx + 0.3, 0.08, 0.32), loc=(0, sy / 2 + 0.35, 0), base=True, m="StuccoWarm")
-        P.box((0.08, 0.35, 0.32), loc=(-sx / 2 - 0.11, sy / 2 + 0.17, 0), base=True,
-              m="StuccoWarm")
-        P.ico(0.14, loc=(-0.55, sy / 2 + 0.22, 0.12), m="BushLeaf", subdiv=1)
-        P.box((0.25, 0.2, 0.12), loc=(0.55, -0.1, h + 0.02), base=True, m="Steel")
-
-
-@register("buildings", "apartment")
-def apartment(M):
-    P = M.main
-    sx, sy, fh, floors = 2.1, 1.4, 0.82, 4
-    H = fh * floors
-    P.box((sx, sy, H), loc=(0, 0, 0), base=True, m="StuccoWarm")
-    for f in range(1, floors + 1):
-        P.box((sx + 0.06, sy + 0.06, 0.05), loc=(0, 0, f * fh - 0.05), base=True,
-              m="Stucco")
-    for f in range(floors):
-        z = f * fh + 0.45
-        sides = "blr" if f == 0 else "fblr"
-        wall_windows(P, 0, 0, sx, sy, z, 5, 3, ww=0.2, wh=0.32, sides=sides)
-    # ground floor shop front
-    P.box((1.4, 0.04, 0.5), loc=(0, sy / 2, 0.02), base=True, m="Glass")
-    P.box((0.3, 0.05, 0.6), loc=(0.85, sy / 2, 0), base=True, m="WoodDark")
-    striped_awning(P, -0.75, 0.75, sy / 2, 0.68, 0.32, 0.12,
-                   ["TeamColor", "AwningCream"] * 3)
-    # balconies
-    for f in range(1, floors):
-        for x in (-0.63, 0.63):
-            z = f * fh
-            P.box((0.6, 0.25, 0.04), loc=(x, sy / 2 + 0.125, z), base=True, m="Concrete")
-            P.box((0.6, 0.03, 0.2), loc=(x, sy / 2 + 0.24, z + 0.04), base=True,
-                  m="WhitePaint")
-            P.box((0.04, 0.22, 0.2), loc=(x - 0.28, sy / 2 + 0.12, z + 0.04), base=True,
-                  m="WhitePaint")
-            P.box((0.04, 0.22, 0.2), loc=(x + 0.28, sy / 2 + 0.12, z + 0.04), base=True,
-                  m="WhitePaint")
-            P.box((0.03, 0.02, 0.4), loc=(x, sy / 2 + 0.001, z + 0.3), m="Window")
-    # roof
-    roof_trim(P, 0, 0, sx, sy, H, m="Stucco", w=0.08, h=0.14)
-    roof_trim(P, 0, 0, sx, sy, H + 0.14, m="TeamColor", w=0.1, h=0.03)
-    P.box((0.5, 0.45, 0.4), loc=(-0.6, -0.25, H), base=True, m="Stucco")
-    P.box((0.15, 0.03, 0.3), loc=(-0.6, -0.025, H), base=True, m="WoodDark")
-    for x in (0.2, 0.55):
-        P.cyl(0.15, 0.28, loc=(x, -0.35, H + 0.12), m="WhitePaint", n=8)
-        P.box((0.28, 0.28, 0.12), loc=(x, -0.35, H), base=True, m="Steel")
-    for x in (0.1, 0.45, 0.8):
-        P.box((0.2, 0.16, 0.14), loc=(x, 0.35, H), base=True, m="Concrete")
-    P.add(g_lathe([(0.0, 0.0), (0.1, 0.02), (0.16, 0.06), (0.14, 0.07), (0.0, 0.03)], 8),
-          "WhitePaint", xform((-0.2, 0.3, H + 0.2), (-50, 0, 30)))
-    P.beam((-0.2, 0.3, H), (-0.2, 0.3, H + 0.2), 0.03, m="Steel")
-
-
-@register("buildings", "workshop")
-def workshop(M):
-    P = M.main
-    P.box((3.0, 2.8, 0.05), loc=(0, 0.1, 0), base=True, m="Concrete")
-    sx, sy, h = 2.4, 1.8, 0.9
-    cx, cy = -0.1, -0.1
-    P.box((sx, sy, h), loc=(cx, cy, 0.05), base=True, m="Brick")
-    teeth = 4
-    tw = sy / teeth
-    for i in range(teeth):
-        y0 = cy - sy / 2 + i * tw
-        P.extrude_x([(y0, h + 0.05), (y0 + tw, h + 0.05), (y0 + tw, h + 0.45)],
-                    cx - sx / 2 - 0.05, cx + sx / 2 + 0.05,
-                    m=lambda c, n: "Glass" if n.y > 0.9 else
-                    ("Brick" if abs(n.x) > 0.9 else "RoofTin"))
-        P.box((sx + 0.16, 0.12, 0.06), loc=(cx, y0 + tw - 0.03, h + 0.45), m="TeamColor")
-        for k in range(3):
-            P.box((0.03, 0.02, 0.36), loc=(cx - sx / 2 + sx * (k + 1) / 4, y0 + tw + 0.012,
-                                           h + 0.25), m="Gunmetal")
-    for yy in (cy + sy / 2, cy - sy / 2):
-        P.box((sx + 0.04, 0.04, 0.1), loc=(cx, yy, h), base=True, m="TeamColor")
-    P.box((1.0, 0.04, 0.7), loc=(cx - 0.35, cy + sy / 2, 0.05), base=True, m="RoofTin")
-    for i in range(5):
-        P.box((1.0, 0.05, 0.015), loc=(cx - 0.35, cy + sy / 2 + 0.005, 0.12 + i * 0.12),
-              m="Gunmetal")
-    P.box((1.1, 0.06, 0.06), loc=(cx - 0.35, cy + sy / 2, 0.78), m="SafetyYellow")
-    wall_windows(P, cx + 0.55, cy, 1.0, sy, 0.55, 2, 3, ww=0.22, wh=0.26, sides="flr")
-    P.cyl(0.13, 1.9, loc=(cx + sx / 2 - 0.25, cy - sy / 2 + 0.25, 0.05), m="Brick", n=8)
-    P.cyl(0.15, 0.08, loc=(cx + sx / 2 - 0.25, cy - sy / 2 + 0.25, 1.95), m="DarkMetal",
-          n=8)
-    # lean-to on the right with work yard clutter
-    P.box((0.5, 1.2, 0.05), loc=(cx + sx / 2 + 0.27, cy, 0.62), base=True, rot=(0, -12, 0),
-          m="RoofTin")
-    for dy in (-0.55, 0.55):
-        P.beam((cx + sx / 2 + 0.47, cy + dy, 0.05), (cx + sx / 2 + 0.47, cy + dy, 0.6),
-               0.04, m="Wood")
-    P.box((0.3, 0.6, 0.25), loc=(cx + sx / 2 + 0.22, cy, 0.05), base=True, m="Wood")
-    for i, (x, y) in enumerate(((0.9, 1.0), (1.05, 0.85), (1.2, 1.05))):
-        P.cyl(0.09, 0.26, loc=(x, y, 0.05), m="Rust" if i % 2 else "OliveDark", n=8)
-    P.box((0.3, 0.3, 0.25), loc=(-1.2, 1.05, 0.05), base=True, rot=(0, 0, 10), m="Wood")
-    P.box((0.22, 0.22, 0.18), loc=(-1.2, 1.05, 0.3), base=True, rot=(0, 0, 30), m="WoodDark")
-
-
-@register("buildings", "market")
-def market(M):
-    P = M.main
-    P.box((3.3, 3.1, 0.05), loc=(0, 0, 0), base=True, m="SandstoneLight")
-    stalls = [(-1.0, 0.85, 0, ["TeamColor", "AwningCream"] * 2),
-              (0.15, 1.0, 0, ["AwningRed", "AwningCream"] * 2),
-              (1.15, 0.6, -25, ["AwningGreen", "AwningCream"] * 2),
-              (-1.15, -0.55, 90, ["AwningRed", "AwningCream"] * 2),
-              (1.1, -0.75, -90, ["TeamColor", "AwningCream"] * 2),
-              (-0.05, -1.05, 180, ["AwningGreen", "AwningCream"] * 2)]
-    goods = ["Goods1", "Goods2", "Goods3"]
-    for i, (x, y, rot, cols) in enumerate(stalls):
-        with P.at(loc=(x, y, 0.05), rot=(0, 0, rot)):
-            P.box((0.8, 0.32, 0.3), loc=(0, 0.0, 0), base=True, m="Wood")
-            for gx in (-0.25, 0.0, 0.25):
-                g = goods[(i + int(gx * 4 + 1)) % 3]
-                P.ico(0.11, loc=(gx, 0.0, 0.32), scale=(1, 0.9, 0.6), m=g, subdiv=1)
-            for dx in (-0.4, 0.4):
-                P.beam((dx, -0.25, 0), (dx, -0.25, 0.75), 0.035, m="WoodDark")
-                P.beam((dx, 0.3, 0), (dx, 0.3, 0.55), 0.035, m="WoodDark")
-            n = len(cols)
-            for k, col in enumerate(cols):
-                a = -0.45 + 0.9 * k / n
-                b = -0.45 + 0.9 * (k + 1) / n
-                P.poly([(a, -0.3, 0.77), (b, -0.3, 0.77), (b, 0.38, 0.55), (a, 0.38, 0.55)],
-                       m=col)
-                P.poly([(a, 0.38, 0.55), (b, 0.38, 0.55), (b, 0.38, 0.47), (a, 0.38, 0.47)],
-                       m=col)
-            P.box((0.18, 0.15, 0.14), loc=(0.3, 0.45, 0), base=True, m="WoodDark")
-            P.cyl(0.08, 0.12, loc=(-0.3, 0.45, 0), m="Canvas", n=6)
-    # central well
-    P.cyl(0.35, 0.3, loc=(0, 0, 0.05), m="Stucco", n=10)
-    P.cyl(0.28, 0.01, loc=(0, 0, 0.32), m="Water", n=10)
-    for dx in (-0.3, 0.3):
-        P.beam((dx, 0, 0.35), (dx, 0, 0.8), 0.04, m="WoodDark")
-    P.beam((-0.33, 0, 0.8), (0.33, 0, 0.8), 0.04, m="WoodDark")
-    P.add(g_prism([(-0.4, -0.35), (0.4, -0.35), (0.4, 0.35), (-0.4, 0.35)], 0.25, 0.05),
-          "TeamColor", xform((0, 0, 0.82)))
-    for (x, y) in ((0.6, 0.15), (-0.55, 0.25), (0.45, -0.45)):
-        P.cyl(0.1, 0.18, loc=(x, y, 0.05), m="Canvas", n=6, r2=0.08)
-        P.ico(0.08, loc=(x, y, 0.24), m="Goods2", subdiv=1, scale=(1, 1, 0.5))
-    P.box((0.25, 0.25, 0.22), loc=(-0.45, -0.35, 0.05), base=True, rot=(0, 0, 20), m="Wood")
-
-
-@register("buildings", "depot")
-def depot(M):
-    P = M.main
-    P.box((3.8, 3.6, 0.05), loc=(0, 0, 0), base=True, m="Concrete")
-    sx, sy, h = 3.0, 1.9, 1.05
-    cx, cy = 0.0, -0.45
-    P.box((sx, sy, h), loc=(cx, cy, 0.05), base=True, m="Khaki")
-    for i in range(7):
-        x = cx - sx / 2 + sx * i / 6
-        P.box((0.07, sy + 0.04, h), loc=(x, cy, 0.05), base=True, m="SandPaint")
-    gable_roof(P, cx, cy, sx, sy, h + 0.05, 0.38, "RoofTin", overhang=0.1, ridge="x")
-    for x in (-0.9, 0.9):
-        P.extrude_x([(cy - sy / 2 - 0.12, h + 0.06), (cy + sy / 2 + 0.12, h + 0.06),
-                     (cy, h + 0.45)], x - 0.25, x + 0.25, m="TeamColor")
-    # loading dock and doors
-    dy = cy + sy / 2
-    P.box((sx, 0.55, 0.25), loc=(cx, dy + 0.275, 0.05), base=True, m="ConcreteDark")
-    P.box((sx, 0.05, 0.03), loc=(cx, dy + 0.53, 0.3), base=True, m="SafetyYellow")
-    for x in (-0.8, 0.5):
-        P.box((0.8, 0.04, 0.68), loc=(x, dy + 0.005, 0.3), base=True, m="Gunmetal")
-        for k in range(4):
-            P.box((0.8, 0.05, 0.015), loc=(x, dy + 0.01, 0.38 + k * 0.15), m="DarkMetal")
-        P.box((0.9, 0.06, 0.06), loc=(x, dy, 1.0), m="SafetyYellow")
-        for sx2 in (-1, 1):
-            P.box((0.08, 0.06, 0.1), loc=(x + sx2 * 0.3, dy + 0.58, 0.2), m="HazardBlack")
-    # office annex
-    P.box((0.7, 0.8, 0.85), loc=(1.65, -0.6, 0.05), base=True, m="Stucco")
-    P.box((0.76, 0.86, 0.05), loc=(1.65, -0.6, 0.9), base=True, m="TeamColor")
-    wall_windows(P, 1.65, -0.6, 0.7, 0.8, 0.55, 2, 2, sides="fr")
-    # cargo on dock and yard
-    for i, (x, y, s) in enumerate(((-1.35, 0.85, 0.28), (-1.05, 0.85, 0.24),
-                                   (-1.2, 0.85, 0.22))):
-        z = 0.3 if i < 2 else 0.58
-        P.box((s, s, s), loc=(x, y - (0 if i < 2 else 0), z), base=True, m="Wood")
-    for x in (1.3, 1.5):
-        P.cyl(0.1, 0.28, loc=(x, 0.95, 0.05), m="OliveDark", n=8)
-    P.cyl(0.1, 0.28, loc=(1.4, 1.15, 0.05), m="Rust", n=8)
-    P.box((0.5, 0.5, 0.08), loc=(-0.6, 1.35, 0.05), base=True, m="Wood")
-    P.box((0.4, 0.4, 0.3), loc=(-0.6, 1.35, 0.13), base=True, m="Canvas")
-    for k in range(4):
-        P.box((0.1, 0.4, 0.02), loc=(0.6, 1.0 + k * 0.17, 0.05), base=True, m="SafetyYellow")
-
-
-@register("buildings", "command_center")
-def command_center(M):
-    P = M.main
-    P.box((4.2, 3.8, 0.12), loc=(0, 0, 0), base=True, m="Sandstone")
-    P.box((3.6, 3.2, 0.12), loc=(0, 0, 0.12), base=True, m="SandstoneLight")
-    z0 = 0.24
-    sx, sy, h = 3.0, 1.9, 1.1
-    cy = -0.3
-    P.box((sx, sy, h), loc=(0, cy, z0), base=True, m="StuccoWarm")
-    P.box((sx + 0.1, sy + 0.1, 0.08), loc=(0, cy, z0 + h), base=True, m="Stucco")
-    roof_trim(P, 0, cy, sx + 0.1, sy + 0.1, z0 + h + 0.08, m="TeamColor", w=0.12, h=0.06)
-    wall_windows(P, 0, cy, sx, sy, z0 + 0.7, 8, 5, ww=0.14, wh=0.38, sides="blr")
-    for x in (-1.2, -0.9, 0.9, 1.2):
-        P.box((0.14, 0.03, 0.38), loc=(x, cy + sy / 2, z0 + 0.7), m="Window")
-    # portico
-    py = cy + sy / 2 + 0.3
-    for i in range(6):
-        x = -1.0 + i * 0.4
-        P.cyl(0.075, 0.95, loc=(x, py, z0), m="WhitePaint", n=8)
-        P.box((0.18, 0.18, 0.06), loc=(x, py, z0), base=True, m="Stucco")
-    P.box((2.4, 0.75, 0.14), loc=(0, py - 0.2, z0 + 0.95), base=True, m="Stucco")
-    P.extrude_y([(-1.2, z0 + 1.09), (1.2, z0 + 1.09), (0, z0 + 1.4)], py - 0.55, py + 0.17,
-                m=by_normal("TeamColor", "Stucco", thr=0.3))
-    P.box((0.5, 0.04, 0.7), loc=(0, cy + sy / 2, z0), base=True, m="WoodDark")
-    for i in range(3):
-        P.box((1.6 - i * 0.1, 0.15, 0.08), loc=(0, py + 0.35 + (2 - i) * 0.15 - 0.15, 0.24 -
-                                                0.08 * (i + 1)), base=True, m="Stucco")
-    # drum + dome
-    dz = z0 + h + 0.08
-    P.cyl(0.68, 0.42, loc=(0, cy, dz), m="Stucco", n=12)
-    for i in range(12):
-        a = 2 * math.pi * (i + 0.5) / 12
-        P.box((0.1, 0.03, 0.22), loc=(math.cos(a) * 0.68, cy + math.sin(a) * 0.68, dz + 0.22),
-              rot=(0, 0, math.degrees(a) + 90), m="Window")
-    P.cyl(0.74, 0.06, loc=(0, cy, dz + 0.42), m="StuccoWarm", n=12)
-    prof = [(0.68, 0), (0.64, 0.24), (0.52, 0.45), (0.33, 0.6), (0.12, 0.67), (0, 0.68)]
-    P.add(g_lathe(prof, 12), "TeamColor", xform((0, cy, dz + 0.48)))
-    P.cyl(0.08, 0.2, loc=(0, cy, dz + 1.12), m="Stucco", n=6)
-    P.cone(0.06, 0.3, loc=(0, cy, dz + 1.32), m="Gold", n=6)
-    # corner towers
-    for sx2 in (-1, 1):
-        tx, ty = sx2 * 1.35, cy - 0.75
-        P.box((0.48, 0.48, 1.85), loc=(tx, ty, z0), base=True, m="StuccoWarm")
-        P.box((0.56, 0.56, 0.08), loc=(tx, ty, z0 + 1.85), base=True, m="Stucco")
-        P.prism([(-0.26, -0.26), (0.26, -0.26), (0.26, 0.26), (-0.26, 0.26)], 0.35,
-                loc=(tx, ty, z0 + 1.93), top_scale=0.05, m="TeamColor")
-        for side in ("f", "l" if sx2 < 0 else "r"):
-            wall_windows(P, tx, ty, 0.48, 0.48, z0 + 1.55, 1, 1, ww=0.12, wh=0.22, sides=side)
-    for sx2 in (-1, 1):
-        flag(P, sx2 * 1.55, 1.3, 1.6, z0=0.24)
-    # radio mast
-    P.beam((0.9, cy - 0.3, dz), (0.9, cy - 0.3, dz + 1.3), 0.04, m="Steel")
-    for k in range(3):
-        z = dz + 0.5 + k * 0.3
-        P.beam((0.75, cy - 0.3, z), (1.05, cy - 0.3, z), 0.025, m="Steel", caps=False)
-    P.cyl(0.04, 0.05, loc=(0.9, cy - 0.3, dz + 1.3), m="RedPaint", n=6)
-
-
-@register("buildings", "vehicle_factory")
-def vehicle_factory(M):
-    P = M.main
-    P.box((4.3, 4.3, 0.05), loc=(0, 0, 0), base=True, m="Concrete")
-    P.box((1.9, 1.15, 0.01), loc=(-0.2, 1.5, 0.05), base=True, m="Asphalt")
-    for k in range(2):
-        P.box((0.06, 1.0, 0.012), loc=(-0.9 + k * 1.4, 1.5, 0.05), base=True,
-              m="SafetyYellow")
-    z0 = 0.05
-    sx, sy, h = 3.1, 2.6, 1.5
-    cx, cy = -0.2, -0.35
-    P.box((sx, sy, h), loc=(cx, cy, z0), base=True, m="SandPaint")
-    for i in range(6):
-        x = cx - sx / 2 + sx * i / 5
-        P.box((0.1, sy + 0.04, h), loc=(x, cy, z0), base=True, m="Khaki")
-    P.box((sx + 0.08, sy + 0.08, 0.08), loc=(cx, cy, z0 + h), base=True, m="RoofTin")
-    roof_trim(P, cx, cy, sx + 0.08, sy + 0.08, z0 + h + 0.08, m="TeamColor", w=0.12, h=0.05)
-    mz = z0 + h + 0.08
-    P.box((0.9, sy * 0.9, 0.3), loc=(cx, cy, mz), base=True, m="Glass")
-    P.box((1.1, sy * 0.9 + 0.1, 0.06), loc=(cx, cy, mz + 0.3), base=True, taper=(0.75, 1.0),
-          m="TeamColor")
-    for x in (cx - 1.05, cx + 1.05):
-        for y in (cy - 0.7, cy + 0.6):
-            P.cyl(0.13, 0.16, loc=(x, y, mz), m="Steel", n=8)
-            P.cyl(0.15, 0.04, loc=(x, y, mz + 0.16), m="DarkMetal", n=8)
-    # main door with hazard frame
-    fy = cy + sy / 2
-    P.box((1.7, 0.03, 1.15), loc=(-0.2, fy + 0.005, z0), base=True, m="DarkMetal")
-    n = 9
-    for i in range(n):
-        x = -0.2 - 0.9 + 1.8 * (i + 0.5) / n
-        P.box((1.8 / n, 0.06, 0.1), loc=(x, fy + 0.02, z0 + 1.2),
-              m="SafetyYellow" if i % 2 == 0 else "HazardBlack")
-    for sx2 in (-1, 1):
-        for i in range(6):
-            P.box((0.1, 0.06, 1.15 / 6), loc=(-0.2 + sx2 * 0.9, fy + 0.02,
-                                               z0 + 1.15 * (i + 0.5) / 6),
-                  m="SafetyYellow" if i % 2 == 0 else "HazardBlack")
-    # office wing
-    ox = cx + sx / 2 + 0.4
-    P.box((0.8, 1.4, 1.0), loc=(ox, cy + 0.5, z0), base=True, m="Stucco")
-    P.box((0.86, 1.46, 0.05), loc=(ox, cy + 0.5, z0 + 1.0), base=True, m="ConcreteDark")
-    wall_windows(P, ox, cy + 0.5, 0.8, 1.4, z0 + 0.62, 2, 3, ww=0.2, wh=0.28, sides="fr")
-    # exhaust stacks at the back
-    for x in (cx - 1.0, cx - 0.6):
-        P.cyl(0.11, 2.4, loc=(x, cy - sy / 2 - 0.15, z0), m="Gunmetal", n=8)
-        P.cyl(0.13, 0.08, loc=(x, cy - sy / 2 - 0.15, z0 + 2.35), m="DarkMetal", n=8)
-    # outdoor gantry crane
-    gx = cx - sx / 2 - 0.35
-    for y in (0.4, 1.6):
-        P.beam((gx - 0.3, y, z0), (gx, y, 1.3), 0.06, m="SafetyYellow")
-        P.beam((gx + 0.3, y, z0), (gx, y, 1.3), 0.06, m="SafetyYellow")
-    P.beam((gx, 0.4, 1.32), (gx, 1.6, 1.32), 0.09, m="SafetyYellow")
-    P.box((0.14, 0.16, 0.12), loc=(gx, 1.1, 1.2), m="Gunmetal")
-    P.beam((gx, 1.1, 1.15), (gx, 1.1, 0.7), 0.01, m="DarkMetal")
-
-
-@register("buildings", "aircraft_factory")
-def aircraft_factory(M):
-    P = M.main
-    P.box((4.3, 4.2, 0.05), loc=(0, 0, 0), base=True, m="Concrete")
-    z0 = 0.05
-    # quonset hangar
-    hx, R = -0.85, 1.1
-    y0, y1 = -1.9, 0.6
-    arch = [(hx + math.cos(math.pi * i / 8) * R, z0 + math.sin(math.pi * i / 8) * R * 1.05)
-            for i in range(9)]
-
-    P.extrude_y(arch, y0, y1, m="RoofTin")
-    rib = [(hx + (x - hx) * 1.03, z0 + (z - z0) * 1.03) for x, z in arch]
-    for yb in (y0 + 0.05, (y0 + y1) / 2 - 0.15, y1 - 0.25):
-        P.extrude_y(rib, yb, yb + 0.3, m="TeamColor")
-    for k in range(1, 7):
-        yb = y0 + (y1 - y0) * k / 7
-        P.extrude_y([(hx + (x - hx) * 1.012, z0 + (z - z0) * 1.012) for x, z in arch],
-                    yb - 0.02, yb + 0.02, m="Gunmetal")
-    inner = [(hx + math.cos(math.pi * i / 8) * R * 0.85,
-              z0 + math.sin(math.pi * i / 8) * R * 0.88) for i in range(9)]
-    P.extrude_y(inner, y1 - 0.02, y1 + 0.01, m="DarkMetal")
-    for sx2 in (-1, 1):
-        P.box((0.42, 0.06, 0.9), loc=(hx + sx2 * 0.62, y1 + 0.03, z0), base=True,
-              m="Gunmetal")
-    P.box((1.6, 1.0, 0.012), loc=(hx, y1 + 0.55, z0), base=True, m="Asphalt")
-    # helipad
-    px, py = 1.1, 0.95
-    P.cyl(0.9, 0.06, loc=(px, py, z0), m="Helipad", n=12)
-    P.add(g_lathe([(0.84, 0.065), (0.74, 0.065)], 12, caps=False), "SafetyYellow",
-          xform((px, py, z0)))
-    for dx in (-0.2, 0.2):
-        P.box((0.08, 0.5, 0.01), loc=(px + dx, py, z0 + 0.06), base=True, m="WhitePaint")
-    P.box((0.4, 0.08, 0.01), loc=(px, py, z0 + 0.06), base=True, m="WhitePaint")
-    for i in range(4):
-        a = math.pi / 4 + i * math.pi / 2
-        P.cyl(0.04, 0.06, loc=(px + math.cos(a) * 0.95, py + math.sin(a) * 0.95, z0),
-              m="Lamp", n=5)
-    # control tower
-    tx, ty = 1.35, -1.25
-    P.box((0.5, 0.5, 1.7), loc=(tx, ty, z0), base=True, taper=0.85, m="Concrete")
-    P.box((0.7, 0.7, 0.3), loc=(tx, ty, z0 + 1.7), base=True, taper=1.12, m="Glass")
-    P.box((0.86, 0.86, 0.06), loc=(tx, ty, z0 + 2.0), base=True, m="TeamColor")
-    P.beam((tx + 0.2, ty, z0 + 2.06), (tx + 0.2, ty, z0 + 2.5), 0.025, m="Steel")
-    P.add(g_lathe([(0.0, 0.0), (0.1, 0.02), (0.16, 0.06), (0.14, 0.07), (0.0, 0.03)], 8),
-          "WhitePaint", xform((tx - 0.15, ty, z0 + 2.08), (-30, 0, 0)))
-    P.box((0.6, 0.5, 0.5), loc=(tx - 0.45, ty + 0.1, z0), base=True, m="Stucco")
-    # windsock
-    wx, wy = 1.9, -0.15
-    P.cyl(0.025, 1.0, loc=(wx, wy, z0), m="Steel", n=4)
-    P.add(g_lathe([(0.07, 0.0), (0.04, 0.35)], 6, caps=False),
-          lambda c, n: "RedPaint" if c.x < wx + 0.17 else "SafetyYellow",
-          xform((wx, wy, z0 + 0.95), (0, 80, 0)))
-    # fuel tanks
-    for x in (0.0, 0.42):
-        P.cyl(0.18, 0.55, loc=(x, -1.55, z0 + 0.12), rot=(0, 0, 0), m="WhitePaint", n=8)
-        P.box((0.3, 0.3, 0.12), loc=(x, -1.55, z0), base=True, m="ConcreteDark")
 
 
 @register("buildings", "research_lab")
@@ -2336,8 +2965,8 @@ def research_lab(M):
 # BUILD / EXPORT
 # ==========================================================================
 
-TRI_BUDGET = {"env": (50, 600), "deposits": (50, 1500), "units": (300, 2000),
-              "buildings": (500, 4000)}
+TRI_BUDGET = {"env": (50, 600), "deposits": (50, 1500), "units": (300, 9000),
+              "buildings": (500, 24000)}
 
 
 RECENTER_CATEGORIES = ("buildings", "deposits")
@@ -2361,7 +2990,7 @@ def export_glb(path):
         filepath=path, export_format="GLB", export_yup=True, export_apply=True,
         export_cameras=False, export_lights=False, export_texcoords=False,
         export_normals=True, export_materials="EXPORT", use_selection=False,
-        export_extras=False, export_animations=False)
+        export_extras=False, export_animations=False, export_vertex_color="ACTIVE")
 
 
 def build_model(category, name, fn, kw):
@@ -2371,6 +3000,8 @@ def build_model(category, name, fn, kw):
     tris = M.tris()
     objs = M.finalize(recenter=category in RECENTER_CATEGORIES)
     bpy.context.view_layer.update()
+    finish_objects(objs, category)
+    tris = sum(len(p.vertices) - 2 for ob in objs.values() for p in ob.data.polygons)
     vs = []
     for ob in objs.values():
         mw = ob.matrix_world

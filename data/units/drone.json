@@ -2,6 +2,8 @@
   "id": "drone",
   "category": "unit",
   "scene": "res://source/match/units/Drone.tscn",
+  "model": "res://assets/models/ironbound/units/drone.glb",
+  "model_scale": 1.0,
   "name": "DRONE",
   "description": "DRONE_DESCRIPTION",
   "icon": "res://assets/ui/icons/Drone.png",

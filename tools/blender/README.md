@@ -55,7 +55,19 @@ material.
 * **Style:** flat-shaded faceted low poly with a handful of named Principled
   materials (roughness about 0.8, metallic 0 except bare metal at 0.6). There are
   no textures or UVs. Foliage, cloth and grass materials are double-sided and
-  everything else is back-face culled.
+  everything else is back-face culled. Lamps, lit windows and the battle tank's
+  glow strips are emissive (`EMISSIVE` in the script).
+* **Finishing pass (units and buildings):** every hard edge gets a narrow bevel so
+  it catches the light, and ambient occlusion is ray-traced into the `COLOR_0`
+  vertex colours (crevices, undersides and the ground contact darken). Godot
+  multiplies the albedo by it, the team colour material included. Tune it in
+  `FINISH`.
+* **Readability at play zoom:** the camera is orthographic, 30 degrees down, and a
+  unit is 60-120 px tall. Hulls and walls are dark and saturated so they stand out
+  from the sand, team colour goes on big surfaces seen from above (turret tops,
+  roofs, awnings), and military structures stand on a dark concrete pad that shows
+  the footprint. Check changes with `tests/screenshots/ArtGallery.tscn`, which lines
+  up every unit and structure from `data/` in the game camera.
 * **Team colour:** every unit and building has visible, mostly top-facing
   surfaces using the material named exactly `TeamColor`. Its base colour is the
   linear equivalent of sRGB (0.99, 0.81, 0.48), about (0.977, 0.620, 0.195). The
@@ -69,13 +81,19 @@ material.
   | oil_derrick | `Beam` (walking beam + horse head) | pitch around local X |
   | helicopter_attack | `Rotor`, `RotorTail` | main rotor: local up; tail rotor: local X |
   | helicopter_transport | `Rotor` (front), `Rotor2` (rear) | local up |
+  | drone | `Rotor`, `Rotor2`, `Rotor3`, `Rotor4` | local up |
+
+  The game spins every `Rotor*` object of an aircraft model (`RotorSpin.gd`); a
+  turret's whole model turns, so turret bases are rotationally symmetric.
 
   Every rotor object's name starts with `Rotor`.
-* **Polycount budgets (triangles):** env 50-600, units 300-2000, buildings
-  500-4000, deposits up to 1500. The build table flags anything outside them.
-* **Scale guide:** light tank about 1.2 m long. Unit footprint radius 0.4-0.7 m.
-  Turrets have a radius of about 0.6 m, large structures 1.5-2.2 m. Trees are
-  1.5-3.5 m tall, shrubs 0.3-0.6 m. Deposits are 2.5-3.5 m across and sit low.
+* **Polycount budgets (triangles, after bevelling):** env 50-600, units 300-9000,
+  buildings 500-24000, deposits up to 1500. The build table flags anything outside them.
+* **Scale guide:** units and buildings are built at their in-game size: tank
+  1.5 m long, heavy and battle tanks about 1.85 m, trucks 1.3-1.6 m, command centre
+  4 m square, factories 3.2 m, power plant 2.3 m, extractors 1.9 m, turrets 1.3 m,
+  city buildings 2 m. In data, `model_scale` compensates the base scene's Geometry
+  scale. Trees are 1.5-3.5 m tall, shrubs 0.3-0.6 m. Deposits are 2.5-3.5 m across and sit low.
   Each ore, oil and timber deposit has a smaller `_depleted` variant.
 
 ## Adding a model

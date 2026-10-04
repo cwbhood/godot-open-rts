@@ -3,7 +3,7 @@
   "category": "unit",
   "scene": "res://source/match/units/Artillery.tscn",
   "model": "res://assets/models/ironbound/units/artillery_truck.glb",
-  "model_scale": 0.85,
+  "model_scale": 1.0,
   "name": "ARTILLERY",
   "description": "ARTILLERY_DESCRIPTION",
   "icon": "res://assets/ui/icons/AntiGroundTurret.png",
