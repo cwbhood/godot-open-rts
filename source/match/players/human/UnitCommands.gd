@@ -271,7 +271,9 @@ static func _give(unit, order, queue):
 		return
 	match order["kind"]:
 		"move":
-			unit.action = Moving.new(order["position"])
+			var moving = Moving.new(order["position"])
+			moving.exact = true  # the slot in the line or group was picked for this unit
+			unit.action = moving
 		"fight":
 			unit.action = AttackMoving.new(order["position"])
 		"patrol":
