@@ -8,6 +8,8 @@ extends Control
 #   (a blackout, a site outside the yard, a crashed drone...),
 # - the helper's panel and the auto-expand overview on the left,
 # - the manual (F1, or the Help button).
+# The match's rules (MatchRules, picked in the Play menu) can leave out the tutorial and
+# hints, the helper's panel or the auto-expand panel and bar; the manual always stays.
 
 const Human = preload("res://source/match/players/human/Human.gd")
 const Worker = preload("res://source/match/units/Worker.gd")
@@ -19,6 +21,7 @@ const AutoExpandBar = preload("res://source/match/hud/AutoExpandBar.gd")
 const HelpWindow = preload("res://source/match/hud/HelpWindow.gd")
 const HelperPanel = preload("res://source/match/hud/HelperPanel.gd")
 const Helper = preload("res://source/match/players/human/Helper.gd")
+const MatchRules = preload("res://source/data-model/MatchRules.gd")
 
 const SETTINGS_PATH = "user://guide.cfg"
 const REFRESH_INTERVAL_S = 0.5
@@ -44,6 +47,9 @@ var help_window = null
 var auto_expand_panel = null
 var auto_expand_bar = null
 var helper_panel = null
+var tutorial_on = true  # the match's rules, read once in _ready
+var ai_assist_on = true
+var auto_build_on = true
 
 var _step = 0
 var _delivered = false
@@ -71,14 +77,20 @@ func _ready():
 	name = "Guide"
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tutorial_on = MatchRules.tutorial_on(self)
+	ai_assist_on = MatchRules.ai_assist_on(self)
+	auto_build_on = MatchRules.auto_build_on(self)
 	_build_tutorial()
+	_tutorial.visible = tutorial_on
 	_build_hint()
-	helper_panel = HelperPanel.new()
-	add_child(helper_panel)
-	auto_expand_panel = AutoExpandPanel.new()
-	add_child(auto_expand_panel)
-	auto_expand_bar = AutoExpandBar.new()  # placed left of the unit menu, see _layout
-	add_child(auto_expand_bar)
+	if ai_assist_on:  # no panel, no H key
+		helper_panel = HelperPanel.new()
+		add_child(helper_panel)
+	if auto_build_on:  # no panel, no bar, no G key
+		auto_expand_panel = AutoExpandPanel.new()
+		add_child(auto_expand_panel)
+		auto_expand_bar = AutoExpandBar.new()  # placed left of the unit menu, see _layout
+		add_child(auto_expand_bar)
 	help_window = HelpWindow.new()
 	add_child(help_window)
 	MatchSignals.match_started.connect(_on_match_started)
@@ -177,7 +189,7 @@ func _unhandled_key_input(event):
 
 func _process(delta):
 	_since_refresh_s += delta
-	if _since_refresh_s >= REFRESH_INTERVAL_S:
+	if _since_refresh_s >= REFRESH_INTERVAL_S and tutorial_on:
 		_since_refresh_s = 0.0
 		_refresh_tutorial()
 	_update_hint(delta)
@@ -200,12 +212,15 @@ func _layout():
 		round((screen.x - _hint_panel.size.x) / 2.0), _tutorial.position.y + _tutorial.size.y + 6
 	)
 	var minimap_top = screen.y - 225
-	if helper_panel.size.y > helper_panel.get_combined_minimum_size().y + 1.0:
-		helper_panel.reset_size()
-	helper_panel.position = Vector2(5, 60)
 	var below_helper = 60.0
-	if helper_panel.visible:
-		below_helper = helper_panel.position.y + helper_panel.size.y + 6.0
+	if helper_panel != null:
+		if helper_panel.size.y > helper_panel.get_combined_minimum_size().y + 1.0:
+			helper_panel.reset_size()
+		helper_panel.position = Vector2(5, 60)
+		if helper_panel.visible:
+			below_helper = helper_panel.position.y + helper_panel.size.y + 6.0
+	if auto_expand_panel == null:
+		return
 	auto_expand_panel.position = Vector2(
 		5,
 		clamp(
@@ -233,8 +248,8 @@ func toggle_help(topic = null, force_show = false):
 
 
 func show_hint(key, args = []):
-	"""shows a hint once per match"""
-	if key in _hints_shown:
+	"""shows a hint once per match, unless the match's rules have tips off"""
+	if key in _hints_shown or not tutorial_on:
 		return
 	_hints_shown[key] = true
 	_hint_queue.append(tr(key).format(args))
@@ -300,6 +315,8 @@ func _step_done(key):
 		"POWER":
 			return not _own(_is_power_plant).is_empty()
 		"AUTO_EXPAND":
+			if not auto_build_on:
+				return true  # nothing to teach: this match's rules have auto-build off
 			return not _own(func(unit): return AutoExpand.is_enabled_on(unit)).is_empty()
 		"TIER":
 			return player.get_tier() >= 2
@@ -350,8 +367,10 @@ func _on_match_started():
 	if humans.is_empty():
 		return
 	player = humans[0]
-	auto_expand_panel.setup(player)
-	helper_panel.setup(player)
+	if auto_expand_panel != null:
+		auto_expand_panel.setup(player)
+	if helper_panel != null:
+		helper_panel.setup(player)
 	var helper = Helper.of(player)
 	if helper != null:
 		helper.alerted.connect(show_alert)

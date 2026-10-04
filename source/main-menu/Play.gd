@@ -6,11 +6,13 @@ const LoadingScene = preload("res://source/main-menu/Loading.tscn")
 const StartPicker = preload("res://source/main-menu/StartPicker.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const PlayerSlotOptions = preload("res://source/main-menu/PlayerSlotOptions.gd")
+const MatchRulesOptions = preload("res://source/main-menu/MatchRulesOptions.gd")
 
 var _map_paths = []
 var _ai_personalities = []  # option index - SIMPLE_CLAIRVOYANT_AI -> personality id
 var _sandbox_check_box = null
 var _slot_options = PlayerSlotOptions.new()  # colour and AI difficulty per slot
+var _rules_options = MatchRulesOptions.new()  # tutorial, AI assist and auto-build allowed
 
 @onready var _start_button = find_child("StartButton")
 @onready var _map_list = find_child("MapList")
@@ -23,6 +25,7 @@ func _ready():
 	_setup_ai_personalities()
 	_setup_sandbox_check_box()
 	_setup_slot_options()
+	_rules_options.setup(find_child("VBoxContainer2"))
 	var option_nodes = find_child("GridContainer").find_children("OptionButton*")
 	for option_node_id in range(option_nodes.size()):
 		option_nodes[option_node_id].item_selected.connect(_on_player_selected.bind(option_node_id))
@@ -110,6 +113,7 @@ func _create_match_settings():
 	if match_settings.visible_player == -1:
 		match_settings.visibility = match_settings.Visibility.ALL_PLAYERS
 	match_settings.sandbox = _sandbox_check_box.button_pressed
+	_rules_options.apply_to(match_settings)
 
 	return match_settings
 

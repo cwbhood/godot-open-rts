@@ -18,6 +18,9 @@ extends Node
 # and stops the bot from attacking, so the match shows what the helper does alone: it
 # reports a bug when the player's side starts a war or loses a constructor to an enemy
 # the helper knew about.
+#
+# --rules=raw|guided picks the match rules preset in the Play menu (default: whatever the
+# menu remembers). With auto-build or AI assist off the bot builds everything by hand.
 
 const Human = preload("res://source/match/players/human/Human.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
@@ -91,6 +94,7 @@ var _args = {
 	"seed": "1",
 	"steps": "24",  # physics steps per rendered frame, so game time keeps up on slow GPUs
 	"helper": "off",
+	"rules": "",  # "raw" or "guided", see source/data-model/MatchRules.gd
 }
 var _logger = ErrorLogger.new()
 var _match = null
@@ -172,6 +176,8 @@ func _start_from_menu():
 			choice = Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI + personalities.find(ais[index - 1])
 		option.select(choice)
 		option.item_selected.emit(choice)
+	if _args["rules"] != "":
+		play.get("_rules_options").select_preset(_args["rules"])
 	await _frames(5)
 	var start = play.find_child("StartButton")
 	if not await _click_control(start, "Play menu start button"):
@@ -243,9 +249,9 @@ func _opening():
 	await _place_from_menu(builder, MINE, _deposit_spot("copper", builder.global_position))
 	await _place_from_menu(builder, POWER_PLANT, _free_spot_near(_base(), 9.0))
 	await _place_extractor_by_hover(builder, "oil")
-	if workers.size() > 1:
+	if workers.size() > 1 and _match.settings.auto_build:
 		await _toggle_auto_expand(workers[1], true)
-	if _args["helper"] == "on":
+	if _args["helper"] == "on" and _match.settings.ai_assist:
 		await _switch_helper_on()
 	await _shot("01-opening")
 
@@ -273,7 +279,7 @@ func _think():
 		await _diplomacy_round()
 	if int(_elapsed_s) % 120 < 8:
 		await _cycle_weather()
-	if _args["helper"] == "on":
+	if _args["helper"] == "on" and _match.settings.ai_assist:
 		_check_helper()
 	else:
 		await _maybe_attack()

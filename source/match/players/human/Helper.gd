@@ -14,6 +14,7 @@ extends Node
 #   threatened (resuming the order once it is clear), and tells the player.
 # It never spends below what the player keeps in the bank per commodity, and it never
 # orders an attack: it does not start wars and leaves pacts and alliances alone.
+# A match whose rules turn AI assist off (MatchRules, "Raw") never lets it switch on.
 
 signal alerted(text)
 
@@ -26,6 +27,7 @@ const Constructing = preload("res://source/match/units/actions/Constructing.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
+const MatchRules = preload("res://source/data-model/MatchRules.gd")
 
 const NODE_NAME = "Helper"
 const WORKER_SCENE = "res://source/match/units/Worker.tscn"
@@ -148,6 +150,8 @@ func _ready():
 func set_enabled(value):
 	if enabled == value:
 		return
+	if value and not allowed():
+		return  # the match's rules have AI assist off
 	enabled = value
 	if not is_inside_tree():
 		return
@@ -157,6 +161,11 @@ func set_enabled(value):
 		_say("HELPER_ALERT_ON", "on")
 	else:
 		_hand_back()
+
+
+func allowed():
+	"""whether this match's rules let the helper run at all"""
+	return MatchRules.ai_assist_on(self)
 
 
 func keep_of(resource):
@@ -213,6 +222,9 @@ func spare(cost):
 
 func _process(delta):
 	if not enabled or not _player.is_inside_tree() or _match() == null:
+		return
+	if not allowed():
+		enabled = false  # switched on behind the rules' back (e.g. before the match began)
 		return
 	_clock_s += delta
 	_since_think_s += delta
@@ -631,8 +643,9 @@ func _manage_economy():
 			continue
 		if constructor.action == null:
 			AutoExpand.set_enabled_on(constructor, true)
-			constructor.set_meta("helper_auto", true)
-			on_auto += 1
+			if AutoExpand.is_enabled_on(constructor):  # not when the rules have auto-build off
+				constructor.set_meta("helper_auto", true)
+				on_auto += 1
 	if constructors.size() < constructors_target and _queued(WORKER_SCENE) == 0:
 		if _produce_somewhere(WORKER_SCENE, func(unit): return unit is CommandCenter):
 			stats["constructors_ordered"] += 1

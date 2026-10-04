@@ -9,6 +9,7 @@ extends Control
 
 const LoadingScene = preload("res://source/main-menu/Loading.tscn")
 const BackgroundScene = preload("res://source/main-menu/Background.tscn")
+const MatchRules = preload("res://source/data-model/MatchRules.gd")
 
 const PREVIEW_PIXELS = 1024
 const DEPOSIT_CLEARANCE = 6.0  # metres between the city and a deposit's center
@@ -237,6 +238,13 @@ func _build_ui():
 	hint.custom_minimum_size = Vector2(PANEL_WIDTH - 40, 0)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(hint)
+	var rules = Label.new()  # the match's help rules, so everyone knows them (MatchRules)
+	rules.name = "MatchRulesLabel"
+	rules.text = MatchRules.describe(match_settings)
+	rules.custom_minimum_size = Vector2(PANEL_WIDTH - 40, 0)
+	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rules.add_theme_color_override("font_color", Color(1.0, 0.9, 0.6))
+	column.add_child(rules)
 	_ui.message = Label.new()
 	_ui.message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_ui.message.add_theme_color_override("font_color", Color(1.0, 0.8, 0.45))

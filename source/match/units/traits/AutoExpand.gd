@@ -14,6 +14,7 @@ extends Node
 # helper is on). A manual order pauses it until the order is done. With the helper on it
 # also avoids every enemy the player's units have seen, and builds the helper's factory.
 # It also queues a hauler at a command center when extractors outnumber haulers.
+# A match whose rules turn auto-build off (MatchRules, "Raw") never runs it.
 
 enum Job { NONE, FLEEING, HELPING, BUILDING, PAUSED, WAITING }
 
@@ -26,6 +27,7 @@ const Constructing = preload("res://source/match/units/actions/Constructing.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const Helper = preload("res://source/match/players/human/Helper.gd")
+const MatchRules = preload("res://source/data-model/MatchRules.gd")
 
 const NODE_NAME = "AutoExpand"
 const DEFAULT_RESERVE = 10
@@ -62,6 +64,8 @@ static func is_enabled_on(unit):
 static func set_enabled_on(unit, enabled):
 	var existing = unit.get_node_or_null(NODE_NAME)
 	if enabled and existing == null:
+		if not MatchRules.auto_build_on(unit):
+			return  # the match's rules have auto-build off
 		var auto_expand = load("res://source/match/units/traits/AutoExpand.gd").new()
 		auto_expand.name = NODE_NAME
 		unit.add_child(auto_expand)
@@ -85,6 +89,10 @@ func stop():
 
 
 func _ready():
+	if not MatchRules.auto_build_on(_unit):
+		set_process(false)  # added by hand although the match's rules forbid it
+		stop.call_deferred()
+		return
 	_set_status(Job.WAITING, tr("AUTO_STATUS_LOOKING"))
 
 
