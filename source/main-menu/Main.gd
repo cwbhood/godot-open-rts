@@ -1,7 +1,11 @@
 extends Control
 
+const CrashPrompt = preload("res://source/crash/CrashPrompt.gd")
+
 
 func _ready():
+	if CrashPrompt.should_show():
+		add_child(CrashPrompt.new())
 	var play_button = find_child("Button")
 	var replays_button = Button.new()
 	replays_button.name = "ReplaysButton"
