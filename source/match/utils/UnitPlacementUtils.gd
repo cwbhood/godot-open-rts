@@ -74,11 +74,15 @@ static func validate_agent_placement_position(position, radius, existing_units, 
 			<= existing_unit.radius + radius
 		):
 			return COLLIDES_WITH_AGENT
+	# the navmesh is eroded by the max agent radius around every obstacle (deposits,
+	# structures), so a footprint's rim may lie in that margin: test the core of it only.
+	# Without this nothing fits next to a deposit once the first rebake carved it out.
+	var core_radius = max(radius - Constants.Match.Terrain.Navmesh.MAX_AGENT_RADIUS, 0.2)
 	var points_expected_to_be_navigable = []
 	for x in [-1, 0, 1]:
 		for z in [-1, 0, 1]:
 			points_expected_to_be_navigable.append(
-				position + Vector3(x, 0, z).normalized() * radius
+				position + Vector3(x, 0, z).normalized() * core_radius
 			)
 	for point_expected_to_be_navigable in points_expected_to_be_navigable:
 		if not (point_expected_to_be_navigable * Vector3(1, 0, 1)).is_equal_approx(

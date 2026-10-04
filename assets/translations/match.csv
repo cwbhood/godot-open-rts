@@ -203,3 +203,4 @@ DIPLOMACY_TOAST_NEUTRAL,The pact with {0} ended. You are neutral again: the firs
 DIPLOMACY_TOAST_OTHERS_WAR,{0} and {1} are at war.,{0} i {1} są w stanie wojny.
 DIPLOMACY_TOAST_OTHERS_ALLIANCE,{0} and {1} are now allies.,{0} i {1} zawarły sojusz.
 DIPLOMACY_TOAST_PROTECTED,"You have a treaty with {0} ({1}), so your units won't attack them.","Masz traktat z {0} ({1}), więc twoje jednostki ich nie zaatakują."
+CITY_PANEL_COLLAPSE_TOOLTIP,Fold the city and trade panel away (incoming offers still show),Zwiń panel miasta i handlu (oferty nadal się pojawią)

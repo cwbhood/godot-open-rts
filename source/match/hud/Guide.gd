@@ -176,7 +176,12 @@ func _process(delta):
 func _layout():
 	"""positions are set by hand: the HUD layer gives this control no size to anchor to"""
 	var screen = get_viewport_rect().size
-	_tutorial.position = Vector2(round((screen.x - _tutorial.size.x) / 2.0), 6)
+	# the diplomacy bar sits at the top centre too, so the tutorial goes right under it
+	var top = 6.0
+	var diplomacy_hud = get_parent().get_node_or_null("DiplomacyHud")
+	if diplomacy_hud != null and diplomacy_hud.is_visible_in_tree():
+		top = diplomacy_hud.position.y + diplomacy_hud.size.y + 6.0
+	_tutorial.position = Vector2(round((screen.x - _tutorial.size.x) / 2.0), top)
 	_hint_panel.position = Vector2(
 		round((screen.x - _hint_panel.size.x) / 2.0), _tutorial.position.y + _tutorial.size.y + 6
 	)

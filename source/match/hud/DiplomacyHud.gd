@@ -442,6 +442,16 @@ func _on_chip_pressed(faction):
 		var state = diplomacy.get_state(_player, faction) if diplomacy != null else null
 		# preselect what makes sense next: a pact after a war, otherwise an alliance
 		_kind_option.select(1 if state in [Diplomacy.State.NEUTRAL, Diplomacy.State.PACT] else 0)
+		if diplomacy != null:  # ...unless that one is off the table (e.g. they have an ally)
+			for index in range(Diplomacy.KINDS.size()):
+				if (
+					diplomacy.can_sign(_player, faction, _kind()) != Diplomacy.Result.ACCEPTED
+					and (
+						diplomacy.can_sign(_player, faction, Diplomacy.KINDS[index])
+						== Diplomacy.Result.ACCEPTED
+					)
+				):
+					_kind_option.select(index)
 		_on_their_price_pressed()
 	_refresh_chips()
 	_refresh_deal()

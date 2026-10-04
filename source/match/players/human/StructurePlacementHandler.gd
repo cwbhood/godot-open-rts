@@ -19,7 +19,7 @@ const ROTATION_DEAD_ZONE_DISTANCE = 0.1
 # with a constructor selected, hovering a deposit picks its extractor automatically
 const AUTO_PICK_HOVER_MARGIN_M = 0.6  # mouse this close to the deposit edge picks it
 const AUTO_PICK_KEEP_MARGIN_M = 2.5  # the blueprint follows the deposit within this ring
-const AUTO_PICK_GAP_M = 0.4  # gap between the snapped blueprint and the deposit
+const AUTO_PICK_GAP_M = 0.6  # gap between the snapped blueprint and the deposit
 const AUTO_PICK_SNAP_STEPS = 12  # tries on each side when the spot facing the mouse is taken
 
 const MATERIALS_ROOT = "res://source/match/resources/materials/"

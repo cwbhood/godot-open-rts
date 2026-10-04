@@ -62,6 +62,11 @@ var _agreements_label = Label.new()
 var _offer_box = VBoxContainer.new()
 var _offer_label = Label.new()
 var _offer_verdict_label = Label.new()
+var _scroll = ScrollContainer.new()  # the body scrolls when the screen is too short for it
+var _rows = VBoxContainer.new()
+var _collapse_button = Button.new()
+var _unit_menus = null
+var _production_queue = null
 
 @onready var _match = find_parent("Match")
 
@@ -90,6 +95,7 @@ func _ready():
 
 
 func _process(delta):
+	_fit_to_screen()
 	if _incoming_offer == null:
 		return
 	_incoming_offer_time_left_s -= delta
@@ -103,10 +109,26 @@ func _build_layout():
 	for side in ["left", "top", "right", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 8)
 	add_child(margin)
-	var rows = VBoxContainer.new()
-	margin.add_child(rows)
+	var column = VBoxContainer.new()
+	margin.add_child(column)
+	var header = HBoxContainer.new()
+	var title = _make_title("CITY")
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+	_collapse_button.text = "-"
+	_collapse_button.focus_mode = Control.FOCUS_NONE
+	_collapse_button.custom_minimum_size = Vector2(28, 0)
+	_collapse_button.tooltip_text = tr("CITY_PANEL_COLLAPSE_TOOLTIP")
+	_collapse_button.pressed.connect(_on_collapse_pressed)
+	header.add_child(_collapse_button)
+	column.add_child(header)
+	column.add_child(_offer_box)  # incoming offers stay on top, they expire quickly
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.add_child(_rows)
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_child(_scroll)
+	var rows = _rows
 
-	rows.add_child(_make_title("CITY"))
 	rows.add_child(_tier_label)
 	_science_bar.custom_minimum_size = Vector2(0, 10)
 	_science_bar.show_percentage = false
@@ -187,8 +209,39 @@ func _build_layout():
 	decline_button.pressed.connect(_dismiss_offer)
 	offer_buttons.add_child(decline_button)
 	_offer_box.add_child(offer_buttons)
+	_offer_box.add_child(HSeparator.new())
 	_offer_box.hide()
-	rows.add_child(_offer_box)
+
+
+func _fit_to_screen():
+	"""keeps the panel clear of the unit menu and on screen, scrolling its body if needed"""
+	if _unit_menus == null and _match != null:
+		_unit_menus = _match.find_child("UnitMenus", true, false)
+		_production_queue = _match.get_node_or_null(
+			"HUD/MarginContainer3/VBoxContainer/ProductionQueue"
+		)
+	var bottom = get_viewport_rect().size.y - 5.0
+	if _unit_menus != null and _unit_menus.is_visible_in_tree():
+		bottom = min(bottom, _unit_menus.global_position.y - 6.0)
+	if (
+		_production_queue != null
+		and _production_queue.is_visible_in_tree()
+		and _production_queue.find_child("QueueElements").get_child_count() > 0
+	):
+		bottom = min(bottom, _production_queue.global_position.y - 6.0)
+	var wanted = _rows.get_combined_minimum_size().y if _scroll.visible else 0.0
+	var chrome = get_combined_minimum_size().y - _scroll.custom_minimum_size.y
+	var room = max(80.0, bottom - global_position.y - chrome)
+	var height = min(wanted, room)
+	if not is_equal_approx(_scroll.custom_minimum_size.y, height):
+		_scroll.custom_minimum_size.y = height
+		reset_size()
+
+
+func _on_collapse_pressed():
+	_scroll.visible = not _scroll.visible
+	_collapse_button.text = "-" if _scroll.visible else "+"
+	reset_size()
 
 
 func _setup_verdict_label(label):

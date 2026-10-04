@@ -68,6 +68,8 @@ func _create_match_settings():
 	var spawn_index_offset = 0
 	for option_node_id in range(option_nodes.size()):
 		var player_controller = option_nodes[option_node_id].selected
+		if not option_nodes[option_node_id].visible:
+			break  # slots past the map's player count are hidden, they must not play
 		if player_controller != Constants.PlayerType.NONE:
 			var player_settings = PlayerSettings.new()
 			if player_controller >= Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI:
@@ -122,6 +124,16 @@ func _align_player_controls_visibility_to_map(map):
 	for node_id in range(option_nodes.size()):
 		option_nodes[node_id].visible = node_id < map["players"]
 		label_nodes[node_id].visible = node_id < map["players"]
+	_refresh_start_button()
+
+
+func _refresh_start_button():
+	"""a match needs at least two players in the slots the map shows"""
+	var players = find_child("GridContainer").find_children("OptionButton*").filter(
+		func(option_node):
+			return option_node.visible and option_node.selected != Constants.PlayerType.NONE
+	)
+	_start_button.disabled = players.size() < 2
 
 
 func _on_player_selected(selected_option_id, selected_player_id):
@@ -134,13 +146,7 @@ func _on_player_selected(selected_option_id, selected_player_id):
 				and option_nodes[option_node_id].selected == Constants.PlayerType.HUMAN
 			):
 				option_nodes[option_node_id].selected = (Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI)
-	elif selected_option_id == Constants.PlayerType.NONE:
-		var option_buttons = find_child("GridContainer").find_children("OptionButton*")
-		var option_nodes_with_player_controllers = option_buttons.filter(
-			func(option_node): return option_node.selected != Constants.PlayerType.NONE
-		)
-		if option_nodes_with_player_controllers.size() < 2:
-			_start_button.disabled = true
+	_refresh_start_button()
 
 
 func _on_map_list_item_selected(index):
