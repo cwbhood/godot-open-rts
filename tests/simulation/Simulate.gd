@@ -284,6 +284,10 @@ func _finish():
 		"agreements_active": market.agreements.size() if market != null else 0,
 	}
 	var file = FileAccess.open(_args["out"], FileAccess.WRITE)
+	if file == null:  # still quit, a batch run waits for this process to end
+		printerr("SIM cannot write ", _args["out"])
+		get_tree().quit(1)
+		return
 	file.store_string(JSON.stringify(summary, "  "))
 	file.close()
 	print("SIM done, summary written to ", ProjectSettings.globalize_path(_args["out"]))
