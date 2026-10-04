@@ -19,6 +19,7 @@ extends Node
 # A match whose rules turn AI assist off (MatchRules, "Raw") never lets it switch on.
 
 signal alerted(text)
+signal alert_raised(kind)  # the same alert by kind ("on", "retreat", ...), for the advisor voice
 
 const Worker = preload("res://source/match/units/Worker.gd")
 const MatchLimits = preload("res://source/match/MatchLimits.gd")
@@ -989,6 +990,7 @@ func _say(key, kind, args = [], position = null):
 	if alerts.size() > MAX_ALERTS:
 		alerts.resize(MAX_ALERTS)
 	alerted.emit(text)
+	alert_raised.emit(kind)
 
 
 func _log(kind, unit, position):

@@ -1,0 +1,152 @@
+{
+  "id": "auto_vehicle",
+  "kind": "machine",
+  "description": "Automated vehicles: servo chirps and engine blips",
+  "folder": "res://assets/audio/voices/auto_vehicle/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "(auto vehicle select)"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "(auto vehicle select)"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "(auto vehicle select)"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "(auto vehicle select)"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "(auto vehicle move)"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "(auto vehicle move)"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "(auto vehicle move)"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "(auto vehicle move)"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "(auto vehicle attack)"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "(auto vehicle attack)"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "(auto vehicle attack)"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "(auto vehicle attack)"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "(auto vehicle retreat)"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "(auto vehicle retreat)"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "(auto vehicle retreat)"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "(auto vehicle retreat)"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "(auto vehicle build)"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "(auto vehicle build)"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "(auto vehicle build)"
+      },
+      {
+        "file": "build_04.ogg",
+        "text": "(auto vehicle build)"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "(auto vehicle cannot)"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "(auto vehicle cannot)"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "(auto vehicle cannot)"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "(auto vehicle cannot)"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "(auto vehicle under attack)"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "(auto vehicle under attack)"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "(auto vehicle under attack)"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "(auto vehicle under attack)"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "(auto vehicle ready)"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "(auto vehicle ready)"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "(auto vehicle ready)"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "(auto vehicle ready)"
+      }
+    ]
+  }
+}

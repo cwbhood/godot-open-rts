@@ -1,0 +1,34 @@
+{
+  "unit_actions": ["select", "move", "attack", "retreat", "build", "cannot", "under_attack", "ready"],
+  "optional_unit_actions": ["select_repeat"],
+  "unit_voices": {
+    "militia": "infantry",
+    "tank": "vehicle_crew",
+    "battle_tank": "vehicle_crew",
+    "raider": "vehicle_crew",
+    "missile_truck": "vehicle_crew",
+    "heavy_tank": "officer",
+    "artillery": "officer",
+    "helicopter": "pilot",
+    "gunship": "pilot",
+    "worker": "worker",
+    "hauler": "worker",
+    "caravan": "trader",
+    "drone": "drone",
+    "scout_buggy": "auto_vehicle"
+  },
+  "default_voices": {
+    "unit": "vehicle_crew",
+    "air_unit": "pilot",
+    "structure": "structure"
+  },
+  "advisor": "advisor",
+  "advisor_events": [
+    "match_started", "match_aborted", "victory", "defeat", "base_under_attack", "unit_lost",
+    "training", "construction_complete", "research_complete", "not_enough_resources",
+    "cannot_place", "low_oil", "storage_full", "trade_complete", "convoy_lost", "war_declared",
+    "treaty_signed", "helper_alert", "helper_on", "helper_off", "constructor_pulled_back",
+    "constructor_rerouted", "constructor_held"
+  ],
+  "optional_advisor_events": ["tier_industrial", "tier_electric"]
+}

@@ -1,0 +1,231 @@
+{
+  "id": "officer",
+  "kind": "speech",
+  "description": "Commanders of heavy armor and artillery, calm and formal",
+  "folder": "res://assets/audio/voices/officer/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Commander here.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "At your service.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Awaiting your orders.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Battery ready.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Report.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_06.ogg",
+        "text": "Give me a target.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "select_07.ogg",
+        "text": "Standing ready.",
+        "speaker": "bm_george"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Patience is a virtue, commander.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "I did hear you the first time.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Shall I put that in writing?",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "select_repeat_04.ogg",
+        "text": "My tea is getting cold.",
+        "speaker": "bm_george"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Advancing as ordered.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Very well, moving.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Relocating.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Proceeding.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Understood, on our way.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "move_06.ogg",
+        "text": "Repositioning.",
+        "speaker": "bm_fable"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Coordinates received. Fire!",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Bring the guns to bear.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Commence firing.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "Target acquired. Engage.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "attack_05.ogg",
+        "text": "Fire for effect!",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "attack_06.ogg",
+        "text": "Give them everything.",
+        "speaker": "bm_george"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Orderly withdrawal.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Disengaging.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Fall back, maintain formation.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "Withdrawing to safer ground.",
+        "speaker": "bm_fable"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "We'll secure the site.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Holding that position.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Guarding construction.",
+        "speaker": "bm_fable"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "That is not possible, commander.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "Out of the question.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "We cannot comply.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "No route available.",
+        "speaker": "bm_fable"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "We are under fire!",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Return fire, all crews!",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Enemy guns on us!",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "Hostiles engaging!",
+        "speaker": "bm_george"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Command vehicle ready.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Battery deployed and ready.",
+        "speaker": "bm_fable"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Reporting for duty.",
+        "speaker": "bm_george"
+      }
+    ]
+  }
+}

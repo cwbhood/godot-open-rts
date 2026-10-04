@@ -80,6 +80,8 @@ func _handle_lmb_up_event(_event):
 		_finish_structure_placement()
 	elif blueprint_position_validity == BlueprintPositionValidity.NOT_ENOUGH_RESOURCES:
 		MatchSignals.not_enough_resources_for_construction.emit(_player)
+	else:
+		MatchSignals.structure_placement_refused.emit(_player)
 	_finish_blueprint_rotation()
 
 
