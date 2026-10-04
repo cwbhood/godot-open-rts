@@ -127,7 +127,7 @@ func _process(delta):
 	# centred at the top; anchors do not work reliably for a panel added at run time
 	if size.y > get_combined_minimum_size().y + 1.0:
 		reset_size()  # shrink back after the deal box or an offer closes
-	position = Vector2(round((get_viewport_rect().size.x - size.x) / 2.0), 4.0)
+	position = _place()
 	_refresh_chips()
 	if _toast_left_s > 0.0:
 		_toast_left_s -= delta
@@ -141,6 +141,25 @@ func _process(delta):
 	if _since_price_refresh_s >= PRICE_REFRESH_S:
 		_since_price_refresh_s = 0.0
 		_refresh_deal()  # strength changes move the prices
+
+
+# Centred at the top between the resources bar and the city panel; on a narrow screen
+# where it does not fit there, it goes on a second row under the resources bar.
+func _place():
+	var screen = get_viewport_rect().size
+	var left = 4.0
+	var right = screen.x - 4.0
+	var resources = _match.get_node_or_null("HUD/MarginContainer2")
+	var resources_bottom = 4.0
+	if resources != null and resources.visible:
+		left = resources.get_global_rect().end.x + 6.0
+		resources_bottom = resources.get_global_rect().end.y
+	var city = _match.get_node_or_null("HUD/CityHud")
+	if city != null and city.visible:
+		right = city.get_global_rect().position.x - 6.0
+	if size.x <= right - left:
+		return Vector2(round(clamp((screen.x - size.x) / 2.0, left, right - size.x)), 4.0)
+	return Vector2(4.0, round(resources_bottom + 4.0))
 
 
 func _build_layout():
