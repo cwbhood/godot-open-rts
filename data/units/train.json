@@ -17,6 +17,7 @@
   "produced_by": [
     "command_center"
   ],
+  "unit_slots": 2,
   "properties": {
     "sight_range": 6.0,
     "hp": 30,
