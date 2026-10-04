@@ -23,6 +23,13 @@ func _ready():
 		unit.tree_exited.connect(_on_unit_tree_exited)
 
 
+func surrender():
+	"""the player gives up (pause menu): the match ends as a defeat"""
+	if visible:
+		return
+	_handle_defeat()
+
+
 func _handle_defeat():
 	_defeat_tile.show()
 	_show()
