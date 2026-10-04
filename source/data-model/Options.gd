@@ -8,6 +8,8 @@ const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
 	set = _set_screen
 @export var mouse_restricted = false:
 	set = _set_mouse_restricted
+# the unit art from before the play-ready Blender models (see GameData.use_classic_models)
+@export var classic_unit_models = false
 
 
 func _init():

@@ -143,6 +143,7 @@ the storage's cost from `units/storage.json`.
 | `base` | Id of an existing unit to copy. The new unit inherits every field and you only list what changes |
 | `model` | `.glb` / `.gltf` / `.tscn` model replacing the scene's own model (for any unit, with or without `base`) |
 | `model_scale`, `model_offset`, `model_rotation_y_deg` | Placement of `model` |
+| `classic_model`, `classic_model_scale`, `classic_model_offset`, `classic_model_rotation_y_deg` | Art used instead of `model` when the player picks classic unit models in Options (or the game runs with `--unit-models=classic`) |
 | `name`, `description` | Translation keys (see `assets/translations/match.csv`) |
 | `icon`, `icon_tint` | Build menu button image and tint |
 | `tier` | City tier needed to build it |

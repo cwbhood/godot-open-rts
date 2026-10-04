@@ -1,8 +1,10 @@
 {
   "id": "scout_buggy",
   "base": "raider",
-  "model": "res://assets/models/ironbound/units/scout_buggy.glb",
-  "model_scale": 1.0,
+  "model": "res://assets/models/ironbound/units/scout_buggy_v2.glb",
+  "model_scale": 1.1,
+  "classic_model": "res://assets/models/ironbound/units/scout_buggy.glb",
+  "classic_model_scale": 1.0,
   "name": "SCOUT_BUGGY",
   "description": "SCOUT_BUGGY_DESCRIPTION",
   "icon_tint": "#9fe0ff",

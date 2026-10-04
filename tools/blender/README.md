@@ -139,3 +139,27 @@ python3.11 tools/blender/build_construction.py --preview  # plus previews/city_b
   reads the same file, so rebuild the sound after changing it.
 * The animation is the glTF animation `build`; the root keeps the command centre's
   model space (front +Y, origin at the footprint centre).
+
+## Play-ready unit models (`build_*.py` on `mesh_kit.py`)
+
+The image-based unit models have one script each: `build_soldier.py` (rifleman, and the
+militia squad with `--squad`), `build_raider.py`, `build_scout_buggy.py`, `build_tank.py`,
+`build_heavy_tank.py`, `build_artillery.py`, `build_missile_truck.py` and
+`build_helicopter.py`. They share `mesh_kit.py`, which builds in game mode by default:
+about 1,100 to 5,000 triangles per model, one vertex-coloured `Body` material plus
+`TeamColor` (exported with the albedo the game recolours per player), baked ambient
+occlusion, no skins. `--detail full` builds the original showcase meshes instead.
+
+    python3.11 tools/blender/build_tank.py [-- --out <glb> --render <preview dir>]
+    python3.11 tools/blender/build_soldier.py -- --squad
+
+Then import (`godot --headless --path . --import`), and check:
+
+- `godot --headless --path . -s res://tools/art/fit_model_scale.gd` prints the
+  `model_scale` that matches each model's length to its classic model;
+- `tests/screenshots/UnitModelCompare.tscn` shoots classic and new side by side for a blue
+  and a red player, and `tools/art/compare_strips.py` turns the shots into strips;
+- `tests/perf/UnitModelBench.tscn` measures 30 copies of each, classic against new.
+
+The classic models stay in `data/units/*.json` as `classic_model`; Options > Unit models
+switches between them.

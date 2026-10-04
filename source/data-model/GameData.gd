@@ -8,6 +8,11 @@
 # of the base (properties are merged key by key) and gets a scene generated at runtime
 # from the base scene, with its own "model" swapped in. This is how new units are added
 # without touching code or the Godot editor (see docs/modding/add-a-unit.md).
+#
+# Units may also carry a "classic_model" (with "classic_model_scale", "classic_model_offset"
+# and "classic_model_rotation_y_deg"): the art used before the play-ready Blender models.
+# It replaces "model" when the player picks classic unit models in Options, or when the
+# game is started with --unit-models=classic (--unit-models=new forces the new ones).
 
 const BASE_DATA_DIR = "res://data"
 const MOD_ROOTS = ["res://mods", "user://mods"]
@@ -19,6 +24,7 @@ const PROJECTILES = {
 const DOMAINS = {"terrain": 1, "air": 0}  # mirrors Constants.Match.Navigation.Domain
 const MOVEMENT_DOMAINS = {"land": 1, "water": 2, "amphibious": 3}  # navigation domains
 const GENERATED_SCENES_ROOT = "res://data-units/"
+const MODEL_FIELDS = ["model", "model_scale", "model_offset", "model_rotation_y_deg"]
 
 static var _cache = null
 static var _generated_scenes = {}  # scene path -> PackedScene, kept alive for load()
@@ -33,6 +39,30 @@ static func get_data():
 static func reload():
 	_cache = null
 	return get_data()
+
+
+static func use_classic_models():
+	for arg in OS.get_cmdline_user_args() + OS.get_cmdline_args():
+		if arg.begins_with("--unit-models="):
+			return arg.get_slice("=", 1) == "classic"
+	var loop = Engine.get_main_loop()
+	var globals = loop.root.get_node_or_null("Globals") if loop is SceneTree else null
+	if globals == null or globals.options == null:
+		return false
+	return bool(globals.options.get("classic_unit_models"))
+
+
+static func switch_unit_models():
+	"""reloads the data after the classic/new unit model choice changed and rebuilds the
+	scenes of data-only units, so the next match uses the chosen models"""
+	reload()
+	var rebuilt = {}
+	for unit in units():
+		if unit["scene"] in _generated_scenes:
+			var scene = _build_generated_scene(unit)
+			if scene != null:
+				rebuilt[unit["scene"]] = scene
+	_generated_scenes.merge(rebuilt, true)
 
 
 static func units():
@@ -173,6 +203,7 @@ static func apply_model(root, unit):
 		if child is Node3D:
 			child.visible = false  # kept so that scripts referring to them keep working
 	var model = model_scene.instantiate()
+	use_vertex_colours(model)
 	model.name = "Model"
 	model.scale = Vector3.ONE * float(unit.get("model_scale", 1.0))
 	var offset = unit.get("model_offset", [0, 0, 0])
@@ -180,6 +211,18 @@ static func apply_model(root, unit):
 	model.rotation.y = deg_to_rad(float(unit.get("model_rotation_y_deg", 0.0)))
 	geometry.add_child(model)
 	return model
+
+
+static func use_vertex_colours(model):
+	"""the play-ready Blender models keep their colours (and baked shading) in the COLOR_0
+	vertex colours of one white "Body" material; the glTF importer leaves those unused"""
+	for node in [model] + model.find_children("*", "MeshInstance3D", true, false):
+		if not node is MeshInstance3D or node.mesh == null:
+			continue
+		for surface in range(node.mesh.get_surface_count()):
+			var material = node.mesh.surface_get_material(surface)
+			if material is BaseMaterial3D and material.resource_name == "Body":
+				material.vertex_color_use_as_albedo = true
 
 
 static func _build_generated_scene(unit):
@@ -316,11 +359,23 @@ static func _load_all():
 		_deep_merge(data["logistics"], _parse_dict_file(mod_dir + "/logistics.json"))
 		_merge_voices(data["voices"], _parse_dict_file(mod_dir + "/sounds/voices.json"))
 		_merge_voice_sets(data["voice_sets"], _load_dir(mod_dir + "/sounds/voice_sets"))
+	if use_classic_models():
+		for unit in data["units"]:
+			_use_classic_model(unit)
 	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
 	data["ai_difficulties"].sort_custom(func(a, b): return a.get("order", 0) < b.get("order", 0))
 	return data
+
+
+static func _use_classic_model(unit):
+	if not "classic_model" in unit:
+		return
+	for field in MODEL_FIELDS:
+		unit.erase(field)
+		if "classic_" + field in unit:
+			unit[field] = unit["classic_" + field]
 
 
 static func _resolve_bases(entries):
