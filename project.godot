@@ -54,6 +54,7 @@ crash_reports/endpoint=""
 
 [gui]
 
+theme/custom="res://assets/ui/theme/ironbound.tres"
 timers/tooltip_delay_sec=0.0
 
 [input]
