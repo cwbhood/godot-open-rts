@@ -1,0 +1,96 @@
+keys,en
+SITE_NEEDS_CONSTRUCTOR,"Needs a constructor ({0}%)\nselect one, right-click here"
+SITE_CONSTRUCTOR_ON_THE_WAY,Constructor on the way ({0}%)
+SITE_BUILDING,Building {0}%
+SITE_WAITING_FOR_MATERIALS,Waiting for materials ({0}%)\nhaulers bring them from the depot
+AUTO_EXPAND_ON,Auto-expand: ON
+AUTO_EXPAND_OFF,Auto-expand: OFF
+AUTO_EXPAND_TOOLTIP,"Auto-expand (G): the constructor finds work on its own and keeps going. It builds extractors on the best free deposits near your command centers, power plants when power runs short, pylons to wire far extractors, and paves long supply routes. It pays from your bank (never below the reserve you set on the left), runs home from enemies and stops for your own orders until they are done."
+AUTO_EXPAND_OFF_HINT,Turn on to let this constructor expand your economy by itself. It spends from your bank.
+AUTO_EXPAND_MORE,+{0} more constructors on auto-expand
+AUTO_EXPAND_TITLE,Auto-expand: {0} of {1} constructors
+AUTO_EXPAND_NONE,"No constructor on auto-expand. Select one and press Auto-expand, or turn it on for all below."
+AUTO_EXPAND_SPENT,Spent so far: {0}
+AUTO_EXPAND_RESERVE,Keep in bank:
+AUTO_EXPAND_RESERVE_TOOLTIP,"Auto-expand never spends a commodity below this amount, so you always have something left for units and trade."
+AUTO_EXPAND_ALL_ON,All on
+AUTO_EXPAND_ALL_OFF,All off
+AUTO_STATUS_LOOKING,Looking for work...
+AUTO_STATUS_PAUSED,"Following your order, resumes after it"
+AUTO_STATUS_RESUMING,Back to building the {0}
+AUTO_STATUS_HELPING,Finishing an abandoned {0} site
+AUTO_STATUS_WAITING_FOR_HAULERS,Waiting: haulers have to bring materials to the open sites first
+AUTO_STATUS_SAVING,Saving up for {0}: needs {1} more (keeping {2} in the bank)
+AUTO_STATUS_NOTHING_TO_DO,Nothing safe left to build near your command centers
+AUTO_STATUS_PAVED,Paved the longest supply route
+AUTO_STATUS_FLEEING,Enemies close: running back to the command center
+AUTO_REASON_POWER,Building a power plant: the grid is short of power
+AUTO_REASON_PYLON,Building a pylon to wire an extractor to the grid
+AUTO_REASON_EXTRACTOR,"Building an extractor on {0}, {1} m away"
+TIMBER_TOOLTIP,"From woods, with a lumber mill. Used for most buildings and roads; your city eats a little."
+IRON_TOOLTIP,"From iron ore, with a mine. The main building and vehicle material."
+COPPER_TOOLTIP,"From copper ore, with a mine. Needed for power plants, pylons and advanced units."
+OIL_TOOLTIP,"From oil fields, with an oil derrick. Fuel: power plants burn it, haulers need it to drive."
+RESOURCE_TOOLTIP_GENERIC,Extracted next to its deposits and hauled home along supply lines.
+EXTRACTOR_PLACEMENT_HINT,Place it right next to a matching deposit (or just hover the deposit with a constructor selected).
+STRUCTURE_BUILD_HINT,You pay when you place it. A constructor has to drive there and stay at the site until it is built.
+GUIDE_TITLE,Tutorial {0}/{1}: {2}
+GUIDE_TITLE_DONE,Tutorial complete
+GUIDE_DONE,You know the basics. Press F1 or Help any time for the manual. Fold this panel with Hide.
+GUIDE_HELP_BUTTON,Help (F1)
+GUIDE_HELP_TOOLTIP,Open the manual: every system explained
+GUIDE_MORE,Explain more
+GUIDE_SKIP,Skip step
+GUIDE_SKIP_TOOLTIP,Move on to the next step
+GUIDE_HIDE,Hide
+GUIDE_SHOW,Show
+GUIDE_STEP_SELECT_CONSTRUCTOR_TITLE,Select a constructor
+GUIDE_STEP_SELECT_CONSTRUCTOR,Your constructors (the yellow bulldozers) build everything. Left-click one to select it; its build menu opens bottom right.
+GUIDE_STEP_BUILD_EXTRACTOR_TITLE,Lay out an extractor
+GUIDE_STEP_BUILD_EXTRACTOR,"With the constructor selected, move the mouse over a deposit (woods, iron or copper ore, an oil field). The right extractor appears next to it: click to place it. You pay right away. Or press Auto-expand and let the constructor choose."
+GUIDE_STEP_FINISH_EXTRACTOR_TITLE,Let the constructor build it
+GUIDE_STEP_FINISH_EXTRACTOR,"Nothing builds itself: the constructor drives to the site and must stay there until it is done. The label above the site says what it waits for. If the constructor wandered off, select it and right-click the site."
+GUIDE_STEP_DELIVERY_TITLE,Get goods home
+GUIDE_STEP_DELIVERY,Haulers drive what extractors dig up back to your command center along a supply line (drawn on the ground). Goods count only once they arrive. Losing haulers to raiders loses their cargo.
+GUIDE_STEP_POWER_TITLE,Build power
+GUIDE_STEP_POWER,Extractors and factories slow down without power. The top bar shows supply/demand in MW. Build a power plant (it burns a little oil); pylons carry the grid out to far extractors.
+GUIDE_STEP_AUTO_EXPAND_TITLE,Let constructors expand for you
+GUIDE_STEP_AUTO_EXPAND,"Select a constructor and press Auto-expand (G). It keeps building extractors, power and roads on its own and spends from your bank. The panel on the left shows what each one is doing and how much to keep in reserve."
+GUIDE_STEP_TIER_TITLE,Grow the city to Industrial
+GUIDE_STEP_TIER,"Deliveries feed your city (panel on the right). A fed, powered city grows and earns science; at 150 science it reaches Industrial (tier 2), which unlocks T2 buildings, units and paved roads."
+GUIDE_STEP_TRADE_TITLE,Trade with a faction
+GUIDE_STEP_TRADE,"In the City panel, pick a faction, choose what to give and get, and propose. The verdict (good, fair, bad) is judged at your own prices. Trade grows your city faster than digging alone."
+GUIDE_STEP_ARMY_TITLE,Build an army
+GUIDE_STEP_ARMY,Build a vehicle factory and produce tanks. Park some near far extractors and supply lines: raiders go for haulers first.
+HINT_SITE_OUTSIDE_YARD,"This site is outside the yard around your command center, so haulers must carry its materials there first, and a constructor must drive out to build it."
+HINT_SITE_NEEDS_CONSTRUCTOR,Sites are built only while a constructor stands at them. The label above the site tells you what it waits for.
+HINT_BLACKOUT,"Power shortage: demand is above supply, so extractors and factories run slowly. Build a power plant, or let an auto-expanding constructor do it."
+HINT_TIER_REACHED,Your city reached {0}! New buildings and units are unlocked (the T badges in the build menus).
+HINT_NOT_ENOUGH_FOR_CONSTRUCTION,Not enough materials for that building. Hover a build button to see its cost; the top bar shows your stock.
+HINT_NOT_ENOUGH_FOR_PRODUCTION,Not enough materials for that unit. Hover its button to see the cost.
+HINT_AIRCRAFT_CRASHED,A drone ran out of fuel and crashed. Fixed-wing aircraft must land at an airport to refuel: keep one near where they fly.
+HINT_CARGO_DESTROYED,"A hauler was destroyed and its cargo lost. Escort haulers (select tanks, right-click a hauler) or guard the route."
+HELP_TITLE,Manual
+HELP_CLOSE,Close (Esc)
+HELP_BASICS_TITLE,Basics and controls
+HELP_BASICS_BODY,"You run a frontier city. You do not place houses: the city builds itself when goods reach it. Your job is the economy around it (extractors, supply lines, power), trade, and the army that protects it.\n\n[b]Mouse:[/b] left-click selects, drag selects many, right-click orders (move, attack, build, escort). Double-click selects all units of a kind.\n[b]Camera:[/b] W A S D move, the mouse wheel zooms, Q and E rotate.\n[b]Groups:[/b] Ctrl+number saves a selection, the number recalls it.\n[b]Building:[/b] R rotates a blueprint, right-click cancels it.\n[b]Help:[/b] F1 opens this manual."
+HELP_CONSTRUCTORS_TITLE,Constructors and building
+HELP_CONSTRUCTORS_BODY,"Constructors build every structure. Select one to open its build menu; hover a button to see what the building does, its cost and its tier.\n\nPlacing a building pays for it at once and lays out a site. [b]The site only grows while a constructor stands next to it[/b]: the constructor that placed it drives there on its own. If you send it elsewhere, the site waits; select a constructor and right-click the site to resume. The label above every site says what it waits for.\n\nExtractors (lumber mill, mine, oil derrick) must touch a matching deposit. With a constructor selected, hovering a deposit picks the right extractor for you.\n\nTo cancel a site, select it and press the X button bottom right: you get back the materials not yet on the road."
+HELP_AUTO_EXPAND_TITLE,Auto-expand
+HELP_AUTO_EXPAND_BODY,"Select one or more constructors and press [b]Auto-expand[/b] (bottom right, next to the build menu) (or press G). They then work on their own, in this order:\n1. run home when enemies come close,\n2. finish any site nobody is working on,\n3. build a power plant when the grid is short,\n4. build pylons to wire far extractors,\n5. build an extractor on the best free deposit: the commodity you have the fewest extractors and the smallest stock of, close to a command center,\n6. pave the longest supply route (from Industrial on).\nThey also order a hauler when extractors outnumber haulers two to one.\n\n[b]It spends your bank.[/b] The panel on the left shows every auto constructor, what it is doing and what it has spent. [b]Keep in bank[/b] sets how much of each commodity it must leave you. It skips deposits more than 45 m from a command center unless your armed units guard them, and skips spots with enemies nearby.\n\nGiving an auto constructor an order pauses it until the order is done. Turn it off with the same button or All off."
+HELP_RESOURCES_TITLE,Resources
+HELP_RESOURCES_BODY,"Four commodities, shown in the top-left bar (hover them):\n[b]Timber[/b]: woods, lumber mill. Buildings and roads.\n[b]Iron[/b]: iron ore, mine. Buildings and vehicles.\n[b]Copper[/b]: copper ore, mine. Power, pylons, advanced units.\n[b]Oil[/b]: oil field, oil derrick. Fuel for power plants and haulers.\n\nDeposits run dry over time; their look shows how much is left. Part of every delivery goes to the city warehouse to feed citizens, the rest to your bank."
+HELP_SUPPLY_LINES_TITLE,Supply lines and haulers
+HELP_SUPPLY_LINES_BODY,"Extractors fill a small local store. [b]Haulers[/b] drive the goods to the closest command center (the depot) along a supply line drawn on the ground; goods count only when they arrive. A full extractor stops.\n\nHaulers also carry building materials out to sites. Sites inside the [b]yard[/b] (about 9 m around a command center) get materials straight away; sites further out wait for a hauler, so far expansion is slower and needs more haulers.\n\nHaulers are run automatically. Right-click an extractor with a hauler selected to dedicate it to that route; right-click the command center to return it to automatic work. Raiders target haulers: lost cargo is gone, and the raider keeps part of it."
+HELP_ROADS_TITLE,Roads
+HELP_ROADS_BODY,"Every supply route starts as a dirt track. Select an extractor and use its Road button to upgrade its route: paved road (x1.4 hauler speed, needs Industrial) and railway (x2, needs Electric). Cost grows with the length of the route. Auto-expanding constructors pave the longest dirt routes when you can afford it."
+HELP_POWER_TITLE,Power
+HELP_POWER_BODY,"The top bar shows power supply / demand in MW. Extractors, factories and the city draw power; without enough, extraction drops to a fraction, factories slow down and the city earns less science.\n\nCommand centers make a little power. [b]Power plants[/b] make much more but burn oil. Each power building has a grid radius; structures inside it are connected, and [b]pylons[/b] extend the grid to far extractors (two grid nodes connect when their circles overlap). The blueprint warns you when a spot is off the grid."
+HELP_CITY_TIERS_TITLE,City and tiers
+HELP_CITY_TIERS_BODY,"The city panel (top right) shows population, what the city needs, its warehouse and civil defense. Citizens eat timber, iron, copper and oil from the warehouse; a fed, powered city grows, builds workshops (faster production for you) and earns [b]science[/b].\n\nScience unlocks tiers: [b]Frontier[/b] (start), [b]Industrial[/b] at 150, [b]Electric[/b] at 450. Buttons marked T2 or T3 unlock with them. If the city is attacked, civil defense posts and militia fight back and the panel calls for help."
+HELP_TRADE_TITLE,Trade
+HELP_TRADE_BODY,"In the city panel, pick a faction, choose what you give and what you get, and propose. Each faction has its own prices; the panel shows both, the fair price, and a verdict judged at your prices (good, fair or bad). A deal is bad when it leaves you with under 10 of something.\n\nAccepted goods travel by caravan, which can be raided. Trade agreements repeat a deal; an embargo stops trade with a faction. Factions also send you offers you can accept or refuse."
+HELP_COMBAT_TITLE,Combat and defense
+HELP_COMBAT_BODY,"Build a vehicle factory for tanks and other ground units, and turrets near what you need to hold. Right-click an enemy to attack it, right-click your own hauler to escort it.\n\nAI factions raid supply lines and far extractors first. Keep a few units near long routes and your far extractors; auto-expanding constructors also prefer deposits your armed units guard."
+HELP_AIRCRAFT_TITLE,Aircraft and airports
+HELP_AIRCRAFT_BODY,"Helicopters and gunships fly freely. Fixed-wing drones have limited airtime: they must land at an [b]airport[/b] to refuel, circle when idle, and crash when they run dry. Drones can only be built once you have an airport. A unit's tooltip shows its airtime."

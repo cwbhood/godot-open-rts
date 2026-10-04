@@ -14,6 +14,7 @@ const DiplomacyHud = preload("res://source/match/hud/DiplomacyHud.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const ReplayRecorder = preload("res://source/match/ReplayRecorder.gd")
 const SandboxPanel = preload("res://source/match/hud/SandboxPanel.gd")
+const Guide = preload("res://source/match/hud/Guide.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
@@ -75,6 +76,8 @@ func _ready():
 		sandbox_panel.name = "SandboxPanel"
 		sandbox_panel.position = Vector2(8, 48)
 		$HUD.add_child(sandbox_panel)
+	if $HUD.get_node_or_null("Guide") == null:
+		$HUD.add_child(Guide.new())  # tutorial, hints, auto-expand overview and manual
 	if get_node_or_null("Market") == null:
 		var market = Market.new()
 		market.name = "Market"

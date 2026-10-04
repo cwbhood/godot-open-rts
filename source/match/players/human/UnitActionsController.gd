@@ -174,7 +174,9 @@ func _on_unit_targeted(unit):
 
 
 func _on_unit_spawned(unit):
-	_try_ordering_selected_workers_to_construct_structure(unit)
+	if unit.get_meta("placed_by_hand", false):
+		# sites laid out by auto-expanding constructors must not pull the selected ones away
+		_try_ordering_selected_workers_to_construct_structure(unit)
 
 
 func _on_navigate_unit_to_rally_point(unit, rally_point):

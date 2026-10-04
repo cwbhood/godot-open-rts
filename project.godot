@@ -214,7 +214,7 @@ rotate_map_counterclockwise={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://assets/translations/match.en.translation", "res://assets/translations/match.pl.translation", "res://assets/translations/main_menu.en.translation", "res://assets/translations/main_menu.pl.translation")
+locale/translations=PackedStringArray("res://assets/translations/match.en.translation", "res://assets/translations/match.pl.translation", "res://assets/translations/main_menu.en.translation", "res://assets/translations/main_menu.pl.translation", "res://assets/translations/guide.en.translation")
 
 [layer_names]
 

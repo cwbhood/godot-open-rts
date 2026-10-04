@@ -18,7 +18,7 @@ func _ready():
 	margin.add_child(row)
 	for resource in Constants.Match.Resources.ALL:
 		var item = HBoxContainer.new()
-		item.tooltip_text = tr(resource.to_upper())
+		item.tooltip_text = _resource_tooltip(resource)
 		item.add_theme_constant_override("separation", 6)
 		var swatch = ColorRect.new()
 		swatch.custom_minimum_size = Vector2(14, 14)
@@ -68,3 +68,13 @@ func _refresh_power():
 	_power_label.modulate = (
 		Color.ORANGE_RED if grid.total_demand_mw > grid.total_supply_mw + 0.01 else Color.WHITE
 	)
+
+
+static func _resource_tooltip(resource):
+	"""what the commodity is, where it comes from and what it is for (guide.csv)"""
+	var name = TranslationServer.translate(resource.to_upper())
+	var key = "{0}_TOOLTIP".format([resource.to_upper()])
+	var details = TranslationServer.translate(key)
+	if details == key:
+		details = TranslationServer.translate("RESOURCE_TOOLTIP_GENERIC")
+	return "{0}\n{1}".format([name, details])
