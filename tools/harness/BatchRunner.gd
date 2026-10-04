@@ -186,7 +186,7 @@ func _row(entry):
 		"key": entry["key"],
 		"map": scenario.get("map", ""),
 		"players": ", ".join(scenario.get("players", []).map(ScenarioRunner.player_label)),
-		"seed": scenario.get("seed", 1),
+		"seed": int(scenario.get("seed", 1)),
 		"verdict": report.get("verdict", "crash"),
 		"checks_ok": checks.filter(func(check): return check["ok"]).size(),
 		"checks": checks.size(),
@@ -195,11 +195,16 @@ func _row(entry):
 		"game_min": snapped(float(metrics.get("game_s", 0)) / 60.0, 0.1),
 		"frame_ms_p95": metrics.get("frame_ms_p95", null),
 		"process_ms_p95": metrics.get("process_ms_p95", null),
-		"script_errors": metrics.get("script_errors", null),
-		"units_end": final_players.map(func(player): return player["units"] + player["structures"]),
+		"script_errors": _int_or_null(metrics.get("script_errors", null)),
+		"units_end":
+		final_players.map(func(player): return int(player["units"] + player["structures"])),
 		"problem": report.get("problem", ""),
 		"report": entry["dir"].path_join("report.md"),
 	}
+
+
+static func _int_or_null(value):
+	return int(value) if value != null else null
 
 
 func _write_tables():

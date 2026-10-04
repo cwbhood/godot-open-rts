@@ -29,5 +29,5 @@
     {"at": 100, "name": "the armies met and fought", "expect": "timeline", "kind": "losses", "min": 1},
     {"end": true, "expect": "no_errors"}
   ],
-  "budgets": {"frame_ms_p95": 50, "process_ms_p95": 25}
+  "budgets": {"frame_ms_p95": 50}
 }

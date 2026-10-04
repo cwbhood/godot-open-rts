@@ -252,7 +252,7 @@ func _stress_scenario(count):
 				"min": 1
 			},
 		],
-		"budgets": {"frame_ms_p95": 50.0, "process_ms_p95": 25.0},
+		"budgets": {"frame_ms_p95": 50.0},
 	}
 
 

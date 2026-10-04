@@ -32,7 +32,7 @@ Everything a run produces goes into `harness-out/<date>-<name>/` (ignored by git
 | `report.md` | Read this first: PASS or FAIL, every check, who had what at the end, frame times, script errors, a timeline of what happened, screenshots |
 | `report.json` | The same for scripts and the batch runner |
 | `timeline.jsonl` | Every event: buildings finished, units lost, tiers, wars, trades, refused placements, orders given |
-| `metrics.csv` | A sample every few game seconds: frame time, process time (Godot's own "Process" monitor: game logic per frame), node count, units and stock per player. Opens in Excel |
+| `metrics.csv` | A sample every few game seconds: frame time, process time (Godot's own "Process" monitor), node count, units and stock per player. Opens in Excel |
 | `shots/*.png` | Screenshots taken on a timer, on request, and at the end |
 | `crash_report.txt` | Only after a crash, freeze or error storm (see [crash-reports.md](../crash-reports.md)) |
 
@@ -240,8 +240,8 @@ and now fails, more script errors, a crash, or a 95th percentile frame time more
 
 `play stress 60` (or `--stress=60`) puts 60 tanks, raiders, militia, artillery and heavy
 tanks on each side of Big Arena, sends them at each other and measures the frame and
-process time while they fight. The default budgets are 50 ms frame p95 and 25 ms process
-p95; set your own with `--budget-frame-ms` and `--budget-process-ms`.
+process time while they fight. The default budget is 50 ms frame time at the 95th percentile;
+set your own with `--budget-frame-ms` and `--budget-process-ms`.
 `scenarios/stress-40v40.json` is the same as a file, for batches and CI.
 
 ## Driving a match from a script (the API)

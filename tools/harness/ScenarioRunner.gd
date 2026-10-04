@@ -487,6 +487,13 @@ func _finish():
 	for check in scenario["checks"]:
 		if check.get("end", false):
 			_record(check)
+		elif check.get("always", false):
+			_record(check, true)  # a last look; a check that held throughout reports ok
+			var label = check.get("name", _describe(check))
+			if not label in _failed_always:
+				_results.append(
+					{"name": label, "ok": true, "detail": "held all match", "t": api.elapsed_s}
+				)
 	for metric in scenario["budgets"]:
 		var check = {"expect": "metric", "metric": metric, "max": scenario["budgets"][metric]}
 		check["name"] = "budget %s <= %s" % [metric, scenario["budgets"][metric]]
