@@ -31,9 +31,10 @@ func setup(player):
 	_player = player
 	MatchSignals.unit_spawned.connect(_on_unit_spawned)
 	var timer = Timer.new()
-	timer.timeout.connect(_tick.bind(RETARGET_INTERVAL_S))
+	var interval = _ai.think_interval(RETARGET_INTERVAL_S)
+	timer.timeout.connect(_tick.bind(interval))
 	add_child(timer)
-	timer.start(RETARGET_INTERVAL_S)
+	timer.start(interval)
 
 
 func provision(resources, _metadata):
@@ -52,6 +53,7 @@ func _tick(delta):
 	_since_last_raid_s += delta
 	if (
 		_since_last_raid_s >= _ai.raid_interval_s
+		and _ai.may_launch_attacks()
 		and _forming.size() + _pending_requests < _ai.raid_party_size
 		and _factory() != null
 	):

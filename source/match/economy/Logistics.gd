@@ -30,6 +30,7 @@ var road_levels = {}  # extractor -> index into Constants.Match.Roads.LEVELS
 var _road_visuals = {}  # extractor -> MeshInstance3D
 
 var _site_loaders = {}
+var _gather_carry = {}  # commodity -> fraction left over by the player's gather rate
 var _fuel_accumulated = 0.0  # site -> number of haulers on their way to load materials for it
 
 @onready var _player = get_parent()
@@ -92,6 +93,7 @@ func is_in_yard(position):
 
 func deliver(goods):
 	"""goods arriving at a depot"""
+	goods = _apply_gather_rate(goods)
 	for resource in goods:
 		Utils.Dict.add_amount(delivered_total, resource, goods[resource])
 	var remainder = goods
@@ -99,6 +101,18 @@ func deliver(goods):
 		remainder = _player.city.receive_delivery(goods)
 	_player.add_resources(remainder)
 	MatchSignals.goods_delivered.emit(_player, goods)
+
+
+func _apply_gather_rate(goods):
+	"""AI difficulty: an easier AI keeps less of what it hauls, a cheating one more"""
+	if is_equal_approx(_player.gather_rate, 1.0):
+		return goods
+	var scaled = {}
+	for resource in goods:
+		var amount = goods[resource] * _player.gather_rate + _gather_carry.get(resource, 0.0)
+		scaled[resource] = int(floor(amount))
+		_gather_carry[resource] = amount - scaled[resource]
+	return scaled
 
 
 func assign_job(hauler):

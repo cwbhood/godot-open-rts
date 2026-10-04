@@ -4,10 +4,12 @@ const MatchSettings = preload("res://source/data-model/MatchSettings.gd")
 const PlayerSettings = preload("res://source/data-model/PlayerSettings.gd")
 const LoadingScene = preload("res://source/main-menu/Loading.tscn")
 const GameData = preload("res://source/data-model/GameData.gd")
+const PlayerSlotOptions = preload("res://source/main-menu/PlayerSlotOptions.gd")
 
 var _map_paths = []
 var _ai_personalities = []  # option index - SIMPLE_CLAIRVOYANT_AI -> personality id
 var _sandbox_check_box = null
+var _slot_options = PlayerSlotOptions.new()  # colour and AI difficulty per slot
 
 @onready var _start_button = find_child("StartButton")
 @onready var _map_list = find_child("MapList")
@@ -19,6 +21,7 @@ func _ready():
 	_on_map_list_item_selected(0)
 	_setup_ai_personalities()
 	_setup_sandbox_check_box()
+	_setup_slot_options()
 	var option_nodes = find_child("GridContainer").find_children("OptionButton*")
 	for option_node_id in range(option_nodes.size()):
 		option_nodes[option_node_id].item_selected.connect(_on_player_selected.bind(option_node_id))
@@ -41,6 +44,16 @@ func _setup_ai_personalities():
 				option_node.item_count - 1, tr(personality.get("description", ""))
 			)
 		option_node.selected = min(selected, option_node.item_count - 1)
+
+
+func _setup_slot_options():
+	_slot_options.setup(find_child("GridContainer"))
+	# room for the two extra columns next to each player slot
+	var panel = find_child("PanelContainer")
+	panel.offset_left = -560.0
+	panel.offset_right = 560.0
+	find_child("VBoxContainer2").size_flags_stretch_ratio = 1.4
+	panel.get_node("MarginContainer/VBoxContainer").custom_minimum_size.x = 1080
 
 
 func _setup_sandbox_check_box():
@@ -80,7 +93,8 @@ func _create_match_settings():
 					player_settings.ai_personality = _ai_personalities[personality_index]
 				player_controller = Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI
 			player_settings.controller = player_controller
-			player_settings.color = Constants.Player.COLORS[option_node_id]
+			player_settings.color = _slot_options.color_of(option_node_id)
+			player_settings.ai_difficulty = _slot_options.difficulty_of(option_node_id)
 			player_settings.spawn_index_offset = spawn_index_offset
 			match_settings.players.append(player_settings)
 			spawn_index_offset = 0
@@ -124,6 +138,7 @@ func _align_player_controls_visibility_to_map(map):
 	for node_id in range(option_nodes.size()):
 		option_nodes[node_id].visible = node_id < map["players"]
 		label_nodes[node_id].visible = node_id < map["players"]
+	_slot_options.refresh()
 	_refresh_start_button()
 
 
@@ -146,6 +161,7 @@ func _on_player_selected(selected_option_id, selected_player_id):
 				and option_nodes[option_node_id].selected == Constants.PlayerType.HUMAN
 			):
 				option_nodes[option_node_id].selected = (Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI)
+	_slot_options.refresh()
 	_refresh_start_button()
 
 

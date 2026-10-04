@@ -173,6 +173,28 @@ static func ai_personalities():
 	return get_data()["ai_personalities"]
 
 
+static func ai_difficulties():
+	"""difficulty levels from data/difficulties/, easiest first"""
+	return get_data()["ai_difficulties"]
+
+
+static func ai_difficulty(id):
+	for difficulty in ai_difficulties():
+		if difficulty["id"] == id:
+			return difficulty
+	return null
+
+
+static func player_colors():
+	"""the colours players can pick in the Play menu: [{id, name, color: Color}]"""
+	return get_data()["player_colors"].map(
+		func(entry):
+			var converted = entry.duplicate()
+			converted["color"] = Color(entry["color"])
+			return converted
+	)
+
+
 static func _convert(field, value):
 	match field:
 		"color", "icon_tint":
@@ -207,6 +229,8 @@ static func _load_all():
 		"units": _load_dir(BASE_DATA_DIR + "/units"),
 		"maps": _load_dir(BASE_DATA_DIR + "/maps"),
 		"ai_personalities": _load_dir(BASE_DATA_DIR + "/ai"),
+		"ai_difficulties": _load_dir(BASE_DATA_DIR + "/difficulties"),
+		"player_colors": _load_list_file(BASE_DATA_DIR + "/player_colors.json", "player_colors"),
 		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
 	}
 	for mod_dir in _find_mod_data_dirs():
@@ -217,12 +241,17 @@ static func _load_all():
 		_merge(data["units"], _load_dir(mod_dir + "/units"))
 		_merge(data["maps"], _load_dir(mod_dir + "/maps"))
 		_merge(data["ai_personalities"], _load_dir(mod_dir + "/ai"))
+		_merge(data["ai_difficulties"], _load_dir(mod_dir + "/difficulties"))
+		_merge(
+			data["player_colors"], _load_list_file(mod_dir + "/player_colors.json", "player_colors")
+		)
 		var mod_roads = _load_list_file(mod_dir + "/roads.json", "roads")
 		if not mod_roads.is_empty():
 			data["roads"] = mod_roads
 	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
+	data["ai_difficulties"].sort_custom(func(a, b): return a.get("order", 0) < b.get("order", 0))
 	return data
 
 
