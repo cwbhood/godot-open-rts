@@ -1,0 +1,21 @@
+{
+  "_how_to_edit": "Change the text below, then run: python3 tools/site/build.py site. Photo: replace site/assets/img/creator.webp, creator-sm.webp and creator.jpg (square, 640x640).",
+  "name": "Destin Jones",
+  "role": "Creator of Ironbound",
+  "headline": "Builds in the open, with AI on the team",
+  "photo_alt": "Portrait of Destin Jones, creator of Ironbound",
+  "bio": [
+    "I'm Destin Jones, the creator of Ironbound. I love open source, and I'm always looking for new ways technology can help people get more done. Ironbound is where those two meet: a full real-time strategy game, built in public, that doubles as a working test of a faster way to make software.",
+    "I build by vibe coding. I set the direction, make the calls on design and feel, and work with Claude, an AI model made by Anthropic, as my building partner. Claude writes and tests code, scripts the 3D models and sounds, and plays matches to find bugs, while I decide what the game should be and what ships.",
+    "The results are all public. Ironbound went from a fork of Open RTS to a game with a self-building city, supply lines, trade, diplomacy, weather, unit voices and a scripted test harness in its first two days, across more than 25 pull requests anyone can read on GitHub."
+  ],
+  "principles": [
+    ["Open by default", "Code, art scripts, tests and design notes live in the repository. Anyone can read how a feature was built and why."],
+    ["AI as a teammate", "Claude does the heavy lifting on code and content. A person sets the goals, reviews the work and owns the decisions."],
+    ["Small, testable steps", "Every change lands as its own pull request, and matches are played by scripts to prove a change works before it ships."],
+    ["Capture the method", "The tools that made the game ship with it, so the next project starts faster than this one did."]
+  ],
+  "links": [
+    ["GitHub", "https://github.com/cwbhood"]
+  ]
+}

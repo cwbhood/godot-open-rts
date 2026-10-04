@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Changelog | Ironbound</title>
+<meta name="description" content="Every change to Ironbound, newest first, from the first fork of Open RTS to the current test build.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://cwbhood.github.io/godot-open-rts/changelog.html">
+<meta name="author" content="Destin Jones">
+<meta name="theme-color" content="#14110d">
+<meta property="og:site_name" content="Ironbound">
+<meta property="og:title" content="Changelog | Ironbound">
+<meta property="og:description" content="Every change to Ironbound, newest first, from the first fork of Open RTS to the current test build.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cwbhood.github.io/godot-open-rts/changelog.html">
+<meta property="og:image" content="https://cwbhood.github.io/godot-open-rts/assets/img/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Ironbound title over tanks and helicopters fighting beside an oasis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Changelog | Ironbound">
+<meta name="twitter:description" content="Every change to Ironbound, newest first, from the first fork of Open RTS to the current test build.">
+<meta name="twitter:image" content="https://cwbhood.github.io/godot-open-rts/assets/img/share.jpg">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="preload" href="assets/fonts/big-shoulders-stencil-display-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Ironbound","item":"https://cwbhood.github.io/godot-open-rts/"},{"@type":"ListItem","position":2,"name":"Changelog","item":"https://cwbhood.github.io/godot-open-rts/changelog.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="var(--accent)" d="M7 2h18l5 5v18l-5 5H7l-5-5V7z"/><path fill="var(--accent-ink)" d="M12 8h8v3h-2v10h2v3h-8v-3h2V11h-2z"/><g fill="var(--accent-ink)"><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="24.5" cy="7.5" r="1.4"/><circle cx="7.5" cy="24.5" r="1.4"/><circle cx="24.5" cy="24.5" r="1.4"/></g></svg>Ironbound</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="play.html">How to play</a></li>
+<li><a href="factions.html">Factions</a></li>
+<li><a href="changelog.html" aria-current="page">Changelog</a></li>
+<li><a href="roadmap.html">Roadmap</a></li>
+<li><a href="open-source.html">Open source</a></li>
+<li><a href="support.html">Crash reports</a></li>
+<li><a href="community.html">Community</a></li>
+<li><a href="about.html">About</a></li>
+<li><a class="nav-cta" href="download.html">Download</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<div class="ribbon"><p>Early development. The game is playable and changing every day; expect rough edges.</p></div>
+<main id="main">
+
+<div class="wrap page-head">
+  <p class="eyebrow">What changed</p>
+  <h1>Changelog</h1>
+  <p>Newest first. Releases will get version numbers once the first public build is out; until then changes are grouped by when they reached the test build. The full history is on <a href="https://github.com/cwbhood/godot-open-rts/commits">GitHub</a>.</p>
+</div>
+<section aria-label="Changes"><div class="wrap"><ol class="timeline"><li><h2>Unreleased</h2><span class="mono">Test builds, 4 October 2026</span><ul><li>Units steer around each other instead of getting stuck in crowds</li><li>New unit models made in Blender, with a New / Classic switch in Options</li><li>Play harness: one tool to play and test matches from scripts</li><li>Match rules in the Play menu: Raw or Guided</li><li>Delivery rework: a job board for trucks, storage yards, track-laying trains, recycling surplus trucks</li><li>Water, amphibious units and the Twin Isles island map</li><li>Unit orders: line drag, patrol, fight, guard, stances and Shift queue</li><li>AI armies hold defence zones instead of bunching up at home</li><li>Starter city build-up animation with cranes and workers</li><li>Start zone picker before each match, fairer maps, two large maps</li><li>A voice for every unit type, machine sounds for drones and buildings</li><li>Pick your colour and each AI&#x27;s difficulty</li><li>Unit cap, city size caps per tier, and a match clock with a score</li><li>Opt-in helper AI that runs the economy and never attacks</li><li>Crash and freeze reports, sent only if you choose</li><li>Fixed: mid-match freeze on crowded maps, frame rate collapse in long matches, iron mines that could not be placed, rain lag</li><li>Visible weapon fire: muzzle flashes, tracers, impacts and rocket trails; war sounds</li><li>Constructor auto-expand, site status labels, tutorial and the F1 manual</li><li>Diplomacy: war, non-aggression pacts and alliances</li><li>Airports for drones, auto-picked extractors, trade advice</li><li>Every unit and building remodelled; team colours fixed</li></ul></li><li><h2>Ironbound begins</h2><span class="mono">3 October 2026</span><ul><li>Desert world: maps, weather, clouds, map editor and soundscape</li><li>Economy: supply lines, power grid, an automatic city and moddable JSON data</li><li>Milestone 1: a self-building city, trade with a rival, heavy tank tech</li><li>Forked from Open RTS by Lampe Games and moved to Godot 4.7</li></ul></li><li><h2>Open RTS 0.9.0</h2><span class="mono">Lampe Games, the base project</span><ul><li>Custom maps, two new maps and a match setup page</li><li>Loading page translations</li></ul></li><li><h2>Open RTS 0.8.0 to 0.8.1</h2><span class="mono">Lampe Games</span><ul><li>Main menu, match loading page, tooltips and FPS monitor</li><li>Isometric camera, fog of war, terrain and air navigation, units and structures, minimap, human and AI players</li></ul></li></ol></div></section>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="stack">
+      <a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="var(--accent)" d="M7 2h18l5 5v18l-5 5H7l-5-5V7z"/><path fill="var(--accent-ink)" d="M12 8h8v3h-2v10h2v3h-8v-3h2V11h-2z"/><g fill="var(--accent-ink)"><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="24.5" cy="7.5" r="1.4"/><circle cx="7.5" cy="24.5" r="1.4"/><circle cx="24.5" cy="24.5" r="1.4"/></g></svg>Ironbound</a>
+      <p>A free, open source real-time strategy game made with Godot. Created by <a href="about.html">Destin Jones</a>. MIT licensed. No accounts, no ads, no cookies and no tracking on this site.</p>
+    </div>
+    <div>
+      <h2>Play</h2>
+      <ul>
+        <li><a href="download.html">Download</a></li>
+        <li><a href="play.html">How to play</a></li>
+        <li><a href="factions.html">Factions</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Project</h2>
+      <ul>
+        <li><a href="changelog.html">Changelog</a></li>
+        <li><a href="roadmap.html">Roadmap</a></li>
+        <li><a href="open-source.html">Licence, credits and mods</a></li>
+        <li><a href="support.html">Crash reports</a></li>
+        <li><a href="about.html">About the creator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Elsewhere</h2>
+      <ul>
+        <li><a href="https://github.com/cwbhood/godot-open-rts">Source code on GitHub</a></li>
+        <li><a href="https://github.com/cwbhood/godot-open-rts/issues">Report a bug</a></li>
+        <li><a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> (the base)</li>
+        <li><a href="https://godotengine.org">Godot Engine</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

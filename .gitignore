@@ -4,3 +4,7 @@ tmp/
 *.translation
 misc/
 build/
+
+# release builds
+dist/
+build_info.json
