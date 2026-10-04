@@ -178,6 +178,11 @@ func _start_from_menu():
 		start.pressed.emit()
 	for _i in range(600):
 		await _frames(1)
+		var picker = get_tree().root.get_node_or_null("StartPicker")
+		if picker != null and not picker.get("_started"):
+			# the start-zone screen: take the slot's own zone, as the countdown would
+			await _frames(5)
+			picker.start_match()
 		for child in get_tree().root.get_children():
 			if child.name == "Match" or child.get_script() == load("res://source/match/Match.gd"):
 				_match = child

@@ -10,6 +10,7 @@ extends SceneTree
 var GameData = null  # loaded once autoloads exist, unit scripts depend on them
 var Unit = null
 var Structure = null
+var FairStart = null
 
 const UNIT_FIELDS = ["id", "category", "name", "cost"]
 const KNOWN_UNIT_FIELDS = [
@@ -67,6 +68,7 @@ func _run():
 	GameData = load("res://source/data-model/GameData.gd")
 	Unit = load("res://source/match/units/Unit.gd")
 	Structure = load("res://source/match/units/Structure.gd")
+	FairStart = load("res://source/match/maps/FairStart.gd")
 	var data = GameData.reload()
 	var resources = GameData.resource_ids()
 	_check_resources(data["resources"])
@@ -250,6 +252,9 @@ func _check_maps(entries):
 		)
 		if deposits.is_empty():
 			_warn(where, "map has no resource deposits")
+		var kind_agnostic = entry.get("generator", {}).get("resource_layout") == "asymmetric"
+		for problem in FairStart.problems(map, kind_agnostic):
+			_error(where, "unfair start: " + problem)
 		map.free()
 
 

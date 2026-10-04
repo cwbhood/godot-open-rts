@@ -117,6 +117,42 @@ working that route drive `speed_multiplier` times faster.
 The scene must have a `SpawnPoints` node with at least `players` markers and resource
 deposits placed as instances of the `deposit_scene` of each commodity.
 
+Each spawn point is the center of a **start zone**. Before the match the player sees the
+whole map and clicks inside a zone to place their starter city; AIs take the remaining
+zones in secret. Optional fields:
+
+```json
+{
+  "start_zone_radius": 7,      // metres around a spawn point the city may be placed in
+  "start_pick_seconds": 30     // countdown on the start screen
+}
+```
+
+Generated desert maps (scenes using `DesertMapGenerator.gd`) take their layout from a
+`"generator"` block, or from an explicit `"layout"` written by the map editor. Generator
+settings for balanced maps:
+
+```json
+"generator": {
+  "seed": 11,
+  "symmetry": "rotational",        // "rotational" (4 zones, square maps) or "point" (2 zones)
+  "spawn_inset": 0.11,             // zones sit this far in from the corners (fraction of size)
+  "center_lake": true,
+  "home_deposits": ["timber", "iron", "oil"],     // next to every zone
+  "contested_deposits": ["copper", "iron", "oil"], // anywhere in the open
+  "contested_richness": 1.5,
+  "middle_deposits": ["oil", "iron", "copper"],   // near the center, the richest
+  "middle_richness": 3.0,
+  "middle_reach": 0.35             // how far from the center, as a fraction of half the size
+}
+```
+
+Everything is planned around zone 1 and copied to the other zones, so every zone gets the
+same deposits at the same distances. The validator fails a map whose zones differ by more
+than 2 m (or 5 %) in distance to any commodity, or by more than 10 % in the amount within
+30 m and 60 m. `godot --headless --path . -s res://tools/check_fair_starts.gd` prints the
+numbers per zone.
+
 ## ai/*.json
 
 ```json
