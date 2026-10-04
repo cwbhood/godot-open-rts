@@ -191,6 +191,8 @@ func _create_players_from_settings():
 		player.color = player_settings.color
 		if "personality_id" in player and player_settings.get("ai_personality") != null:
 			player.personality_id = player_settings.ai_personality
+		if "difficulty_id" in player and player_settings.get("ai_difficulty") != null:
+			player.difficulty_id = player_settings.ai_difficulty
 		if player_settings.spawn_index_offset > 0:
 			for _i in range(player_settings.spawn_index_offset):
 				_players.add_child(Node.new())

@@ -1,0 +1,21 @@
+{
+  "id": "brutal",
+  "name": "DIFFICULTY_BRUTAL",
+  "description": "DIFFICULTY_BRUTAL_DESCRIPTION",
+  "order": 4,
+  "cheats": true,
+  "gather_rate": 1.2,
+  "production_speed": 1.15,
+  "think_interval_multiplier": 0.5,
+  "reaction_delay_s": 0.25,
+  "economy_scale": 1.5,
+  "defense_scale": 2.0,
+  "army_size_scale": 1.5,
+  "max_attack_groups": 0,
+  "first_attack_after_s": 0,
+  "raid_interval_scale": 0.7,
+  "scouting": true,
+  "tech_upgrades": true,
+  "retreat_below_hp": 0.35,
+  "focus_fire": true
+}

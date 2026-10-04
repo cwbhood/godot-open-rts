@@ -32,6 +32,29 @@ const KNOWN_AI_FIELDS = [
 	"attacks_neutrals"
 ]
 
+# field -> [min, max] for numbers, or "bool"
+const DIFFICULTY_FIELDS = {
+	"order": [0, 100],
+	"cheats": "bool",
+	"gather_rate": [0.1, 3.0],
+	"production_speed": [0.1, 3.0],
+	"think_interval_multiplier": [0.1, 10.0],
+	"reaction_delay_s": [0.0, 60.0],
+	"economy_scale": [0.1, 4.0],
+	"defense_scale": [0.0, 4.0],
+	"army_size_scale": [0.1, 4.0],
+	"max_attack_groups": [0, 20],
+	"first_attack_after_s": [0, 7200],
+	"raid_interval_scale": [0.0, 10.0],
+	"scouting": "bool",
+	"tech_upgrades": "bool",
+	"retreat_below_hp": [0.0, 0.9],
+	"focus_fire": "bool",
+}
+# bonuses that only a difficulty marked "cheats": true may give
+const CHEAT_FIELDS = ["gather_rate", "production_speed"]
+const MIN_PLAYER_COLOR_DISTANCE = 0.12  # in RGB, so two players never look alike
+
 var _errors = 0
 var _warnings = 0
 
@@ -51,11 +74,17 @@ func _run():
 	_check_units(data["units"], resources, data["tiers"].size())
 	_check_maps(data["maps"])
 	_check_ai(data["ai_personalities"], resources)
+	_check_difficulties(data["ai_difficulties"])
+	_check_player_colors(data["player_colors"], data["maps"])
 	_check_roads(data["roads"], resources, data["tiers"].size())
 	print(
-		"validate_data: {0} units, {1} commodities, {2} maps, {3} AI personalities".format(
+		(
+			"validate_data: {0} units, {1} commodities, {2} maps, {3} AI personalities, "
+			+ "{4} difficulties, {5} player colours"
+		).format(
 			[data["units"].size(), resources.size(), data["maps"].size(),
-			data["ai_personalities"].size()]
+			data["ai_personalities"].size(), data["ai_difficulties"].size(),
+			data["player_colors"].size()]
 		)
 	)
 	print("validate_data: {0} error(s), {1} warning(s)".format([_errors, _warnings]))
@@ -234,6 +263,78 @@ func _check_ai(entries, resources):
 			if not kind in resources:
 				_error(where, "extractor_targets names unknown commodity '{0}'".format([kind]))
 		_check_translation(where, entry.get("name"))
+
+
+func _check_difficulties(entries):
+	if not entries.any(func(entry): return entry.get("id") == "normal"):
+		_error("difficulties/", "there must be a 'normal' difficulty, it is the default")
+	var orders = {}
+	for entry in entries:
+		var where = "difficulties/{0}.json".format([entry.get("id", "?")])
+		for field in entry:
+			if not field in DIFFICULTY_FIELDS and not field in ["id", "name", "description"]:
+				_warn(where, "unknown field '{0}' is ignored".format([field]))
+		for field in DIFFICULTY_FIELDS:
+			if not field in entry:
+				continue
+			var value = entry[field]
+			var rule = DIFFICULTY_FIELDS[field]
+			if rule is String:
+				if not value is bool:
+					_error(where, "'{0}' must be true or false".format([field]))
+			elif not (value is float or value is int):
+				_error(where, "'{0}' must be a number".format([field]))
+			elif value < rule[0] or value > rule[1]:
+				_error(where, "'{0}' must be between {1} and {2}".format([field, rule[0], rule[1]]))
+		if not entry.get("cheats", false):
+			for field in CHEAT_FIELDS:
+				var value = entry.get(field, 1.0)
+				if (value is float or value is int) and value > 1.0:
+					_error(
+						where,
+						"'{0}' above 1 is a cheat: set \"cheats\": true or lower it".format([field])
+					)
+		var order = entry.get("order", 0)
+		if order in orders:
+			_warn(where, "same 'order' as {0}, the menu order is undefined".format([orders[order]]))
+		orders[order] = entry.get("id")
+		_check_translation(where, entry.get("name"))
+		_check_translation(where, entry.get("description"))
+
+
+func _check_player_colors(entries, maps):
+	var where = "player_colors.json"
+	var most_players = 0
+	for a_map in maps:
+		most_players = max(most_players, int(a_map.get("players", 0)))
+	if entries.size() < most_players:
+		_error(
+			where,
+			"{0} colours for maps with up to {1} players".format([entries.size(), most_players])
+		)
+	var colors = []
+	for entry in entries:
+		var text = entry.get("color", "")
+		if not text is String or not Color.html_is_valid(text):
+			_error(where, "'{0}' has no valid \"color\" (like \"#66b1ff\")".format([entry.get("id")]))
+			colors.append(null)
+			continue
+		colors.append(Color(text))
+		_check_translation(where, entry.get("name"))
+	for i in range(colors.size()):
+		for j in range(i + 1, colors.size()):
+			if colors[i] == null or colors[j] == null:
+				continue
+			var distance = Vector3(colors[i].r, colors[i].g, colors[i].b).distance_to(
+				Vector3(colors[j].r, colors[j].g, colors[j].b)
+			)
+			if distance < MIN_PLAYER_COLOR_DISTANCE:
+				_error(
+					where,
+					"'{0}' and '{1}' are too alike to tell players apart".format(
+						[entries[i].get("id"), entries[j].get("id")]
+					)
+				)
 
 
 func _check_roads(entries, resources, tiers_count):

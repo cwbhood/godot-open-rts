@@ -62,7 +62,7 @@ func _setup_refresh_timer():
 	var timer = Timer.new()
 	add_child(timer)
 	timer.timeout.connect(_on_refresh_timer_timeout)
-	timer.start(REFRESH_INTERVAL_S)
+	timer.start(_ai.think_interval(REFRESH_INTERVAL_S))
 
 
 func _attach_current_turrets():
