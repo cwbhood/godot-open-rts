@@ -45,10 +45,9 @@ func _try_navigating_selected_units_towards_position(target_point):
 	)
 	if Input.is_action_pressed("shift_selecting"):
 		# Shift: the move is carried out after the orders the units already have
-		UnitCommands.point_order(
-			terrain_units_to_move + air_units_to_move, target_point, "move", true
-		)
-		return
+		var queued = terrain_units_to_move + air_units_to_move
+		UnitCommands.point_order(queued, target_point, "move", true)
+		return queued  # the units that answer with their voice
 	var new_unit_targets = Utils.Match.Unit.Movement.crowd_moved_to_new_pivot(
 		terrain_units_to_move, target_point
 	)
