@@ -56,7 +56,11 @@ func _unhandled_key_input(event):
 func _process(_delta):
 	var player = _player()
 	for scene_path in _buttons:
-		_buttons[scene_path].disabled = player == null or not player.can_produce(scene_path)
+		var button = _buttons[scene_path]
+		var disabled = player == null or not player.can_produce(scene_path)
+		if button.disabled != disabled:
+			button.disabled = disabled
+			button.modulate = Color(1, 1, 1, 0.45) if disabled else Color.WHITE
 
 
 func _player():

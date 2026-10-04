@@ -302,3 +302,4 @@ REPLAYS_EMPTY_TITLE,No replays yet,Brak powtórek
 REPLAYS_PICK_TITLE,Pick a replay,Wybierz powtórkę
 REPLAYS_PICK,"Choose a match on the left to watch it again as a map: units, supply runs, raids and each faction's economy.","Wybierz mecz po lewej, aby obejrzeć go ponownie na mapie: jednostki, dostawy, napady i gospodarkę każdej frakcji."
 REPLAYS_NONE_BODY,"Every match you play is recorded. Finish or leave a match and it shows up here, ready to watch again.","Każdy rozegrany mecz jest nagrywany. Zakończ lub opuść mecz, a pojawi się tutaj, gotowy do ponownego obejrzenia."
+QUEUE_CANCEL_TOOLTIP,Click to cancel: the cost comes back,"Kliknij, aby anulować: koszt wraca"

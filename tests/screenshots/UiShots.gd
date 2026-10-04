@@ -85,7 +85,9 @@ func _hud():
 	if not cc.is_empty():
 		MatchSignals.deselect_all_units.emit()
 		cc[0].find_child("Selection").select()
-		await _frames(20)
+		for _i in range(2):
+			cc[0].production_queue.produce(load("res://source/match/units/Worker.tscn"))
+		await _frames(40)
 		await _shot("hud-command-center-selected")
 	MatchSignals.deselect_all_units.emit()
 	var hud = match_node.get_node("HUD")
