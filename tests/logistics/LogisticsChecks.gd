@@ -184,10 +184,6 @@ func _check_train():
 	Engine.time_scale = 3.0
 	var laying = await _wait_for(func(): return _logistics.rails.get_length_m() > 3.0, 2000)
 	_expect(laying, "the train lays track as it goes ({0} m)".format([snapped(_logistics.rails.get_length_m(), 0.1)]))
-	_expect(
-		Utils.Dict.sum(_logistics.rails.track_spent_total) > spent_before,
-		"track is paid for: " + str(_logistics.rails.track_spent_total)
-	)
 	Engine.time_scale = 1.0
 	camera_on(train.global_position, 14.0)
 	await _shot("4-train-laying-track")
@@ -202,6 +198,11 @@ func _check_train():
 		9000
 	)
 	_expect(back, "and delivers at the depot ({0})".format([train.get_status_text()]))
+	# track is paid in whole goods, so a few metres can still be owed as a fraction
+	_expect(
+		Utils.Dict.sum(_logistics.rails.track_spent_total) > spent_before,
+		"track is paid for: " + str(_logistics.rails.track_spent_total)
+	)
 	var running_fast = await _wait_for(func(): return train.status_key == "TRAIN_STATUS_RUNNING", 3000)
 	_expect(running_fast, "on the built track it runs at full speed")
 	_expect(storage in _logistics._sources_served_by_trains(), "trucks leave the train's stop alone")
