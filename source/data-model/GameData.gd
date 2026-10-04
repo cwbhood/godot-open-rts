@@ -103,6 +103,10 @@ static func roads():
 	return get_data()["roads"]
 
 
+static func movement():
+	return get_data()["movement"]
+
+
 static func is_generated_scene(scene_path):
 	return scene_path.begins_with(GENERATED_SCENES_ROOT)
 
@@ -208,6 +212,7 @@ static func _load_all():
 		"maps": _load_dir(BASE_DATA_DIR + "/maps"),
 		"ai_personalities": _load_dir(BASE_DATA_DIR + "/ai"),
 		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
+		"movement": _load_object_file(BASE_DATA_DIR + "/movement.json", "movement"),
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -220,6 +225,7 @@ static func _load_all():
 		var mod_roads = _load_list_file(mod_dir + "/roads.json", "roads")
 		if not mod_roads.is_empty():
 			data["roads"] = mod_roads
+		data["movement"].merge(_load_object_file(mod_dir + "/movement.json", "movement"), true)
 	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
@@ -290,6 +296,13 @@ static func _load_list_file(path, key):
 	if parsed == null:
 		return []
 	return parsed.get(key, [])
+
+
+static func _load_object_file(path, key):
+	var parsed = _parse_json_file(path)
+	if not parsed is Dictionary:
+		return {}
+	return parsed.get(key, {})
 
 
 static func _load_dir(path):
