@@ -46,3 +46,33 @@ freeze or flood errors 30 s into a match, or 30 s after start outside a match.
 Runs started from the Godot editor skip the freeze check, because a debugger stopped at a
 breakpoint looks the same as a freeze; pass `--hang-watch` to turn it on anyway. Stopping
 the game from the editor isn't reported as a crash.
+
+## Example
+
+A crash forced 15 s into a match by the playthrough bot (log lines trimmed):
+
+````markdown
+### Ironbound crash report
+
+**What happened:** The game crashed: Program crashed with signal 4 (illegal instruction).
+
+- **Game:** Open RTS 0.9.0, commit 61e80e2d5a on claude/project-thread-n848m0, debug build, Godot 4.7.2-stable (official)
+- **Match:** Plain & Simple, players human, AI raider, match time 0:15, weather clear, 30 units
+- **Performance:** 7 fps, frame 166.5 ms, physics 3.0 ms, 2379 nodes, 70 MB RAM, 47 MB VRAM, played 0:16
+- **System:** Linux 24.04, Intel(R) Xeon(R) Processor @ 2.10GHz (4 threads), Mesa llvmpipe (LLVM 20.1.2, 256 bits), driver unknown, gl_compatibility/opengl3, screen (1280, 720)
+
+**Engine backtrace**
+```text
+Program crashed with signal 4 (illegal instruction)
+Engine version: Godot Engine v4.7.2.stable.official (ed1daf0bf001b61586d9930840f2f1394092c079)
+GDScript backtrace (most recent call first):
+  [0] _run_crash_test (res://source/crash/CrashReporter.gd:623)
+  [1] _process (res://source/crash/CrashReporter.gd:200)
+(18 C++ frames without symbols left out)
+
+Log before the crash:
+   at: init_output_device (drivers/alsa/audio_driver_alsa.cpp:97)
+WARNING: All audio drivers failed, falling back to the dummy driver.
+   at: initialize (servers/audio/audio_server.cpp:258)
+...
+````
