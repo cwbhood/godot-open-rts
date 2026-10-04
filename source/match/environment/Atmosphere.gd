@@ -198,6 +198,14 @@ func get_wood_growth_multiplier():
 	return _current.wood_growth
 
 
+func get_rain_intensity():
+	return _current.rain
+
+
+func get_dust_intensity():
+	return _current.dust
+
+
 func get_wind():
 	return Vector2.from_angle(_wind_angle) * _current.wind_speed
 

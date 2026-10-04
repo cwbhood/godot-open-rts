@@ -75,7 +75,8 @@ void fragment()
       max_distance_from_boundary = max(
           max_distance_from_boundary, world_position.z - world_visibility_texture_size_scaled.y);
       float alpha_from_margin =
-          smoothstep(0.0, outer_margin_for_fade_out, max_distance_from_boundary) * outside_map_alpha;
+          smoothstep(0.0, outer_margin_for_fade_out, max_distance_from_boundary) *
+          outside_map_alpha;
       ALPHA = max(ALPHA, alpha_from_margin);
 
       float alpha_from_world_visibility_texture = 0.0;

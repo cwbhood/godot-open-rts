@@ -2,6 +2,8 @@
   "id": "oil_derrick",
   "category": "structure",
   "scene": "res://source/match/units/OilDerrick.tscn",
+  "model": "res://assets/models/ironbound/buildings/oil_derrick.glb",
+  "model_scale": 0.8,
   "blueprint": "res://source/match/units/structure-geometries/OilDerrick.tscn",
   "name": "OIL_DERRICK",
   "description": "OIL_DERRICK_DESCRIPTION",

@@ -2,6 +2,8 @@
   "id": "battle_tank",
   "category": "unit",
   "scene": "res://source/match/units/BattleTank.tscn",
+  "model": "res://assets/models/ironbound/units/tank_heavy.glb",
+  "model_scale": 1.25,
   "name": "BATTLE_TANK",
   "description": "BATTLE_TANK_DESCRIPTION",
   "icon": "res://assets/ui/icons/Tank.png",

@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="Script" path="res://source/match/environment/DepositLook.gd" id="9_look"]
 [ext_resource type="Script" path="res://source/match/units/non-player/ResourceDeposit.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://cgsi062w5fjia" path="res://source/match/units/traits/Highlight.tscn" id="2_highlight"]
 [ext_resource type="PackedScene" uid="uid://3c1h14nqdumt" path="res://source/match/units/traits/Selection.tscn" id="3_selection"]
@@ -99,3 +100,6 @@ path_height_offset = 0.6
 [node name="Targetability" parent="." instance=ExtResource("5_targetability")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 radius = 0.8
+
+[node name="DepositLook" type="Node3D" parent="."]
+script = ExtResource("9_look")

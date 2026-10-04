@@ -2,6 +2,10 @@
 
 A map is a Godot scene plus a small JSON file registering it.
 
+For a desert map, the in-game [map editor](map-editor.md) does all of this for you: paint
+water, trees and rocks, drop deposits and start points, and save. The steps below are for
+hand-made map scenes.
+
 ## 1. Start from an existing map
 
 Duplicate `source/match/maps/PlainAndSimple.tscn` in the Godot editor (or copy the file)

@@ -32,7 +32,8 @@ void fragment()
   vec3 to_sun = -normalize(sun_direction);
   vec3 cloud_point = world + to_sun * max(cloud_height - world.y, 0.0) / max(to_sun.y, 0.1);
   vec2 uv = (cloud_point.xz - offset) / period;
-  float value = texture(cloud_texture, uv).r * 0.82 + texture(cloud_texture, uv * 4.3 + vec2(0.37, 0.11)).r * 0.18;
+  float value = texture(cloud_texture, uv).r * 0.82 +
+      texture(cloud_texture, uv * 4.3 + vec2(0.37, 0.11)).r * 0.18;
   float threshold = 1.0 - coverage;
   float shadow = smoothstep(threshold - softness * 0.5, threshold + softness, value) * opacity;
   ALBEDO = mix(vec3(1.0), shadow_tint, shadow);

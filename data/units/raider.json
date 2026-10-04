@@ -2,6 +2,8 @@
   "id": "raider",
   "category": "unit",
   "scene": "res://source/match/units/Raider.tscn",
+  "model": "res://assets/models/ironbound/units/scout_buggy.glb",
+  "model_scale": 0.95,
   "name": "RAIDER",
   "description": "RAIDER_DESCRIPTION",
   "icon": "res://assets/ui/icons/Drone.png",

@@ -1,5 +1,7 @@
-[gd_scene load_steps=46 format=3 uid="uid://camns8fqod8d4"]
+[gd_scene load_steps=48 format=3 uid="uid://camns8fqod8d4"]
 
+[ext_resource type="Script" path="res://source/match/environment/Soundscape.gd" id="36_sound"]
+[ext_resource type="Script" path="res://source/match/environment/RoadVisuals.gd" id="35_roads"]
 [ext_resource type="Script" path="res://source/match/Match.gd" id="1_1555u"]
 [ext_resource type="Script" path="res://source/match/IsometricCamera3D.gd" id="1_qb2ry"]
 [ext_resource type="Script" path="res://source/match/FogOfWar.gd" id="5_eb52t"]
@@ -166,6 +168,12 @@ directional_shadow_pancake_size = 100.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qxcnu")
+
+[node name="RoadVisuals" type="Node3D" parent="."]
+script = ExtResource("35_roads")
+
+[node name="Soundscape" type="Node" parent="."]
+script = ExtResource("36_sound")
 
 [node name="Atmosphere" parent="." instance=ExtResource("34_atmo")]
 

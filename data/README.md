@@ -16,7 +16,7 @@ mods add to it or patch it (see [mods](#mods)).
 How-to guides:
 
 - [Add a unit in 10 minutes](../docs/modding/add-a-unit.md)
-- [Make a map](../docs/modding/make-a-map.md)
+- [Make a map](../docs/modding/make-a-map.md), or paint one in the [map editor](../docs/modding/map-editor.md)
 - [Add a resource](../docs/modding/add-a-resource.md)
 
 Check your changes with the validator before starting the game:

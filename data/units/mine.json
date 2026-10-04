@@ -2,6 +2,8 @@
   "id": "mine",
   "category": "structure",
   "scene": "res://source/match/units/Mine.tscn",
+  "model": "res://assets/models/ironbound/buildings/mine.glb",
+  "model_scale": 0.5,
   "blueprint": "res://source/match/units/structure-geometries/Mine.tscn",
   "name": "MINE",
   "description": "MINE_DESCRIPTION",

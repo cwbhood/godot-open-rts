@@ -22,3 +22,38 @@ REPLAY_EVENT_TRADE,{0} traded with {1},{0} handlował z {1}
 REPLAY_EVENT_EMBARGO,{0} put {1} under embargo,{0} nałożył embargo na {1}
 REPLAY_EVENT_CALL_FOR_HELP,{0} city calls for help,miasto {0} wzywa pomocy
 REPLAY_EVENT_ROAD,{0} upgraded a road to level {1},{0} ulepszył drogę do poziomu {1}
+MAP_EDITOR,Map editor,Edytor map
+MAP_EDITOR_DEFAULT_NAME,My desert map,Moja pustynna mapa
+MAP_EDITOR_NAME,Name,Nazwa
+MAP_EDITOR_SIZE,Size (m),Rozmiar (m)
+MAP_EDITOR_SEED,Seed,Ziarno
+MAP_EDITOR_RANDOM,New random,Nowa losowa
+MAP_EDITOR_CLEAR,Clear,Wyczyść
+MAP_EDITOR_OPEN,Open,Otwórz
+MAP_EDITOR_OPEN_PICK,Pick a map...,Wybierz mapę...
+MAP_EDITOR_MIRROR,Mirror placements,Odbijaj postawienia
+MAP_EDITOR_TOOLS,Paint,Malowanie
+MAP_EDITOR_TOOL_LAKE,Water,Woda
+MAP_EDITOR_TOOL_FOREST,Trees,Drzewa
+MAP_EDITOR_TOOL_OUTCROP,Rocks,Skały
+MAP_EDITOR_TOOL_DEPOSIT,Deposit,Złoże
+MAP_EDITOR_TOOL_SPAWN,Start point,Punkt startowy
+MAP_EDITOR_TOOL_ERASE,Desert (erase),Pustynia (usuń)
+MAP_EDITOR_FOREST_KIND,Trees,Drzewa
+MAP_EDITOR_FOREST_ACACIA,Acacia,Akacje
+MAP_EDITOR_FOREST_PINE,Pine,Sosny
+MAP_EDITOR_FOREST_MIXED,Mixed,Mieszany
+MAP_EDITOR_DEPOSIT_KIND,Deposit,Złoże
+MAP_EDITOR_BRUSH,Brush (m),Pędzel (m)
+MAP_EDITOR_INFO,"{0} start points, {1} lakes, {2} forests, {3} rock outcrops. Deposits: {4}","{0} punktów startowych, {1} jezior, {2} lasów, {3} skał. Złoża: {4}"
+MAP_EDITOR_HELP,"Left click places, right click erases. Mirroring copies each placement to the opposite side so both sides get the same map. Move with WASD or the screen edges, zoom with the wheel, rotate with the middle button.","Lewy przycisk stawia, prawy usuwa. Odbijanie kopiuje każde postawienie na przeciwną stronę, więc obie strony mają tę samą mapę. Ruch: WASD lub krawędzie ekranu, przybliżanie: kółko, obrót: środkowy przycisk."
+MAP_EDITOR_SAVE,Save map,Zapisz mapę
+MAP_EDITOR_SAVED,Saved to {0}. It is now in the Play menu.,Zapisano w {0}. Mapa jest już w menu Gra.
+MAP_EDITOR_REBUILDING,Rebuilding the map...,Przebudowywanie mapy...
+MAP_EDITOR_OUTSIDE,That is outside the map.,To jest poza mapą.
+MAP_EDITOR_NOTHING_TO_ERASE,Nothing to erase there.,Nie ma tu nic do usunięcia.
+MAP_EDITOR_TOO_MANY_SPAWNS,A map can have at most {0} start points.,Mapa może mieć najwyżej {0} punktów startowych.
+MAP_EDITOR_NEEDS_NAME,Give the map a name first.,Najpierw nadaj mapie nazwę.
+MAP_EDITOR_NEEDS_SPAWNS,Place at least 2 start points.,Postaw co najmniej 2 punkty startowe.
+MAP_EDITOR_CANNOT_LOAD,That map file could not be read.,Nie można odczytać pliku mapy.
+MAP_EDITOR_START_N,Start {0},Start {0}

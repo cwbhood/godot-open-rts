@@ -51,7 +51,8 @@ void fragment()
   vec3 color = mix(sand, hardpan, hardpan_w);
 
   // vegetation, broken up so it never forms clean circles
-  float vegetation_w = smoothstep(0.35, 0.7, COLOR.r + (n_mid - 0.5) * 0.6 + (n_detail - 0.5) * 0.35);
+  float vegetation_w =
+      smoothstep(0.35, 0.7, COLOR.r + (n_mid - 0.5) * 0.6 + (n_detail - 0.5) * 0.35);
   vec3 grass = mix(grass_dark, grass_light, smoothstep(0.2, 0.8, n_detail));
   float wet_w = smoothstep(0.1, 0.9, COLOR.b + (n_detail - 0.5) * 0.2);
   color = mix(color, wet_color * (0.92 + 0.16 * n_detail), wet_w);
@@ -79,7 +80,7 @@ void fragment()
   float phase = dot(p, wind) * ripple_frequency + warp;
   float ripple_fade = 1.0 - clamp(length(fwidth(p)) * ripple_frequency * 0.6, 0.0, 1.0);
   float ripple_w = ripple_strength * ripple_fade * (1.0 - max(rock_w, vegetation_w)) *
-                   (1.0 - hardpan_w * 0.8) * (1.0 - wet_w);
+      (1.0 - hardpan_w * 0.8) * (1.0 - wet_w);
   vec2 slope_xz = wind * cos(phase) * ripple_w;
   float e = 0.15;
   float hx = detail_height(p + vec2(e, 0.0)) - n_detail;

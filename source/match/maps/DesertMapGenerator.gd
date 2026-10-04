@@ -25,6 +25,8 @@ const LAKE_DEPTH = 1.6
 const LAKE_SHORE_RATIO = 1.35
 const SPAWN_CLEARANCE = 15.0
 const DEPOSIT_CLEARANCE = 3.5
+const LAKE_OUTLINE_POINTS = 24
+const LAKE_WATER_LINE_RATIO = 1.2  # lake bed reaches the water level at about this ratio
 const INNER_MARGIN = 6.0
 const FOREST_KINDS = [&"acacia", &"pine", &"mixed"]
 const RESOURCE_LAYOUTS = {
@@ -32,7 +34,13 @@ const RESOURCE_LAYOUTS = {
 }
 
 ## JSON map definition; its settings override the exports below
-@export_file("*.json") var map_definition = ""
+@export_file("*.json") var map_definition = "":
+	set(value):
+		map_definition = value
+		# a scene that instances a desert map and points it at another definition
+		if _generated and not Engine.is_editor_hint():
+			load_definition()
+			generate()
 @export var map_seed = 7
 @export var outer_margin = 110.0
 @export var resource_layout = ResourceLayout.SYMMETRIC
@@ -53,6 +61,7 @@ var deposits = []  # [{kind: StringName, center: Vector2, amount: int, owner_hin
 var spawns = []  # [Vector2]
 var layout = null  # explicit layout from the map definition or the map editor, if any
 
+var _generated = false
 var _rng = RandomNumberGenerator.new()
 var _dune_noise = FastNoiseLite.new()
 var _warp_noise = FastNoiseLite.new()
@@ -61,9 +70,18 @@ var _shape_noise = FastNoiseLite.new()
 var _patch_noise = FastNoiseLite.new()
 
 
+func _notification(what):
+	# generating right after instantiation (not only in _ready) lets tools such as the data
+	# validator inspect spawn points and deposits without adding the map to a scene tree
+	if what == NOTIFICATION_SCENE_INSTANTIATED and not _generated:
+		load_definition()
+		generate()
+
+
 func _ready():
-	load_definition()
-	generate()
+	if not _generated:
+		load_definition()
+		generate()
 
 
 func load_definition():
@@ -85,6 +103,7 @@ func load_definition():
 
 
 func generate():
+	_generated = true
 	_clear_generated()
 	_setup_noise()
 	if layout != null:
@@ -578,28 +597,62 @@ func _build_spawn_points():
 
 
 func _build_obstacles():
+	"""navigation input made of colliders only: a flat ground slab, a prism per lake and a
+	cylinder per forest or outcrop circle. The detailed terrain mesh is left out of the
+	navigation group because parsing it on every rebake reads it back from the GPU."""
 	var obstacles = Node3D.new()
 	obstacles.name = "Obstacles"
 	add_child(obstacles)
+	find_child("Terrain").remove_from_group("terrain_navigation_input")
+	var ground = BoxShape3D.new()
+	ground.size = Vector3(size.x + INNER_MARGIN * 2.0, 1.0, size.y + INNER_MARGIN * 2.0)
+	obstacles.add_child(_navigation_body(ground, Vector3(size.x / 2.0, -0.5, size.y / 2.0)))
+	for lake in lakes:
+		var center = Vector3(lake.center.x, 0.0, lake.center.y)
+		obstacles.add_child(_navigation_body(_lake_shape(lake), center))
 	var circles = []
 	for forest in forests:
 		circles.append_array(forest.circles)
 	circles.append_array(outcrops)
 	for circle in circles:
-		var body = StaticBody3D.new()
-		body.collision_layer = 2
-		body.collision_mask = 0
-		body.input_ray_pickable = false
-		body.add_to_group("terrain_navigation_input")
 		var shape = CylinderShape3D.new()
 		shape.radius = circle.radius
 		shape.height = 3.0
-		var collision = CollisionShape3D.new()
-		collision.shape = shape
-		collision.position.y = 1.5
-		body.add_child(collision)
-		body.position = Vector3(circle.center.x, 0.0, circle.center.y)
-		obstacles.add_child(body)
+		var center = Vector3(circle.center.x, 1.5, circle.center.y)
+		obstacles.add_child(_navigation_body(shape, center))
+
+
+func _navigation_body(shape, position_value):
+	var body = StaticBody3D.new()
+	body.collision_layer = 2
+	body.collision_mask = 0
+	body.input_ray_pickable = false
+	body.add_to_group("terrain_navigation_input")
+	var collision = CollisionShape3D.new()
+	collision.shape = shape
+	body.add_child(collision)
+	body.position = position_value
+	return body
+
+
+func _lake_shape(lake):
+	"""a 3 m high prism following the lake's wobbly water line"""
+	var outline = PackedVector3Array()
+	for i in range(LAKE_OUTLINE_POINTS):
+		var direction = Vector2.from_angle(TAU * i / LAKE_OUTLINE_POINTS)
+		var radius = _lake_radius_at(lake, lake.center + direction * lake.radius)
+		var point = direction * radius * LAKE_WATER_LINE_RATIO
+		outline.append(Vector3(point.x, 0.0, point.y))
+	var faces = PackedVector3Array()
+	var up = Vector3(0.0, 3.0, 0.0)
+	for i in range(outline.size()):
+		var a = outline[i]
+		var b = outline[(i + 1) % outline.size()]
+		faces.append_array([Vector3.ZERO + up, b + up, a + up])
+		faces.append_array([a, b, b + up, a, b + up, a + up])
+	var shape = ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	return shape
 
 
 func _build_deposit_markers():

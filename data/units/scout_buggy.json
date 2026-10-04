@@ -3,9 +3,8 @@
   "base": "raider",
   "name": "SCOUT_BUGGY",
   "description": "SCOUT_BUGGY_DESCRIPTION",
-  "model": "res://assets/models/kenney-spacekit/craft_speederB.glb",
-  "model_scale": 0.45,
-  "model_offset": [-0.9, 0, -0.675],
+  "model": "res://assets/models/ironbound/units/scout_buggy.glb",
+  "model_scale": 0.85,
   "icon_tint": "#9fe0ff",
   "cost": {
     "iron": 2,

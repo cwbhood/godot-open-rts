@@ -2,6 +2,8 @@
   "id": "power_plant",
   "category": "structure",
   "scene": "res://source/match/units/PowerPlant.tscn",
+  "model": "res://assets/models/ironbound/buildings/power_plant.glb",
+  "model_scale": 0.55,
   "blueprint": "res://source/match/units/structure-geometries/PowerPlant.tscn",
   "name": "POWER_PLANT",
   "description": "POWER_PLANT_DESCRIPTION",

@@ -2,6 +2,8 @@
   "id": "aircraft_factory",
   "category": "structure",
   "scene": "res://source/match/units/AircraftFactory.tscn",
+  "model": "res://assets/models/ironbound/buildings/aircraft_factory.glb",
+  "model_scale": 0.68,
   "blueprint": "res://source/match/units/structure-geometries/AircraftFactory.tscn",
   "name": "AIRCRAFT_FACTORY",
   "description": "AIRCRAFT_FACTORY_DESCRIPTION",

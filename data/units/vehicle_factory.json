@@ -2,6 +2,8 @@
   "id": "vehicle_factory",
   "category": "structure",
   "scene": "res://source/match/units/VehicleFactory.tscn",
+  "model": "res://assets/models/ironbound/buildings/vehicle_factory.glb",
+  "model_scale": 0.66,
   "blueprint": "res://source/match/units/structure-geometries/VehicleFactory.tscn",
   "name": "VEHICLE_FACTORY",
   "description": "VEHICLE_FACTORY_DESCRIPTION",

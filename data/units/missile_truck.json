@@ -2,6 +2,8 @@
   "id": "missile_truck",
   "category": "unit",
   "scene": "res://source/match/units/MissileTruck.tscn",
+  "model": "res://assets/models/ironbound/units/aa_halftrack.glb",
+  "model_scale": 0.8,
   "name": "MISSILE_TRUCK",
   "description": "MISSILE_TRUCK_DESCRIPTION",
   "icon": "res://assets/ui/icons/AntiAirTurret.png",
