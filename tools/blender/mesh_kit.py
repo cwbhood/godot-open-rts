@@ -120,6 +120,7 @@ def mat(name):
         attr = m.node_tree.nodes.new("ShaderNodeVertexColor")
         attr.layer_name = "Col"
         m.node_tree.links.new(attr.outputs["Color"], bsdf.inputs["Base Color"])
+        m.use_backface_culling = True  # exported single sided: half the pixels to shade
         return m
     entry = PALETTE[name]
     srgb, rough, metal = entry[:3]
@@ -138,6 +139,7 @@ def mat(name):
         bsdf.inputs["Emission Color"].default_value = (*lin, 1.0)
         bsdf.inputs["Emission Strength"].default_value = entry[3]
     m.diffuse_color = (*lin, 1.0)
+    m.use_backface_culling = GAME["enabled"]
     return m
 
 

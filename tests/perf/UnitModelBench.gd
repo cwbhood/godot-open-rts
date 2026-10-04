@@ -6,7 +6,7 @@ extends Node3D
 # classic and 30 new copies, and writes bench.json and bench.md to --out.
 # Usage (needs a real renderer, e.g. under xvfb-run):
 #   godot --path . res://tests/perf/UnitModelBench.tscn -- --out=/tmp/bench
-# Options: --count (30), --frames measured per case (90), --only=tank,raider.
+# Options: --count (30), --frames measured per case (90), --rounds (3), --only=tank,raider.
 
 const GameData = preload("res://source/data-model/GameData.gd")
 const Unit = preload("res://source/match/units/Unit.gd")
@@ -33,24 +33,34 @@ func _ready():
 	var count = int(_args.get("count", "30"))
 	var only = _args.get("only", "").split(",", false)
 	var results = []
-	var empty = await _measure(null)
+	# software renderers drift a lot, so every round measures the empty scene too, the
+	# variants swap order each round, and the cost is the median over the rounds
+	var rounds = int(_args.get("rounds", "3"))
+	var empty = await _measure()
 	print("empty scene: ", empty)
 	for entry in GameData.units():
 		if not "classic_model" in entry or (not only.is_empty() and not entry["id"] in only):
 			continue
 		var row = {"id": entry["id"]}
-		for variant in ["classic", "new"]:
-			var prefix = "classic_" if variant == "classic" else ""
-			var path = entry[prefix + "model"]
-			var scale = float(entry.get(prefix + "model_scale", 1.0)) * _geometry_scale(entry)
-			var group = _spawn_copies(path, scale, count)
-			var measured = await _measure(group)
-			measured["model_tris"] = _triangles(load(path).instantiate())
-			measured["model_surfaces"] = _surfaces(load(path).instantiate())
-			measured["cost_ms"] = measured["frame_ms"] - empty["frame_ms"]
-			row[variant] = measured
-			group.queue_free()
-			await _frames(5)
+		var costs = {"classic": [], "new": []}
+		for round_index in range(rounds):
+			var base = await _measure()
+			var order = ["classic", "new"] if round_index % 2 == 0 else ["new", "classic"]
+			for variant in order:
+				var prefix = "classic_" if variant == "classic" else ""
+				var path = entry[prefix + "model"]
+				var scale = float(entry.get(prefix + "model_scale", 1.0)) * _geometry_scale(entry)
+				var group = _spawn_copies(path, scale, count)
+				var measured = await _measure()
+				costs[variant].append(measured["frame_ms"] - base["frame_ms"])
+				measured["model_tris"] = _triangles(load(path).instantiate())
+				measured["model_surfaces"] = _surfaces(load(path).instantiate())
+				row[variant] = measured
+				group.queue_free()
+				await _frames(5)
+		for variant in costs:
+			row[variant]["costs_ms"] = costs[variant]
+			row[variant]["cost_ms"] = _median(costs[variant])
 		print(entry["id"], ": ", row)
 		results.append(row)
 	var file = FileAccess.open(out_dir + "/bench.json", FileAccess.WRITE)
@@ -117,14 +127,19 @@ func _spawn_copies(path, scale, count):
 	return group
 
 
-func _measure(_group):
+func _measure():
+	"""median frame time over --frames frames, plus draw calls and primitives"""
 	await _frames(30)
 	var frames = int(_args.get("frames", "90"))
-	var started = Time.get_ticks_usec()
+	var times = []
 	var draw_calls = 0
 	var primitives = 0
+	var last = Time.get_ticks_usec()
 	for i in range(frames):
 		await get_tree().process_frame
+		var now = Time.get_ticks_usec()
+		times.append((now - last) / 1000.0)
+		last = now
 		draw_calls += RenderingServer.get_rendering_info(
 			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME
 		)
@@ -132,10 +147,16 @@ func _measure(_group):
 			RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME
 		)
 	return {
-		"frame_ms": (Time.get_ticks_usec() - started) / 1000.0 / frames,
+		"frame_ms": _median(times),
 		"draw_calls": draw_calls / frames,
 		"primitives": primitives / frames,
 	}
+
+
+func _median(values):
+	var sorted = values.duplicate()
+	sorted.sort()
+	return sorted[sorted.size() / 2] if not sorted.is_empty() else 0.0
 
 
 func _triangles(node):
