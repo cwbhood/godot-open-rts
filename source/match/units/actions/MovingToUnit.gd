@@ -50,8 +50,8 @@ func _on_movement_finished():
 			return
 		_movement_trait.move(_pick_destination())
 		return
-	if _movement_trait.get("_crowd") == true:
-		_movement_trait.move(_pick_destination())
-		return
+	# arrived at the picked spot but a little short of touching the target (units stop
+	# within their target_desired_distance of a spot): head for the target itself, which
+	# takes the unit to the closest walkable point next to it, as before
 	_target_position = _target_unit.global_position
 	_movement_trait.move(_target_position)

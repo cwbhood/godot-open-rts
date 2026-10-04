@@ -32,6 +32,9 @@ const TANK = "res://source/match/units/Tank.tscn"
 const RAIDER = "res://source/match/units/Raider.tscn"
 const MISSILE_TRUCK = "res://source/match/units/MissileTruck.tscn"
 const ARTILLERY = "res://source/match/units/Artillery.tscn"
+const MINE = "res://source/match/units/Mine.tscn"
+const WORKER = "res://source/match/units/Worker.tscn"
+const IRON_DEPOSIT = "res://source/match/units/non-player/IronDeposit.tscn"
 const SOLAR_PLANT = "res://source/match/units/SolarPlant.tscn"
 const VEHICLE_FACTORY = "res://source/match/units/VehicleFactory.tscn"
 const MIX = [TANK, RAIDER, MISSILE_TRUCK, TANK, RAIDER, ARTILLERY]
@@ -74,6 +77,7 @@ class Scenario:
 	var in_building_s = 0.0
 	var settled_at = -1.0
 	var unfinished = 0
+	var reached = -1
 	var history = {}  # unit -> [[t, position]]
 	var spawn_queue = []  # [[t, callable]]
 	var shots = []
@@ -149,6 +153,7 @@ func _run_scenarios():
 		"factory_queue": _build_factory_queue,
 		"crossing": _build_crossing,
 		"building_target": _build_building_target,
+		"squeezed_mine": _build_squeezed_mine,
 	}
 	for scenario_name in builders:
 		if wanted == "all" or scenario_name in wanted.split(","):
@@ -258,6 +263,21 @@ func _build_building_target(s):
 	var deliver = _spawn_many(s, _grid(Vector3(64, 0, 104), 3, 2, 2.2), MISSILE_TRUCK)
 	s.set_meta("orders", [[onto, factory.global_position]])
 	s.set_meta("to_unit", [deliver, factory])
+
+
+func _build_squeezed_mine(s):
+	"""constructors and trucks heading for a mine wedged between two deposits, as the
+	auto-placement packs extractors: only slivers of ground next to it are walkable"""
+	s.center = Vector3(14, 0, 52)
+	s.duration = 30.0
+	for x in [11.6, 16.4]:
+		var deposit = load(IRON_DEPOSIT).instantiate()
+		deposit.position = Vector3(x, 0, 50)
+		_match.map.find_child("Resources").add_child(deposit)
+	var mine = _spawn_structure(s, MINE, Vector3(14, 0, 50))
+	var workers = _spawn_many(s, _grid(Vector3(14, 0, 58), 4, 1, 2.2), WORKER)
+	var trucks = _spawn_many(s, _grid(Vector3(14, 0, 43), 4, 1, 2.2), MISSILE_TRUCK)
+	s.set_meta("to_unit", [workers + trucks, mine])
 
 
 func _start(s):
@@ -386,6 +406,16 @@ func _sample(s):
 		s.finished = true
 		s.overlap_end = overlaps
 		s.unfinished = moving
+		if s.has_meta("to_unit"):
+			s.reached = _count_next_to(s.get_meta("to_unit")[0], s.get_meta("to_unit")[1])
+
+
+func _count_next_to(units, target):
+	var count = 0
+	for unit in units:
+		if is_instance_valid(unit) and MovementUtils.units_adhere(unit, target):
+			count += 1
+	return count
 
 
 func _track_frame():
@@ -431,6 +461,7 @@ func _report():
 			"stuck_unit_seconds": snappedf(s.stuck_s, 0.01),
 			"unit_seconds_inside_buildings": snappedf(s.in_building_s, 0.01),
 			"units_unfinished_at_end": s.unfinished,
+			"units_next_to_their_target_building_at_end": s.reached,
 			"settled_after_s": snappedf(s.settled_at, 0.01),
 			"duration_s": s.duration,
 		}

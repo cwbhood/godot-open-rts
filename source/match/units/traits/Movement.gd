@@ -206,7 +206,7 @@ func free_spot_near(point: Vector3) -> Vector3:
 
 func approach_spot_for(target_unit) -> Variant:
 	"""a free reachable spot next to target_unit, close enough to count as adhering to it;
-	null when every side is taken"""
+	null when every side is taken (the caller waits nearby and asks again)"""
 	if not _crowd or not settings()["spread_crowded_destinations"]:
 		return null
 	var map = get_navigation_map()
@@ -219,16 +219,29 @@ func approach_spot_for(target_unit) -> Variant:
 	var start_angle = (
 		Vector2(_unit.global_position.x - center.x, _unit.global_position.z - center.z).angle()
 	)
+	var any_within_reach = false
 	for index in range(count):
 		var angle = start_angle + _alternating(index) * TAU / count
 		var candidate = center + Vector3(cos(angle), 0, sin(angle)) * ring
 		var spot = NavigationServer3D.map_get_closest_point(map, candidate)
 		if (spot * Vector3(1, 0, 1)).distance_to(center) > reach:
 			continue
-		if _is_spot_free(spot, occupants):
+		any_within_reach = true
+		if _is_spot_free(spot, occupants, 0.0):
 			_claim(spot)
 			return spot
-	return null
+	# buildings squeezed against deposits or other buildings may leave only a sliver of
+	# walkable ground next to them that no sampled side hits: the point closest to the
+	# centre is then the one to go for, as before
+	var nearest = NavigationServer3D.map_get_closest_point(map, center)
+	if (nearest * Vector3(1, 0, 1)).distance_to(center) <= reach:
+		if _is_spot_free(nearest, occupants, 0.0):
+			_claim(nearest)
+			return nearest
+		return null  # every side is taken: wait for one to free up
+	if any_within_reach:
+		return null
+	return nearest  # out of reach anyway, but the closest anyone can get
 
 
 func _align_unit_position_to_navigation():
@@ -513,9 +526,10 @@ func _idle_units_by_domain():
 	return _idle_units
 
 
-func _is_spot_free(spot, occupants):
+func _is_spot_free(spot, occupants, spacing = null):
 	var spot_yless = spot * Vector3(1, 0, 1)
-	var spacing = settings()["destination_spacing_m"]
+	if spacing == null:
+		spacing = settings()["destination_spacing_m"]
 	for occupant in occupants:
 		if spot_yless.distance_to(occupant[0]) < radius + occupant[1] + spacing:
 			return false
