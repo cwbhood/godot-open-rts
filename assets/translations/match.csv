@@ -95,7 +95,7 @@ CITY_DEFENSE,"Civil defense: {0} posts, {1} militia, {2}","Obrona cywilna: {0} p
 THREAT_NONE,calm,spokój
 THREAT_CONTAINED,fighting,walka
 THREAT_OVERWHELMING,CITY CALLS FOR HELP,MIASTO WZYWA POMOCY
-LOGISTICS_SUMMARY,"Haulers {0} ({1} busy). Delivered {2}, lost {3}, looted {4}","Transportery {0} ({1} w trasie). Dostarczono {2}, stracono {3}, złupiono {4}"
+LOGISTICS_SUMMARY,"Delivered {0}, lost {1}, looted {2}","Dostarczono {0}, stracono {1}, złupiono {2}"
 OUT_OF_FUEL,Out of oil: vehicles crawl and power plants stop,"Brak ropy: pojazdy zwalniają, elektrownie stają"
 POWER_BAR,{0}/{1} MW,{0}/{1} MW
 POWER_TOOLTIP,"Power supply / demand. A short grid slows factories, extractors, civil defense and science.","Podaż / popyt energii. Niedobór spowalnia fabryki, kopalnie, obronę cywilną i naukę."
@@ -204,3 +204,55 @@ DIPLOMACY_TOAST_OTHERS_WAR,{0} and {1} are at war.,{0} i {1} są w stanie wojny.
 DIPLOMACY_TOAST_OTHERS_ALLIANCE,{0} and {1} are now allies.,{0} i {1} zawarły sojusz.
 DIPLOMACY_TOAST_PROTECTED,"You have a treaty with {0} ({1}), so your units won't attack them.","Masz traktat z {0} ({1}), więc twoje jednostki ich nie zaatakują."
 CITY_PANEL_COLLAPSE_TOOLTIP,Fold the city and trade panel away (incoming offers still show),Zwiń panel miasta i handlu (oferty nadal się pojawią)
+STORAGE,Storage,Magazyn
+STORAGE_DESCRIPTION,place next to extractors: their conveyors fill it so they never stop; trucks and trains collect full loads,"postaw obok kopalń: przenośniki go napełniają, więc nigdy nie stają; ciężarówki i pociągi zabierają pełne ładunki"
+TRAIN,Freight train,Pociąg towarowy
+TRAIN_DESCRIPTION,"lays its own track to extractors and storages, then runs the loop at twice truck speed with four truckloads","sam kładzie tory do kopalń i magazynów, potem jeździ pętlą dwa razy szybciej niż ciężarówka, z czterema ładunkami"
+LOGISTICS_FLEET,"Trucks {0}: {1} working, {2} standing by, {3} parked (work for about {4}). Trains {5}. Upkeep {6} oil/min","Ciężarówki {0}: {1} w pracy, {2} czeka, {3} na postoju (praca dla ok. {4}). Pociągi {5}. Utrzymanie {6} ropy/min"
+LOGISTICS_RECYCLING,({0} going to be recycled),({0} jedzie do recyklingu)
+LOGISTICS_SURPLUS,{0} trucks had nothing to do for a minute,{0} ciężarówek nie miało nic do roboty przez minutę
+LOGISTICS_RECYCLE_BUTTON,Recycle {0},Recykling {0}
+LOGISTICS_RECYCLE_TOOLTIP,Idle trucks drive to the depot and are taken apart: you get {0}% of their cost back ({1}). They also stop costing upkeep.,Bezczynne ciężarówki jadą do składu i są rozbierane: odzyskujesz {0}% kosztu ({1}). Przestają też kosztować utrzymanie.
+PRIORITY_LOW,low,niski
+PRIORITY_NORMAL,normal,normalny
+PRIORITY_HIGH,high,wysoki
+PRIORITY_BUTTON,"Priority
+{0}","Priorytet
+{0}"
+PRIORITY_TOOLTIP,"How eagerly trucks come here. High: they come first, even from further away. Low: only when nothing better waits.","Jak chętnie przyjeżdżają tu ciężarówki. Wysoki: najpierw tu, nawet z daleka. Niski: tylko gdy nic lepszego nie czeka."
+STORAGE_KIND_BUTTON,"Keeps
+{0}","Trzyma
+{0}"
+STORAGE_AUTO,auto,auto
+STORAGE_KIND_TOOLTIP,"Which commodity this storage takes. Auto: whatever arrives first, until it is empty again.","Jaki towar przyjmuje ten magazyn. Auto: to, co przyjdzie pierwsze, aż znów będzie pusty."
+STORAGE_EMPTY,Empty,Pusty
+ROUTE_STATS,"Route: {0} delivered in {1} trips, {2} lost, about {3} s per trip","Trasa: dostarczono {0} w {1} kursach, stracono {2}, ok. {3} s na kurs"
+ROUTE_ON_TRAIN_LINE,A train serves this stop: trucks only come when it overflows.,Ten przystanek obsługuje pociąg: ciężarówki przyjadą tylko przy przepełnieniu.
+ROUTE_FEEDS_STORAGE,A conveyor feeds a storage next to it.,Przenośnik zasila pobliski magazyn.
+ROUTE_IN_DANGER,A truck was destroyed on this route: trucks avoid it for now.,Na tej trasie zniszczono ciężarówkę: ciężarówki na razie jej unikają.
+GAUGE_TO_STORAGE,conveyor to storage,przenośnik do magazynu
+GAUGE_FULL,"FULL: stopped, waiting for a truck","PEŁNA: stoi, czeka na ciężarówkę"
+GAUGE_FULL_STORAGE,FULL: waiting for a truck or train,PEŁNY: czeka na ciężarówkę lub pociąg
+TRAIN_STATUS_NO_LINE,No line yet: right-click your extractors or storages to add stops,"Brak linii: kliknij PPM swoje kopalnie lub magazyny, by dodać przystanki"
+TRAIN_STATUS_WAITING_FOR_TRACK,Waiting for materials to lay track ({0} per 10 m),Czeka na materiały na tory ({0} za 10 m)
+TRAIN_STATUS_LAYING,"Laying track, {0} m to go","Kładzie tory, zostało {0} m"
+TRAIN_STATUS_RUNNING,Running to {0},Jedzie do: {0}
+TRAIN_STATUS_UNLOADING,Unloading at the depot,Rozładunek w składzie
+TRAIN_STATUS_LOADING,Loading at {0},Załadunek: {0}
+TRAIN_AUTO_LINE,"Auto
+line","Linia
+auto"
+TRAIN_AUTO_LINE_TOOLTIP,Let the train plan its own line again: the busiest far extractors and storages nobody's train serves yet.,Niech pociąg znów sam zaplanuje linię: najbardziej ruchliwe dalekie kopalnie i magazyny bez pociągu.
+TRAIN_LINE,Line: depot > {0},Linia: skład > {0}
+RECYCLE_BUTTON,"Recycle
+{0}","Recykling
+{0}"
+RECYCLE_TOOLTIP,Drive to the closest depot and take apart: gives back {0}.,Jedź do najbliższego składu i rozbierz: zwraca {0}.
+HAULER_DOING_RECYCLING,Driving to the depot to be recycled,Jedzie do składu na recykling
+HAULER_DOING_MANUAL,Under your orders: right-click your command center to put it back on the job board,"Pod twoimi rozkazami: kliknij PPM centrum dowodzenia, by wróciła do zleceń"
+HAULER_DOING_PARKED,Parked: nothing to collect anywhere,Na postoju: nigdzie nic do odebrania
+HAULER_DOING_STANDBY,Standing by at the extractor that fills up next,"Czeka przy kopalni, która napełni się najszybciej"
+HAULER_DOING_COLLECTING,Collecting goods,Odbiera towary
+HAULER_DOING_SUPPLYING,Bringing materials to a site,Wiezie materiały na budowę
+HAULER_DOING_BUSY,Busy,Zajęta
+FLEET_SELECTED,{0} vehicles selected,Zaznaczono pojazdy: {0}

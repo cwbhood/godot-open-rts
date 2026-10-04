@@ -103,6 +103,11 @@ static func roads():
 	return get_data()["roads"]
 
 
+static func logistics():
+	"""tunables of trucks, storage, trains and the fleet, see data/logistics.json"""
+	return get_data()["logistics"]
+
+
 static func is_generated_scene(scene_path):
 	return scene_path.begins_with(GENERATED_SCENES_ROOT)
 
@@ -208,6 +213,7 @@ static func _load_all():
 		"maps": _load_dir(BASE_DATA_DIR + "/maps"),
 		"ai_personalities": _load_dir(BASE_DATA_DIR + "/ai"),
 		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
+		"logistics": _parse_dict_file(BASE_DATA_DIR + "/logistics.json"),
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -220,6 +226,7 @@ static func _load_all():
 		var mod_roads = _load_list_file(mod_dir + "/roads.json", "roads")
 		if not mod_roads.is_empty():
 			data["roads"] = mod_roads
+		_deep_merge(data["logistics"], _parse_dict_file(mod_dir + "/logistics.json"))
 	_resolve_bases(data["units"])
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
@@ -283,6 +290,20 @@ static func _merge(base_entries, mod_entries):
 			base_entries.append(mod_entry)
 		else:
 			existing[0].merge(mod_entry, true)
+
+
+static func _deep_merge(base, patch):
+	"""mods change single tunables: nested dictionaries are merged key by key"""
+	for key in patch:
+		if base.get(key) is Dictionary and patch[key] is Dictionary:
+			_deep_merge(base[key], patch[key])
+		else:
+			base[key] = patch[key]
+
+
+static func _parse_dict_file(path):
+	var parsed = _parse_json_file(path)
+	return parsed if parsed is Dictionary else {}
 
 
 static func _load_list_file(path, key):

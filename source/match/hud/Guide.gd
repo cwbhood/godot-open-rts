@@ -63,6 +63,8 @@ var _more_button = Button.new()
 var _fold_button = Button.new()
 var _hint_panel = PanelContainer.new()
 var _hint_label = Label.new()
+var _surplus_shown = 0
+var _full_extractors_hinted = false
 
 
 func _ready():
@@ -94,6 +96,7 @@ func _ready():
 	)
 	MatchSignals.aircraft_crashed.connect(_on_aircraft_crashed)
 	MatchSignals.cargo_destroyed.connect(_on_cargo_destroyed)
+	MatchSignals.route_raided.connect(_on_route_raided)
 	_on_match_started()
 
 
@@ -176,6 +179,7 @@ func _process(delta):
 	if _since_refresh_s >= REFRESH_INTERVAL_S:
 		_since_refresh_s = 0.0
 		_refresh_tutorial()
+		_check_logistics()
 	_update_hint(delta)
 	_layout()
 
@@ -412,6 +416,32 @@ func _on_short_of_resources(a_player, key):
 func _on_aircraft_crashed(unit):
 	if is_instance_valid(unit) and unit.player == player:
 		show_hint("HINT_AIRCRAFT_CRASHED")
+
+
+func _check_logistics():
+	"""alerts for a fleet that is too big, and a hint the first time extractors stall"""
+	if player == null or not is_instance_valid(player) or player.logistics == null:
+		return
+	var surplus = player.logistics.fleet.surplus_trucks
+	if surplus > 0 and _surplus_shown == 0:
+		show_alert(tr("ALERT_SURPLUS_TRUCKS").format([surplus]))
+	_surplus_shown = surplus
+	if not _full_extractors_hinted:
+		var full = player.logistics.get_extractors().filter(
+			func(extractor): return extractor.is_constructed() and extractor.is_full()
+		)
+		if full.size() >= 2:
+			_full_extractors_hinted = true
+			show_hint("HINT_EXTRACTORS_FULL")
+
+
+func _on_route_raided(a_player, _position):
+	if a_player == player:
+		show_alert(
+			tr("ALERT_ROUTE_RAIDED").format(
+				[int(Constants.Match.Logistics.RAIDS.get("avoid_s", 45.0))]
+			)
+		)
 
 
 func _on_cargo_destroyed(_unit, owner, _cargo, _looter, _loot):

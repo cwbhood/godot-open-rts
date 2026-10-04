@@ -102,7 +102,9 @@ class Extraction:
 	# extractors have to be placed next to a deposit of the matching kind
 	const MAX_DISTANCE_TO_DEPOSIT_M = 1.5  # gap between the extractor and the deposit edges
 	const UNPOWERED_RATE_FACTOR = 0.5
-	const STORAGE_MAX = 16  # goods wait at the extractor until a hauler picks them up
+	# goods wait at the extractor until a truck picks them up; a full extractor stops
+	# gdlint: ignore=class-variable-name
+	static var STORAGE_MAX = int(GameData.logistics().get("extractor_buffer", 16))
 	# gdlint: ignore=class-variable-name
 	static var EXTRACTOR_KINDS = GameData.unit_field("extracts", "structure")
 	# with a fully powered grid
@@ -114,9 +116,24 @@ class Logistics:
 	const TICK_S = 0.5
 	const YARD_RADIUS_M = 9.0  # sites this close to a depot get materials without haulers
 	const YARD_DELIVERY_PER_S = 4.0
-	const MIN_PICKUP = 4  # haulers do not drive out for less than this
 	const LOOT_SHARE = 0.5  # share of destroyed cargo that goes to the attacker
 	const HAULER_IDLE_RECHECK_S = 1.0
+	# haulers do not drive out for less than this
+	# gdlint: ignore=class-variable-name
+	static var MIN_PICKUP = int(GameData.logistics().get("jobs", {}).get("min_pickup", 4))
+	# the rest of the tunables of trucks, storage, trains and the fleet: data/logistics.json
+	# gdlint: ignore=class-variable-name
+	static var JOBS = GameData.logistics().get("jobs", {})
+	# gdlint: ignore=class-variable-name
+	static var STANDBY = GameData.logistics().get("standby", {})
+	# gdlint: ignore=class-variable-name
+	static var RAIDS = GameData.logistics().get("raids", {})
+	# gdlint: ignore=class-variable-name
+	static var STORAGE = GameData.logistics().get("storage", {})
+	# gdlint: ignore=class-variable-name
+	static var TRAIN = GameData.logistics().get("train", {})
+	# gdlint: ignore=class-variable-name
+	static var FLEET = GameData.logistics().get("fleet", {})
 
 
 class Roads:

@@ -5,6 +5,7 @@ const ResourceUnit = preload("res://source/match/units/non-player/ResourceUnit.g
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
+const Storage = preload("res://source/match/units/Storage.gd")
 
 
 class Actions:
@@ -52,6 +53,7 @@ func _try_navigating_selected_units_towards_position(target_point):
 		var new_target = tuple[1]
 		if unit is Hauler:
 			unit.automated = false  # manually driven haulers wait for orders
+			unit.recycling = false
 			unit.dedicated_extractor = null
 			unit.road_speed_multiplier = 1.0
 		unit.action = Actions.Moving.new(new_target)
@@ -97,6 +99,8 @@ func _navigate_selected_units_towards_unit(target_unit):
 func _navigate_unit_towards_unit(unit, target_unit):
 	if unit is Hauler and _order_hauler(unit, target_unit):
 		return true
+	if unit.get("is_train") == true:
+		return _order_train(unit, target_unit)
 	if Actions.AutoAttacking.is_applicable(unit, target_unit):
 		unit.action = Actions.AutoAttacking.new(target_unit)
 		return true
@@ -129,7 +133,8 @@ func _order_hauler(hauler, target_unit):
 	if not "player" in target_unit or target_unit.player != hauler.player:
 		return false
 	var logistics = hauler.player.logistics
-	if target_unit is Extractor and target_unit.is_constructed():
+	hauler.recycling = false
+	if (target_unit is Extractor or target_unit is Storage) and target_unit.is_constructed():
 		hauler.automated = true
 		hauler.dedicated_extractor = target_unit
 		hauler.action = null
@@ -144,6 +149,20 @@ func _order_hauler(hauler, target_unit):
 		hauler.dedicated_extractor = null
 		hauler.action = null
 		return logistics.assign_supply(hauler, target_unit)
+	return false
+
+
+func _order_train(train, target_unit):
+	"""own extractor or storage: add or remove that stop, own depot: the train's new home"""
+	if not "player" in target_unit or target_unit.player != train.player:
+		return false
+	if (target_unit is Extractor or target_unit is Storage) and target_unit.is_constructed():
+		train.toggle_stop(target_unit)
+		return true
+	if target_unit is CommandCenter and target_unit.is_constructed():
+		train.depot = target_unit
+		train.set_line(train.stops, train.manual_line)
+		return true
 	return false
 
 
@@ -182,5 +201,8 @@ func _on_unit_spawned(unit):
 func _on_navigate_unit_to_rally_point(unit, rally_point):
 	if rally_point.target_unit != null:
 		_navigate_unit_towards_unit(unit, rally_point.target_unit)
-	elif rally_point.global_position != rally_point.get_parent().global_position:
+	elif (
+		rally_point.global_position != rally_point.get_parent().global_position
+		and Actions.Moving.is_applicable(unit)
+	):  # trains run on their rails
 		unit.action = Actions.Moving.new(rally_point.global_position)

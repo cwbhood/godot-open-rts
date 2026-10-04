@@ -3,7 +3,10 @@ extends Node
 # Keeps the AI's economy running: enough constructors and haulers, a command center,
 # extractors on the closest free deposits of each commodity (as many as the personality
 # asks for) and enough power plants to keep the grid out of a blackout. Haulers are run
-# by the player's Logistics node like for any other player.
+# by the player's Logistics node like for any other player; the AI keeps as many as the
+# logistics demand estimate asks for (capped by its personality), recycles the surplus,
+# builds a storage next to clusters of extractors and a freight train once its city
+# reaches the train's tier and far extractors call for one.
 
 signal resources_required(resources, metadata)
 
@@ -17,6 +20,10 @@ const Extractor = preload("res://source/match/units/Extractor.gd")
 const PowerPlantScene = preload("res://source/match/units/PowerPlant.tscn")
 const AirportScene = preload("res://source/match/units/Airport.tscn")
 const GameData = preload("res://source/data-model/GameData.gd")
+const StorageScene = preload("res://source/match/units/Storage.tscn")
+const TrainScene = preload("res://source/match/units/Train.tscn")
+const Train = preload("res://source/match/units/Train.gd")
+const Storage = preload("res://source/match/units/Storage.gd")
 const EXTRACTOR_PRIORITY = ["iron", "oil", "timber", "copper"]  # ties go to the first
 const REFRESH_INTERVAL_S = 2.0
 const MAX_DEPOSIT_DISTANCE_M = 55.0
@@ -25,6 +32,8 @@ const MAX_PLACEMENT_RINGS = 12
 const MIN_EXTRACTORS_FIRST = 3  # before optional power plants
 const ROAD_UPGRADE_INTERVAL_S = 20.0
 const ROAD_UPGRADE_MIN_LENGTH_M = 15.0  # short routes are not worth paving
+const RECYCLE_INTERVAL_S = 10.0
+const EXTRACTORS_PER_TRAIN = 6
 
 var _player = null
 var _ccs = []
@@ -33,6 +42,7 @@ var _pending_units = {}  # scene path -> number of units queued in production
 var _pending_structure_request = false
 var _cc_base_position = null
 var _since_road_upgrade_s = 0.0
+var _since_recycle_s = 0.0
 var _extractor_scenes = _find_extractor_scenes()  # commodity -> scene of its extractor
 
 @onready var _ai = get_parent()
@@ -80,13 +90,19 @@ func _refresh():
 	_enforce_unit_count(
 		WorkerScene, Worker, min(_ai.expected_number_of_workers, 2 + int(extractors / 2.0))
 	)
-	_enforce_unit_count(
-		HaulerScene, Hauler, min(_ai.expected_number_of_haulers, 2 + int(extractors / 2.0))
-	)
+	var logistics = _player.logistics
+	var hauler_target = min(_ai.expected_number_of_haulers, 2 + int(extractors / 2.0))
+	if logistics != null:
+		hauler_target = min(_ai.expected_number_of_haulers, logistics.fleet.get_truck_target())
+	_enforce_unit_count(HaulerScene, Hauler, hauler_target)
+	_recycle_surplus_haulers(hauler_target)
+	_maybe_order_a_train(extractors)
 	_try_upgrading_a_road()
 	if _pending_structure_request or _count_units(Worker) == 0:
 		return
 	var next = _next_airport() if not _ccs.is_empty() and _needs_airport() else null
+	if next == null and extractors >= MIN_EXTRACTORS_FIRST and not _ccs.is_empty():
+		next = _next_storage()
 	if next == null:
 		next = _next_structure()
 	if next == null:
@@ -159,6 +175,67 @@ func _next_structure():
 	if spot == null:
 		return null
 	return [scene_path, spot]
+
+
+func _recycle_surplus_haulers(target):
+	"""one idle hauler at a time, only when it has had nothing to do for a while"""
+	_since_recycle_s += REFRESH_INTERVAL_S
+	var logistics = _player.logistics
+	if logistics == null or _since_recycle_s < RECYCLE_INTERVAL_S:
+		return
+	if logistics.fleet.surplus_trucks > 0 and _count_units(Hauler) > target:
+		_since_recycle_s = 0.0
+		logistics.fleet.recycle_surplus(1)
+
+
+func _maybe_order_a_train(extractors):
+	var logistics = _player.logistics
+	var path = TrainScene.resource_path
+	if (
+		logistics == null
+		or _ccs.is_empty()
+		or not _player.meets_tier_requirement(path)
+		or not logistics.rails.wants_train()
+		or _count_units(Train) >= 1 + int(extractors / float(EXTRACTORS_PER_TRAIN))
+		or _pending_unit_requests.get(path, 0) + _pending_units.get(path, 0) > 0
+		or not _ai._has_resources_beyond_trade_reserve(Constants.Match.Units.PRODUCTION_COSTS[path])
+	):
+		return
+	_enforce_unit_count(TrainScene, Train, _count_units(Train) + 1)
+
+
+func _next_storage():
+	"""[scene path, position] of a storage gathering a cluster of extractors, or null"""
+	var logistics = _player.logistics
+	if logistics == null or _count_scene_under_construction(StorageScene.resource_path) > 0:
+		return null
+	if not _obtainable(StorageScene.resource_path):
+		return null
+	var site = logistics.suggest_storage_site()
+	if site == null:
+		return null
+	var position = _find_position_near(site["position"], StorageScene)
+	if position == null:
+		return null
+	var reach = float(Constants.Match.Logistics.STORAGE.get("link_radius_m", 12.0))
+	var linked = site["extractors"].filter(
+		func(extractor): return extractor.global_position_yless.distance_to(position) <= reach
+	)
+	if linked.size() < 2:
+		return null
+	return [StorageScene.resource_path, position]
+
+
+func _count_scene_under_construction(scene_path):
+	var count = 0
+	for unit in get_tree().get_nodes_in_group("units"):
+		if (
+			unit.player == _player
+			and unit._scene_path() == scene_path
+			and unit.is_under_construction()
+		):
+			count += 1
+	return count
 
 
 func _try_upgrading_a_road():

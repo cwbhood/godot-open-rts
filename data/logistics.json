@@ -1,0 +1,50 @@
+{
+  "jobs": {
+    "tick_s": 0.5,
+    "min_pickup": 4,
+    "site_value": 3.0,
+    "priority_factors": [0.4, 1.0, 2.5],
+    "city_need_share": 0.3,
+    "city_need_factor": 1.5,
+    "load_overhead_s": 3.0
+  },
+  "standby": {
+    "radius_m": 3.5,
+    "max_per_source": 1
+  },
+  "raids": {
+    "avoid_s": 45.0,
+    "radius_m": 9.0,
+    "penalty": 4.0
+  },
+  "extractor_buffer": 16,
+  "storage": {
+    "capacity": 120,
+    "link_radius_m": 12.0,
+    "conveyor_per_s": 1.5,
+    "min_pickup": 8
+  },
+  "train": {
+    "capacity": 40,
+    "laying_speed": 1.4,
+    "track_cost_per_10_m": {
+      "iron": 3,
+      "timber": 1
+    },
+    "stop_s": 2.5,
+    "auto_stops": 3,
+    "auto_min_route_m": 18.0,
+    "max_leg_m": 60.0
+  },
+  "fleet": {
+    "upkeep_oil_per_min": {
+      "hauler": 0.15,
+      "train": 0.5
+    },
+    "surplus_window_s": 60.0,
+    "surplus_idle_share": 0.5,
+    "surplus_spare": 1,
+    "surplus_min": 2,
+    "recycle_refund": 0.75
+  }
+}
