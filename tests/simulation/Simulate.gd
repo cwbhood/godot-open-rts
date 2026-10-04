@@ -68,6 +68,20 @@ func _ready():
 	settings.visibility = settings.Visibility.ALL_PLAYERS
 	settings.visible_player = 0
 	FeatureFlags.handle_match_end = false
+	MatchSignals.diplomacy_changed.connect(
+		func(a, b, state):
+			print(
+				"SIM %.0fs diplomacy P%d-P%d -> %s"
+				% [_elapsed_s, _player_index(a), _player_index(b), ["war", "neutral", "pact", "alliance"][state]]
+			)
+	)
+	MatchSignals.treaty_signed.connect(
+		func(a, b, kind, offered, requested):
+			print(
+				"SIM %.0fs treaty %s P%d-P%d gives %s asks %s"
+				% [_elapsed_s, kind, _player_index(a), _player_index(b), offered, requested]
+			)
+	)
 	_match = load("res://source/match/Match.tscn").instantiate()
 	_match.settings = settings
 	_match.map = load(_args["map"]).instantiate()
@@ -240,3 +254,7 @@ func _finish():
 	file.close()
 	print("SIM done, summary written to ", ProjectSettings.globalize_path(_args["out"]))
 	get_tree().quit()
+
+
+func _player_index(player):
+	return _players().find(player)

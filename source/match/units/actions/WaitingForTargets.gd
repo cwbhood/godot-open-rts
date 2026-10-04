@@ -2,6 +2,7 @@ extends "res://source/match/units/actions/Action.gd"
 
 const AttackingWhileInRange = preload("res://source/match/units/actions/AttackingWhileInRange.gd")
 const AutoAttacking = preload("res://source/match/units/actions/AutoAttacking.gd")
+const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 
 const REFRESH_INTERVAL = 1.0 / 60.0 * 10.0
 
@@ -31,6 +32,7 @@ func _get_units_to_attack():
 		func(unit):
 			return (
 				unit.player != _unit.player
+				and Diplomacy.engages_on_sight(_unit.player, unit.player)
 				and unit.movement_domain in _unit.attack_domains
 				and not (
 					unit.has_method("is_protected_from") and unit.is_protected_from(_unit.player)

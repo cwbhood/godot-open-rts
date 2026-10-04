@@ -201,6 +201,27 @@ class CivilDefense:
 	const POST_COST = {"iron": 4.0, "timber": 2.0}  # paid from the city warehouse
 
 
+class Diplomacy:
+	const PACT_S = 300.0  # non-aggression pact: neither side can harm the other
+	const ALLIANCE_S = 900.0  # an alliance turns into a pact when it runs out
+	# what a treaty is worth to a faction, in trade value (see Trade.value_for), before
+	# scaling by how much stronger the other side is
+	const TREATY_WORTH = {"pact": 15.0, "alliance": 25.0}
+	# what an AI wants for giving up the option to attack, before its personality's
+	# peacefulness divides it; the AI asks for the difference (or pays it, if negative).
+	# Tuned so a balanced AI's price is a fair deal between equally strong factions.
+	const AI_BASE_DEMAND = {"pact": 30.0, "alliance": 50.0}
+	const WAR_WORTH_FACTOR = 1.5  # ending a war is worth more than keeping neutral
+	const AGGRESSOR_GRUDGE = 20.0  # extra an AI asks from whoever started the war
+	const STRENGTH_FLOOR = 300.0  # keeps strength ratios sane early in the match
+	const THREAT_MIN = 0.25
+	const THREAT_MAX = 4.0
+	const AI_DECISION_INTERVAL_S = 20.0
+	const AI_OFFER_COOLDOWN_S = 90.0  # per partner, so the AI does not nag
+	const OFFER_EXPIRY_S = 30.0
+	const ALLY_TRADE_MARGIN = 1.0  # allies trade at fair prices, without the AI's margin
+
+
 class Trade:
 	const PARTNER_COOLDOWN_S = 20.0  # how often a single faction is willing to trade
 	const GROWTH_BOOST_PER_TRADED_VALUE = 0.01  # population/s, for both sides

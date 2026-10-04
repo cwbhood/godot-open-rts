@@ -77,6 +77,8 @@ func _pick_target(raider):
 	for unit in get_tree().get_nodes_in_group("units"):
 		if unit.player == _player or not AutoAttacking.is_applicable(raider, unit):
 			continue
+		if not _ai.wants_to_attack(unit.player):
+			continue
 		var weight = 0.0
 		if unit is Hauler:
 			weight = 1.0

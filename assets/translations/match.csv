@@ -155,3 +155,51 @@ TRADE_VERDICT_BAD,"you give {0}% more than you get, at your current prices","daj
 TRADE_VERDICT_DRAINS,"it would leave you with only {0} {1}","zostałoby ci tylko {0} {1}"
 TRADE_VERDICT_CANNOT_AFFORD,you do not have enough {0},nie masz wystarczająco {0}
 TRADE_VERDICT_FREE,you give nothing away,nic nie oddajesz
+TRADE_RESULT_AT_WAR,"You are at war with them, so they won't trade. Sign a non-aggression pact first (Diplomacy, top of the screen).","Jesteście w stanie wojny, więc nie handlują. Najpierw podpisz pakt o nieagresji (Dyplomacja, góra ekranu)."
+DIPLOMACY,Diplomacy,Dyplomacja
+DIPLOMACY_STATE_WAR,War,Wojna
+DIPLOMACY_STATE_NEUTRAL,Neutral,Neutralni
+DIPLOMACY_STATE_PACT,Pact,Pakt
+DIPLOMACY_STATE_ALLIANCE,Allied,Sojusz
+DIPLOMACY_CHIP_TOOLTIP,Click to see your relations with this faction and offer a pact or an alliance.,"Kliknij, aby zobaczyć relacje z tą frakcją i zaproponować pakt lub sojusz."
+DIPLOMACY_HELP_TOOLTIP,How diplomacy works,Jak działa dyplomacja
+DIPLOMACY_RULES,"Every faction starts Neutral: units only shoot when you order them to, and the first hit on the other side means WAR. At war, units fight on sight and you cannot trade. To end a war, sign a NON-AGGRESSION PACT: for 5 minutes neither of you can shoot the other (others still can), then you are neutral again. Only after a pact (or while neutral) can you ALLY: for 15 minutes you cannot harm each other, you trade at fair prices and an AI ally attacks your enemies. You can have one ally at a time, and only with a faction that has no other ally. When the alliance ends, a 5 minute pact follows, then neutral. Offer treaties for free or with goods; each AI asks a price that depends on its personality and on who is stronger.","Każda frakcja zaczyna jako neutralna: jednostki strzelają tylko na rozkaz, a pierwsze trafienie drugiej strony oznacza WOJNĘ. W czasie wojny jednostki walczą od razu i nie można handlować. Aby zakończyć wojnę, podpisz PAKT O NIEAGRESJI: przez 5 minut żadna strona nie może strzelać do drugiej (inni mogą), potem znów jesteście neutralni. Dopiero po pakcie (albo będąc neutralnym) możesz zawrzeć SOJUSZ: przez 15 minut nie możecie sobie szkodzić, handlujecie po uczciwych cenach, a sojusznik SI atakuje twoich wrogów. Możesz mieć jednego sojusznika naraz i tylko z frakcją bez innego sojusznika. Po sojuszu następuje 5-minutowy pakt, a potem neutralność. Proponuj traktaty za darmo lub za towary; każda SI ma cenę zależną od charakteru i od tego, kto jest silniejszy."
+DIPLOMACY_HELP_WAR,"At war: units fight on sight and you cannot trade. A non-aggression pact is the only way out, and you need one before you can ally.","Wojna: jednostki walczą od razu i nie można handlować. Jedynym wyjściem jest pakt o nieagresji, potrzebny też przed sojuszem."
+DIPLOMACY_HELP_NEUTRAL,"Neutral: units hold fire unless ordered. The first hit, on any unit or caravan, means war.",Neutralni: jednostki nie strzelają bez rozkazu. Pierwsze trafienie jednostki lub karawany oznacza wojnę.
+DIPLOMACY_HELP_PACT,Non-aggression pact: neither of you can shoot the other until it runs out. Others can still attack either of you.,Pakt o nieagresji: do końca paktu żadna strona nie może strzelać do drugiej. Inni wciąż mogą atakować.
+DIPLOMACY_HELP_ALLIANCE,"Allied: no fighting, trades at fair prices, and an AI ally goes after your enemies. A 5 minute pact follows when it ends.","Sojusz: bez walk, handel po uczciwych cenach, a sojusznik SI atakuje twoich wrogów. Po nim następuje 5-minutowy pakt."
+DIPLOMACY_THEY_HAVE_ALLY,They are allied with {0}.,Mają sojusz z {0}.
+DIPLOMACY_OFFER_KIND,Offer,Oferta
+DIPLOMACY_KIND_PACT,Non-aggression pact (5 min),Pakt o nieagresji (5 min)
+DIPLOMACY_KIND_ALLIANCE,Alliance (15 min),Sojusz (15 min)
+DIPLOMACY_USE_THEIR_PRICE,Their price,Ich cena
+DIPLOMACY_USE_THEIR_PRICE_TOOLTIP,Fill in what they ask for this treaty. Set both amounts to 0 to offer it for free.,"Wpisz, czego żądają za ten traktat. Ustaw obie ilości na 0, aby zaproponować go za darmo."
+DIPLOMACY_YOU_GIVE,You give,Dajesz
+DIPLOMACY_YOU_ASK,You ask,Żądasz
+DIPLOMACY_OFFER,Offer treaty,Zaproponuj traktat
+DIPLOMACY_NOTHING,nothing,nic
+DIPLOMACY_PRICE_ASKS,they ask {0},żądają {0}
+DIPLOMACY_PRICE_PAYS,they would sign for free and pay up to {0},podpiszą za darmo i zapłacą do {0}
+DIPLOMACY_PRICE_FREE,they would sign for free,podpiszą za darmo
+DIPLOMACY_PRICE_NEVER,they never make alliances,nigdy nie zawierają sojuszy
+DIPLOMACY_RESULT_ACCEPTED,Signed!,Podpisane!
+DIPLOMACY_RESULT_NEEDS_PACT,"not while at war, sign a non-aggression pact first","nie w czasie wojny, najpierw podpisz pakt o nieagresji"
+DIPLOMACY_RESULT_ALREADY_ALLIED,you already have an ally (one at a time),masz już sojusznika (jednego naraz)
+DIPLOMACY_RESULT_PARTNER_ALLIED,they already have an ally,mają już sojusznika
+DIPLOMACY_RESULT_IN_EFFECT,already in effect,już obowiązuje
+DIPLOMACY_RESULT_REFUSED,They refused. Check their price above or offer more.,Odmówili. Sprawdź ich cenę powyżej lub zaoferuj więcej.
+DIPLOMACY_WORTH_STRONGER,"they are stronger, so this treaty is worth about {0} to you","są silniejsi, więc ten traktat jest wart dla ciebie około {0}"
+DIPLOMACY_WORTH_EVEN,"you are evenly matched, so this treaty is worth about {0} to you","siły są wyrównane, więc ten traktat jest wart dla ciebie około {0}"
+DIPLOMACY_WORTH_WEAKER,"they are weaker, so this treaty is worth only about {0} to you","są słabsi, więc ten traktat jest wart dla ciebie tylko około {0}"
+DIPLOMACY_INCOMING_FREE,{0} offers a {1} for free.,{0} proponuje: {1} za darmo.
+DIPLOMACY_INCOMING_PAYS,{0} offers a {1} and will pay {2}.,{0} proponuje: {1} i zapłaci {2}.
+DIPLOMACY_INCOMING_ASKS,{0} offers a {1} if you pay {3}.,"{0} proponuje: {1}, jeśli zapłacisz {3}."
+DIPLOMACY_TOAST_ATTACKED,{0} attacked you! You are at WAR: no trade until you sign a non-aggression pact.,{0} cię zaatakowała! WOJNA: brak handlu do podpisania paktu o nieagresji.
+DIPLOMACY_TOAST_YOU_ATTACKED,You attacked {0}. You are at WAR: no trade until you sign a non-aggression pact.,Zaatakowałeś {0}. WOJNA: brak handlu do podpisania paktu o nieagresji.
+DIPLOMACY_TOAST_PACT,Non-aggression pact with {0} for 5 minutes. Neither of you can attack the other.,Pakt o nieagresji z {0} na 5 minut. Żadna strona nie może atakować drugiej.
+DIPLOMACY_TOAST_ALLIANCE,Allied with {0} for 15 minutes.,Sojusz z {0} na 15 minut.
+DIPLOMACY_TOAST_ALLIANCE_ENDED,Your alliance with {0} ended. A 5 minute non-aggression pact follows.,Sojusz z {0} wygasł. Następuje 5-minutowy pakt o nieagresji.
+DIPLOMACY_TOAST_NEUTRAL,The pact with {0} ended. You are neutral again: the first hit means war.,Pakt z {0} wygasł. Znów jesteście neutralni: pierwsze trafienie oznacza wojnę.
+DIPLOMACY_TOAST_OTHERS_WAR,{0} and {1} are at war.,{0} i {1} są w stanie wojny.
+DIPLOMACY_TOAST_OTHERS_ALLIANCE,{0} and {1} are now allies.,{0} i {1} zawarły sojusz.
+DIPLOMACY_TOAST_PROTECTED,"You have a treaty with {0} ({1}), so your units won't attack them.","Masz traktat z {0} ({1}), więc twoje jednostki ich nie zaatakują."

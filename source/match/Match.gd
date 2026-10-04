@@ -9,6 +9,8 @@ const Logistics = preload("res://source/match/economy/Logistics.gd")
 const PowerGrid = preload("res://source/match/economy/PowerGrid.gd")
 const WeatherEffects = preload("res://source/match/WeatherEffects.gd")
 const Market = preload("res://source/match/economy/Market.gd")
+const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
+const DiplomacyHud = preload("res://source/match/hud/DiplomacyHud.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const ReplayRecorder = preload("res://source/match/ReplayRecorder.gd")
 const SandboxPanel = preload("res://source/match/hud/SandboxPanel.gd")
@@ -77,6 +79,14 @@ func _ready():
 		var market = Market.new()
 		market.name = "Market"
 		add_child(market)
+	if get_node_or_null("Diplomacy") == null:
+		var diplomacy = Diplomacy.new()
+		diplomacy.name = "Diplomacy"
+		add_child(diplomacy)
+	if $HUD.get_node_or_null("DiplomacyHud") == null:
+		var diplomacy_hud = DiplomacyHud.new()
+		diplomacy_hud.name = "DiplomacyHud"
+		$HUD.add_child(diplomacy_hud)
 	MatchSignals.setup_and_spawn_unit.connect(_setup_and_spawn_unit)
 	_setup_subsystems_dependent_on_map()
 	_setup_players()

@@ -28,7 +28,8 @@ const KNOWN_AI_FIELDS = [
 	"expected_number_of_aa_turrets", "expected_number_of_battlegroups",
 	"expected_number_of_units_in_battlegroup", "raid_party_size", "raid_interval_s",
 	"trade_hoarding_factor", "trade_profit_margin", "trade_offer_interval_s",
-	"proposes_agreements", "upgrades_roads"
+	"proposes_agreements", "upgrades_roads", "peacefulness", "accepts_alliances",
+	"attacks_neutrals"
 ]
 
 var _errors = 0

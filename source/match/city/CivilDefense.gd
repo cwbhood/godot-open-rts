@@ -121,6 +121,7 @@ func _respond_to_threats(core):
 		func(unit):
 			return (
 				unit.player != _city.player
+				and AutoAttacking.Diplomacy.engages_on_sight(_city.player, unit.player)
 				and unit.attack_damage != null
 				and (
 					unit.global_position_yless.distance_to(core.global_position_yless)
