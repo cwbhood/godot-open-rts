@@ -11,6 +11,7 @@ mods add to it or patch it (see [mods](#mods)).
 | `roads.json` | Road levels of supply routes and their cost and speed |
 | `caps.json` | Unit cap, match-wide unit cap, match length and end-of-match score |
 | `logistics.json` | Trucks' job board, extractor buffers, storage, trains, fleet upkeep and recycling |
+| `movement.json` | How ground and air units steer around each other and through crowds |
 | `units/*.json` | One file per unit or structure |
 | `maps/*.json` | One file per playable map |
 | `ai/*.json` | One file per rival AI personality (its play style) |
@@ -132,6 +133,34 @@ are merged key by key.
 
 The train's speed, cost, tier and capacity shown in menus come from `units/train.json`,
 the storage's cost from `units/storage.json`.
+
+## movement.json
+
+Tunables of unit steering, shared by every unit that moves (tanks, haulers, constructors,
+aircraft). A mod's `movement.json` patches single fields.
+
+| Field | Meaning |
+| --- | --- |
+| `crowd_steering` | `false` restores the old movement: everything below is then ignored |
+| `avoidance_time_horizon_s` | How far ahead (seconds) units look for others in their way |
+| `avoidance_neighbor_distance_m`, `avoidance_max_neighbors` | How many nearby units each one steers around |
+| `avoidance_radius_padding_m` | Extra room kept between hulls on top of the unit radius |
+| `path_max_distance_m` | How far a unit may be pushed off its path before it asks for a new one |
+| `path_requests_per_frame` | Cap on new paths per frame; the rest wait a frame, so a big group order does not stutter |
+| `spread_crowded_destinations` | Units sent to the same point, or delivering to the same building, pick free spots next to each other |
+| `destination_spacing_m` | Gap kept between those spots |
+| `arrival_slack_radii`, `arrival_blocked_s` | A unit within this many of its radii of its destination that cannot get closer for this long counts as arrived |
+| `repath_when_stuck_s`, `give_up_when_stuck_s` | A unit that gets no closer for this many seconds asks for a new path (first value) or stops trying (second value, a last resort) |
+| `parked_units_make_way` | Units standing still move aside for units on the move, instead of both steering around each other |
+| `keep_on_navmesh_every_ticks` | How often units that were pushed are put back onto walkable ground (0 turns it off) |
+
+Check movement in a staged test (head-on groups, a choke point, a crowd sent to one point, a
+factory producing into its rally point, crossing columns, orders onto a building):
+
+```
+xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 \
+  res://tests/movement/MovementScenarios.tscn -- --out=/tmp/movement
+```
 
 ## units/*.json
 

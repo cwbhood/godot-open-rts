@@ -15,7 +15,7 @@ func _init(target_position):
 
 
 func _ready():
-	_movement_trait.move(_target_position)
+	_movement_trait.move(_pick_destination())
 	_movement_trait.movement_finished.connect(_on_movement_finished)
 
 
@@ -27,6 +27,13 @@ func get_plan():
 func _exit_tree():
 	if is_inside_tree():
 		_movement_trait.stop()
+
+
+func _pick_destination():
+	"""a free spot near the ordered point, so that units sent to one place spread out"""
+	if _movement_trait.has_method("free_spot_near"):
+		return _movement_trait.free_spot_near(_target_position)
+	return _target_position
 
 
 func _on_movement_finished():

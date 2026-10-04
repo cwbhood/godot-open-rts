@@ -128,6 +128,10 @@ func _get_movement_speed():
 	return 0.0
 
 
+func get_movement_trait():
+	return _cached_child("Movement")
+
+
 func _cached_child(child_name):
 	"""find_child walks the whole model, which is too slow for the per-tick reads above"""
 	if child_name in _child_cache:

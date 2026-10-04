@@ -177,6 +177,10 @@ static func voice_set_id_for(unit_entry):
 	return defaults.get("unit")
 
 
+static func movement():
+	return get_data()["movement"]
+
+
 static func is_generated_scene(scene_path):
 	return scene_path.begins_with(GENERATED_SCENES_ROOT)
 
@@ -339,6 +343,7 @@ static func _load_all():
 		"logistics": _parse_dict_file(BASE_DATA_DIR + "/logistics.json"),
 		"voices": _parse_dict_file(BASE_DATA_DIR + "/sounds/voices.json"),
 		"voice_sets": _load_dir(BASE_DATA_DIR + "/sounds/voice_sets"),
+		"movement": _load_object_file(BASE_DATA_DIR + "/movement.json").get("movement", {}),
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -359,6 +364,9 @@ static func _load_all():
 		_deep_merge(data["logistics"], _parse_dict_file(mod_dir + "/logistics.json"))
 		_merge_voices(data["voices"], _parse_dict_file(mod_dir + "/sounds/voices.json"))
 		_merge_voice_sets(data["voice_sets"], _load_dir(mod_dir + "/sounds/voice_sets"))
+		data["movement"].merge(
+			_load_object_file(mod_dir + "/movement.json").get("movement", {}), true
+		)
 	if use_classic_models():
 		for unit in data["units"]:
 			_use_classic_model(unit)

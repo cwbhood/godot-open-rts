@@ -19,6 +19,41 @@ const PASSIVE_MOVEMENT_TRACKING_ENABLED = true
 
 const WaterMotion = preload("res://source/match/units/traits/WaterMotion.gd")
 
+# Crowd steering (data/movement.json, "crowd_steering"): avoidance works in m/s so units
+# actually see each other coming, path queries are capped per frame, crowded destinations are
+# spread out, units blocked near their destination stop pushing, stuck units re-path and give
+# up eventually, and pushed units are kept on the navmesh. With it off, units move as before.
+const GameData = preload("res://source/data-model/GameData.gd")
+const DEFAULT_SETTINGS = {
+	"crowd_steering": true,
+	"avoidance_time_horizon_s": 1.5,
+	"avoidance_neighbor_distance_m": 6.0,
+	"avoidance_max_neighbors": 12,
+	"avoidance_radius_padding_m": 0.0,
+	"path_max_distance_m": 1.5,
+	"path_requests_per_frame": 24,
+	"spread_crowded_destinations": true,
+	"destination_spacing_m": 0.4,
+	"arrival_slack_radii": 4.0,
+	"arrival_blocked_s": 1.0,
+	"repath_when_stuck_s": 2.0,
+	"give_up_when_stuck_s": 30.0,
+	"keep_on_navmesh_every_ticks": 6,
+	"parked_units_make_way": true,
+}
+const PROGRESS_EPSILON_M = 0.05
+const MOVING_PRIORITY = 1.0
+const PARKED_PRIORITY = 0.5
+const SPOT_SEARCH_RINGS = 6
+const ON_NAVMESH_TOLERANCE_M = 0.2
+
+static var _settings = null
+static var _path_budget_frame = -1
+static var _path_budget_left = 0
+static var _idle_units = {}
+static var _idle_units_frame = -1
+static var _claims = {}  # instance id -> [unit, destination] of units heading to a picked spot
+
 @export var domain = Constants.Match.Navigation.Domain.TERRAIN
 @export var speed: float = 4.0
 
@@ -36,11 +71,22 @@ var _passive_movement_detected = false
 var _weather = null
 var _water_motion = null  # WaterMotion.gd on maps with water
 
+var _crowd = false
+var _pending_target = null
+var _best_distance = INF
+var _stuck_s = 0.0
+var _repathed = false
+var _navmesh_tick = randi() % 64
+var _moved_since_navmesh_check = true
+
 @onready var _match = find_parent("Match")
 @onready var _unit = get_parent()
 
 
 func _physics_process(delta):
+	if _crowd:
+		_crowd_physics_process(delta)
+		return
 	_interim_speed = speed * get_speed_multiplier() * delta  # also caps how far a push moves
 	if not _has_target():
 		# idle: the velocity still has to be submitted so that avoidance can push the unit
@@ -66,6 +112,7 @@ func _ready():
 	navigation_finished.connect(_on_navigation_finished)
 	set_navigation_map(_match.navigation.get_navigation_map_rid_by_domain(domain))
 	_setup_water_motion()
+	_setup_crowd_steering()
 	_align_unit_position_to_navigation()
 	move(
 		(
@@ -105,12 +152,114 @@ func _setup_water_motion():
 	_water_motion.setup.call_deferred(domain, a_map, self)
 
 
+static func settings():
+	if _settings == null:
+		_settings = DEFAULT_SETTINGS.duplicate()
+		_settings.merge(GameData.movement(), true)
+	return _settings
+
+
 func move(movement_target: Vector3):
-	target_position = movement_target
+	if not _crowd:
+		target_position = movement_target
+		return
+	_best_distance = INF
+	_stuck_s = 0.0
+	_repathed = false
+	if _take_path_budget():
+		_pending_target = null
+		target_position = movement_target
+	else:
+		_pending_target = movement_target  # asked for its path on a later frame
 
 
 func stop():
+	_pending_target = null
+	_release_claim()
 	target_position = Vector3.INF
+
+
+func free_spot_near(point: Vector3) -> Vector3:
+	"""a reachable spot near point that no idle unit stands on and no other unit is heading
+	to, so that a crowd sent to one place spreads out instead of fighting over it"""
+	if not _crowd or not settings()["spread_crowded_destinations"]:
+		return point
+	var map = get_navigation_map()
+	var center = NavigationServer3D.map_get_closest_point(map, point)
+	var occupants = _occupants_near(center, _spot_step() * (SPOT_SEARCH_RINGS + 1))
+	var step = _spot_step()
+	var start_angle = (
+		Vector2(_unit.global_position.x - center.x, _unit.global_position.z - center.z).angle()
+	)
+	# the first ring with a free spot and the one after it are both considered, and the spot
+	# nearest to the unit wins: a unit should not cross a parked crowd to its far side
+	var best = null
+	var best_cost = INF
+	var last_ring = SPOT_SEARCH_RINGS
+	for ring in range(SPOT_SEARCH_RINGS + 1):
+		if ring > last_ring:
+			break
+		var count = 1 if ring == 0 else int(ceil(TAU * ring))
+		for index in range(count):
+			var angle = start_angle + _alternating(index) * TAU / count
+			var candidate = center + Vector3(cos(angle), 0, sin(angle)) * ring * step
+			if not _is_spot_free(candidate, occupants):
+				continue  # cheap test first, navmesh queries are the costly part
+			var spot = _reachable(map, candidate)
+			if spot == null or not _is_spot_free(spot, occupants):
+				continue
+			if ring == 0:
+				_claim(spot)
+				return spot
+			var cost = ring * step + 0.5 * spot.distance_to(_unit.global_position)
+			if cost < best_cost:
+				best = spot
+				best_cost = cost
+				last_ring = min(last_ring, ring + 1)
+	if best == null:
+		return center
+	_claim(best)
+	return best
+
+
+func approach_spot_for(target_unit) -> Variant:
+	"""a free reachable spot next to target_unit, close enough to count as adhering to it;
+	null when every side is taken (the caller waits nearby and asks again)"""
+	if not _crowd or not settings()["spread_crowded_destinations"]:
+		return null
+	var map = get_navigation_map()
+	var center = target_unit.global_position_yless
+	var reach = target_unit.radius + radius + Constants.Match.Units.ADHERENCE_MARGIN_M - 0.05
+	var ring = max(target_unit.radius + radius - target_desired_distance, target_unit.radius)
+	var occupants = _occupants_near(center, reach + _spot_step() * 2.0)
+	# spots snap out to the navmesh edge, which can lie further out than the ring
+	var count = max(6, int(ceil(TAU * reach / _spot_step())))
+	var start_angle = (
+		Vector2(_unit.global_position.x - center.x, _unit.global_position.z - center.z).angle()
+	)
+	var any_within_reach = false
+	for index in range(count):
+		var angle = start_angle + _alternating(index) * TAU / count
+		var candidate = center + Vector3(cos(angle), 0, sin(angle)) * ring
+		var spot = NavigationServer3D.map_get_closest_point(map, candidate)
+		if (spot * Vector3(1, 0, 1)).distance_to(center) > reach:
+			continue
+		any_within_reach = true
+		if _is_spot_free(spot, occupants, 0.0):
+			_claim(spot)
+			return spot
+	# buildings squeezed against deposits or other buildings may leave only a sliver of
+	# walkable ground next to them that no sampled side hits: the point closest to the
+	# centre is then the one to go for, as before
+	var nearest = NavigationServer3D.map_get_closest_point(map, center)
+	if (nearest * Vector3(1, 0, 1)).distance_to(center) <= reach:
+		if _is_spot_free(nearest, occupants, 0.0):
+			_claim(nearest)
+			return nearest
+		return null  # every side is taken: wait for one to free up
+	if any_within_reach:
+		return null
+	return nearest  # out of reach anyway, but the closest anyone can get
 
 
 func _align_unit_position_to_navigation():
@@ -124,18 +273,19 @@ func _align_unit_position_to_navigation():
 
 
 func _has_target():
-	return target_position != Vector3.INF
+	return target_position != Vector3.INF or _pending_target != null
 
 
 func _is_moving_actively():
 	# stop() parks the target at infinity, which never has a path: the agent then reports the
 	# unit's own position as the next one, so there is no need to ask it
-	return _has_target() and get_next_path_position() != _unit.global_position
+	return target_position != Vector3.INF and get_next_path_position() != _unit.global_position
 
 
 func _get_fake_direction_due_to_stuck_prevention():
 	if (
 		not STUCK_PREVENTION_ENABLED
+		or _crowd  # its blind sidesteps pinned queueing units against walls; see _track_progress
 		or not _is_moving_actively()
 		or _number_of_forced_side_moves_left == 0
 	):
@@ -230,14 +380,188 @@ func _on_velocity_computed(safe_velocity: Vector3):
 		# an idle unit nobody pushes: nothing moves, so skip touching its transform
 		_update_passive_movement_tracking(safe_velocity, moving_actively)
 		return
-	_update_stuck_prevention(safe_velocity, moving_actively)
-	_rotate_in_direction(safe_velocity * Vector3(1, 0, 1))
+	var step = safe_velocity
+	if _crowd:
+		# avoidance works in m/s here: turn the velocity into this tick's displacement
+		step = safe_velocity * get_physics_process_delta_time()
+	if not _crowd:
+		_update_stuck_prevention(step, moving_actively)
+	_rotate_in_direction(step * Vector3(1, 0, 1))
 	var origin = _unit.global_position
-	_unit.global_position = origin.move_toward(origin + safe_velocity, _interim_speed)
+	_unit.global_position = origin.move_toward(origin + step, _interim_speed)
+	_moved_since_navmesh_check = true
 	_previously_set_global_transform_of_unit = _unit.global_transform
 	_update_passive_movement_tracking(safe_velocity, moving_actively)
 
 
 func _on_navigation_finished():
+	_release_claim()
 	target_position = Vector3.INF
 	movement_finished.emit()
+
+
+# crowd steering ----------------------------------------------------------------------------
+
+
+func _setup_crowd_steering():
+	var tunables = settings()
+	_crowd = tunables["crowd_steering"]
+	if not _crowd:
+		return
+	time_horizon_agents = tunables["avoidance_time_horizon_s"]
+	neighbor_distance = tunables["avoidance_neighbor_distance_m"]
+	max_neighbors = int(tunables["avoidance_max_neighbors"])
+	path_max_distance = max(path_max_distance, tunables["path_max_distance_m"])
+	# a little more room than the gameplay radius, so hulls don't brush; the radius itself
+	# stays as it is because adherence, placement and attack ranges are measured with it
+	NavigationServer3D.agent_set_radius(get_rid(), radius + tunables["avoidance_radius_padding_m"])
+
+
+func _crowd_physics_process(delta):
+	var full_speed = speed * get_speed_multiplier()
+	_interim_speed = full_speed * delta  # also caps how far a push moves
+	if not is_equal_approx(max_speed, full_speed):
+		max_speed = full_speed
+	if _pending_target != null and _take_path_budget():
+		target_position = _pending_target
+		_pending_target = null
+	_keep_on_navmesh()
+	# units on the move don't steer around parked ones, the parked ones make way instead:
+	# otherwise a parked crowd (at a rally point, say) walls in every newcomer
+	var priority = MOVING_PRIORITY if target_position != Vector3.INF else PARKED_PRIORITY
+	if avoidance_priority != priority and settings()["parked_units_make_way"]:
+		avoidance_priority = priority
+	if target_position == Vector3.INF:
+		set_velocity(Vector3.ZERO)  # idle: avoidance can still push the unit aside
+		return
+	if _track_progress(delta):
+		return
+	var next_path_position: Vector3 = get_next_path_position()
+	set_velocity((next_path_position - _unit.global_position).normalized() * full_speed)
+
+
+func _track_progress(delta):
+	"""stops units that keep pushing into a crowd at their destination, re-paths and finally
+	gives up on units that make no progress at all; returns true when movement was ended"""
+	var tunables = settings()
+	var distance = _unit.global_position_yless.distance_to(target_position * Vector3(1, 0, 1))
+	if distance < _best_distance - PROGRESS_EPSILON_M:
+		_best_distance = distance
+		_stuck_s = 0.0
+		_repathed = false
+		return false
+	_stuck_s += delta
+	if (
+		distance <= radius * tunables["arrival_slack_radii"]
+		and _stuck_s >= tunables["arrival_blocked_s"]
+	):
+		_on_navigation_finished()  # close enough, the spot is taken
+		return true
+	if _stuck_s >= tunables["give_up_when_stuck_s"]:
+		_on_navigation_finished()
+		return true
+	if not _repathed and _stuck_s >= tunables["repath_when_stuck_s"]:
+		_repathed = true
+		if _take_path_budget():
+			target_position = target_position  # asks the agent for a fresh path
+	return false
+
+
+func _keep_on_navmesh():
+	"""avoidance pushes are not bound to the navmesh: pull units that were pushed off it
+	(into a building's footprint or off the map) back onto it"""
+	var every = int(settings()["keep_on_navmesh_every_ticks"])
+	if every <= 0 or domain != Constants.Match.Navigation.Domain.TERRAIN:
+		return
+	_navmesh_tick += 1
+	if _navmesh_tick % every != 0 or not _moved_since_navmesh_check:
+		return  # units standing still cost nothing here
+	_moved_since_navmesh_check = false
+	var position = _unit.global_position
+	var closest = NavigationServer3D.map_get_closest_point(get_navigation_map(), position)
+	if Vector2(closest.x - position.x, closest.z - position.z).length() > ON_NAVMESH_TOLERANCE_M:
+		_unit.global_position = Vector3(closest.x, position.y, closest.z)
+
+
+static func _take_path_budget():
+	var frame = Engine.get_physics_frames()
+	if frame != _path_budget_frame:
+		_path_budget_frame = frame
+		_path_budget_left = int(settings()["path_requests_per_frame"])
+	if _path_budget_left <= 0:
+		return false
+	_path_budget_left -= 1
+	return true
+
+
+func _spot_step():
+	return radius * 2.0 + settings()["destination_spacing_m"]
+
+
+static func _alternating(index):
+	"""0, 1, -1, 2, -2, ... so that the search fans out from the preferred direction"""
+	return int((index + 1) / 2.0) * (1 if index % 2 == 1 else -1)
+
+
+func _reachable(map, candidate):
+	var spot = NavigationServer3D.map_get_closest_point(map, candidate)
+	if Vector2(spot.x - candidate.x, spot.z - candidate.z).length() > ON_NAVMESH_TOLERANCE_M:
+		return null
+	return spot
+
+
+func _occupants_near(center, distance):
+	"""[position, radius] of idle units standing near center and of spots others head to"""
+	var occupants = []
+	var center_yless = center * Vector3(1, 0, 1)
+	for idle in _idle_units_by_domain().get(domain, []):
+		if idle[0] != _unit and idle[1].distance_to(center_yless) <= distance:
+			occupants.append([idle[1], idle[2]])
+	for id in _claims:
+		var claim = _claims[id]
+		if id == _unit.get_instance_id() or not is_instance_valid(claim[0]):
+			continue
+		if claim[1].distance_to(center_yless) <= distance:
+			occupants.append([claim[1], claim[0].radius])
+	return occupants
+
+
+func _idle_units_by_domain():
+	"""domain -> [[unit, position, radius]] of units standing still, gathered once per frame:
+	a big group order asks for it once per unit"""
+	var frame = Engine.get_physics_frames()
+	if frame == _idle_units_frame:
+		return _idle_units
+	_idle_units_frame = frame
+	_idle_units = {}
+	for unit in get_tree().get_nodes_in_group("units"):
+		var movement = unit.get_movement_trait() if unit.has_method("get_movement_trait") else null
+		if movement == null or not is_instance_valid(movement) or movement._has_target():
+			continue  # structures are off the navmesh already; moving units have a claim
+		_idle_units.get_or_add(movement.domain, []).append(
+			[unit, unit.global_position_yless, movement.radius]
+		)
+	return _idle_units
+
+
+func _is_spot_free(spot, occupants, spacing = null):
+	var spot_yless = spot * Vector3(1, 0, 1)
+	if spacing == null:
+		spacing = settings()["destination_spacing_m"]
+	for occupant in occupants:
+		if spot_yless.distance_to(occupant[0]) < radius + occupant[1] + spacing:
+			return false
+	return true
+
+
+func _claim(spot):
+	_claims[_unit.get_instance_id()] = [_unit, spot * Vector3(1, 0, 1)]
+
+
+func _release_claim():
+	if _unit != null:
+		_claims.erase(_unit.get_instance_id())
+
+
+func _exit_tree():
+	_release_claim()
