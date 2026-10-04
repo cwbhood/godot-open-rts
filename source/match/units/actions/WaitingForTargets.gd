@@ -28,6 +28,8 @@ func is_idle():
 
 
 func _get_units_to_attack():
+	if _unit.get_meta("hold_fire", false):
+		return []  # e.g. the helper's scout: it looks, it does not fight
 	# every idle armed unit runs this six times a second against every unit of the match, so
 	# the cheap distance test goes first and the weather-dependent sight range is read once
 	var sight_range = _unit.sight_range

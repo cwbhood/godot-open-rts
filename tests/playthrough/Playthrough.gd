@@ -13,6 +13,11 @@ extends Node
 # --out and exits with code 1 when it found problems. A crash, freeze or error storm also
 # leaves crash_report.txt/json in --out (see source/crash/CrashReporter.gd); after a hard
 # crash it appears there on the next Godot launch, or run tools/crash/Collect.tscn.
+#
+# --helper=on switches the player's helper on through its HUD switch after the opening
+# and stops the bot from attacking, so the match shows what the helper does alone: it
+# reports a bug when the player's side starts a war or loses a constructor to an enemy
+# the helper knew about.
 
 const Human = preload("res://source/match/players/human/Human.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
@@ -22,6 +27,7 @@ const Hauler = preload("res://source/match/units/Hauler.gd")
 const Drone = preload("res://source/match/units/Drone.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const AutoExpand = preload("res://source/match/units/traits/AutoExpand.gd")
+const Helper = preload("res://source/match/players/human/Helper.gd")
 const Trade = preload("res://source/match/city/Trade.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
@@ -84,6 +90,7 @@ var _args = {
 	"shots-every": "180",
 	"seed": "1",
 	"steps": "24",  # physics steps per rendered frame, so game time keeps up on slow GPUs
+	"helper": "off",
 }
 var _logger = ErrorLogger.new()
 var _match = null
@@ -233,6 +240,8 @@ func _opening():
 	await _place_extractor_by_hover(builder, "oil")
 	if workers.size() > 1:
 		await _toggle_auto_expand(workers[1], true)
+	if _args["helper"] == "on":
+		await _switch_helper_on()
 	await _shot("01-opening")
 
 
@@ -259,7 +268,10 @@ func _think():
 		await _diplomacy_round()
 	if int(_elapsed_s) % 120 < 8:
 		await _cycle_weather()
-	await _maybe_attack()
+	if _args["helper"] == "on":
+		_check_helper()
+	else:
+		await _maybe_attack()
 	await _answer_offers()
 
 
@@ -323,6 +335,51 @@ func _produce_army(stock):
 			await _produce_at(base, UNITS + "Worker.tscn")
 		elif drones < 2 and _human.can_produce(UNITS + "Drone.tscn"):
 			await _produce_at(base, UNITS + "Drone.tscn")
+
+
+func _switch_helper_on():
+	var panel = _match.find_child("HelperPanel", true, false)
+	if panel == null:
+		_finding("helper", "there is no helper panel")
+		return
+	await _click_control(panel.get("_switch"), "helper switch")
+	await _frames(4)
+	var helper = Helper.of(_human)
+	if helper == null or not helper.enabled:
+		_finding("helper", "clicking the helper switch did not turn it on")
+		return
+	MatchSignals.unit_died.connect(_on_unit_died_with_helper)
+	_say("helper on")
+
+
+func _check_helper():
+	var helper = Helper.of(_human)
+	if helper == null or not helper.enabled:
+		return
+	for player in get_tree().get_nodes_in_group("players"):
+		if player == _human or not Diplomacy.at_war(_human, player):
+			continue
+		if Diplomacy.instance.aggressor(_human, player) == _human:
+			_finding("helper", "the player's side started a war with the helper on")
+	if helper.stats["attack_orders"] > 0:
+		_finding("helper", "the helper gave an attack order")
+	_stats["helper"] = helper.stats.duplicate()
+	_stats["helper"]["known_threats"] = helper.known_threats()
+
+
+func _on_unit_died_with_helper(unit):
+	if not is_instance_valid(unit) or unit.player != _human or not unit is Worker:
+		return
+	var helper = Helper.of(_human)
+	var known = helper != null and helper.is_dangerous(unit.global_position, 6.0)
+	_finding(
+		"helper",
+		(
+			"a constructor died %s"
+			% ("next to enemies the helper knew about" if known else "to enemies nobody had seen")
+		),
+		known
+	)
 
 
 func _maybe_attack():
