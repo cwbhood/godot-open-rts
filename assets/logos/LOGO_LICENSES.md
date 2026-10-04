@@ -1,3 +1,7 @@
+# `ironbound_emblem.svg` (also `res://icon.svg`)
+
+Ironbound emblem, made for this project. MIT, like the rest of the code.
+
 # `godot_logo_vertical_monochrome_dark_312x357.png`
 
 Godot Engine Logo Copyright (c) 2017 Andrea Calabró
@@ -6,8 +10,6 @@ This logo is licensed under a Creative Commons Attribution 4.0 International Lic
 
 See https://github.com/godotengine/godot
 
-# `lampe_games_white.svg`
+# Lampe Games logo
 
-Lampe Games Logo Copyright (c) 2022
-
-This logo is fully owned (all rights reserved) by Lampe Games and should not be used in any projects derived from original https://github.com/lampe-games/godot-open-rts project.
+The Lampe Games logo shipped with the original Open RTS is all rights reserved and must not be used in derived projects, so Ironbound does not include it.

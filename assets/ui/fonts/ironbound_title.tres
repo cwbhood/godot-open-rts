@@ -1,0 +1,10 @@
+[gd_resource type="FontVariation" load_steps=2 format=3]
+
+[ext_resource type="FontFile" path="res://assets/ui/fonts/big-shoulders-stencil-display-900.woff2" id="1"]
+
+[resource]
+base_font = ExtResource("1")
+variation_opentype = {
+2003265652: 900
+}
+spacing_glyph = 2

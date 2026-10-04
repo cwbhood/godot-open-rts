@@ -20,6 +20,7 @@ sources are used.
 Third-party assets that were already in the project keep their own licenses:
 
 - 3D Space Kit by Kenney.nl (CC0), `assets/models/kenney-spacekit/`
-- Godot and Lampe Games logos, see `LOGO_LICENSES.md`
+- Godot logo (CC-BY 4.0), see `LOGO_LICENSES.md`; the Lampe Games logo was removed
+- Fonts in `assets/ui/fonts/`: Barlow, Big Shoulders Stencil Display and IBM Plex Mono, SIL Open Font License 1.1 (licence texts beside them)
 - The upstream unit and narrator voice lines made with ttsmaker.com (`assets/voice/`) were
   replaced by the voices above and removed.

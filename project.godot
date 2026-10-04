@@ -10,17 +10,20 @@ config_version=5
 
 [application]
 
-config/name="Open RTS"
+config/name="Ironbound"
 config/version="0.9.0"
 run/main_scene="res://source/Main.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
-boot_splash/bg_color=Color(0, 0, 0, 1)
-boot_splash/image="res://assets/logos/godot_logo_vertical_monochrome_dark_312x357.png"
+boot_splash/bg_color=Color(0.0784, 0.0667, 0.051, 1)
+boot_splash/image="res://assets/logos/ironbound_splash.png"
 boot_splash/fullsize=false
 config/icon="res://icon.svg"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Ironbound"
 
 [autoload]
 
+UserDataMigration="*res://source/UserDataMigration.gd"
 FeatureFlags="*res://source/FeatureFlags.tscn"
 Constants="*res://source/Constants.gd"
 Globals="*res://source/Globals.gd"
@@ -46,7 +49,7 @@ window/size/viewport_height=1080
 
 [dotnet]
 
-project/assembly_name="Open RTS"
+project/assembly_name="Ironbound"
 
 [ironbound]
 

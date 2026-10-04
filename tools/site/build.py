@@ -394,7 +394,7 @@ DOWNLOAD = f"""
         <h3>Linux</h3>
         <ol><li>Unzip <code>Ironbound-linux-x86_64.zip</code>.</li><li>Run <code>./Ironbound.x86_64</code> from the folder. If it will not start, run <code>chmod +x Ironbound.x86_64</code> first.</li></ol>
         <h3>macOS</h3>
-        <ol><li>Unzip <code>Ironbound-macos-universal.zip</code> and move the app inside (named <code>Open RTS.app</code> for now) to Applications.</li><li>Right-click (or Control-click) the app, choose <em>Open</em>, then <em>Open</em> again.</li><li>On macOS 15 or later, try to open it once, then go to <em>System Settings</em> &rsaquo; <em>Privacy &amp; Security</em> and click <em>Open Anyway</em>.</li></ol>
+        <ol><li>Unzip <code>Ironbound-macos-universal.zip</code> and move the app inside (<code>Ironbound.app</code>) to Applications.</li><li>Right-click (or Control-click) the app, choose <em>Open</em>, then <em>Open</em> again.</li><li>On macOS 15 or later, try to open it once, then go to <em>System Settings</em> &rsaquo; <em>Privacy &amp; Security</em> and click <em>Open Anyway</em>.</li></ol>
         <p>In the game, press <kbd>F1</kbd> any time for the manual.</p>
       </section>
       <section>
@@ -735,9 +735,9 @@ SUPPORT_DOCS = docs_page([
     ("contents", "What a report contains", '''<p>Game version and build, Godot version, the map, players and AI styles, match time, weather, unit count, frame rate and memory, your OS, CPU and GPU, the most frequent errors with their call stacks, the crash backtrace and the last log lines.</p>
 <p><strong>It contains no names, accounts or addresses.</strong> Folder paths are shortened so your user name does not appear.</p>'''),
     ("where", "Where reports are kept", '''<div class="table-wrap"><table><thead><tr><th>System</th><th>Folder</th></tr></thead><tbody>
-<tr><td>Windows</td><td><code>%APPDATA%\\Godot\\app_userdata\\Open RTS\\crash_reports</code></td></tr>
-<tr><td>Linux</td><td><code>~/.local/share/godot/app_userdata/Open RTS/crash_reports</code></td></tr>
-<tr><td>macOS</td><td><code>~/Library/Application Support/Godot/app_userdata/Open RTS/crash_reports</code></td></tr>
+<tr><td>Windows</td><td><code>%APPDATA%\\Ironbound\\crash_reports</code></td></tr>
+<tr><td>Linux</td><td><code>~/.local/share/Ironbound/crash_reports</code></td></tr>
+<tr><td>macOS</td><td><code>~/Library/Application Support/Ironbound/crash_reports</code></td></tr>
 </tbody></table></div>'''),
     ("manual", "Report a problem by hand", f'''<p>For bugs that are not crashes, <a href="{REPO}/issues/new">open an issue</a>: say what you did, what you expected and what happened, and attach a screenshot if you can. A GitHub account is needed.</p>'''),
 ])
