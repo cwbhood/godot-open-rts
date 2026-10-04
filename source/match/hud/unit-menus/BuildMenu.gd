@@ -152,6 +152,10 @@ static func describe(entry):
 				]
 			)
 		)
+	if "extracts" in entry:
+		lines.append(TranslationServer.translate("EXTRACTOR_PLACEMENT_HINT"))
+	if entry.get("category") == "structure":
+		lines.append(TranslationServer.translate("STRUCTURE_BUILD_HINT"))
 	var cost_parts = []
 	for resource in Constants.Match.Resources.ALL:
 		if entry.get("cost", {}).get(resource, 0) > 0:

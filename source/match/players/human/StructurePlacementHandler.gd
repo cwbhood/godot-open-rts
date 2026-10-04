@@ -267,10 +267,11 @@ func _finish_structure_placement():
 			_pending_structure_prototype.resource_path
 		]
 		_player.subtract_resources(construction_cost)
+		var structure = _pending_structure_prototype.instantiate()
+		# only sites laid out by hand pull the selected constructors (see UnitActionsController)
+		structure.set_meta("placed_by_hand", true)
 		MatchSignals.setup_and_spawn_unit.emit(
-			_pending_structure_prototype.instantiate(),
-			_active_blueprint_node.global_transform,
-			_player
+			structure, _active_blueprint_node.global_transform, _player
 		)
 	_cancel_structure_placement()
 

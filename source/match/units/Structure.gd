@@ -5,6 +5,7 @@ signal constructed
 const UNDER_CONSTRUCTION_MATERIAL = preload(
 	"res://source/match/resources/materials/structure_under_construction.material.tres"
 )
+const SiteStatusLabel = preload("res://source/match/units/traits/SiteStatusLabel.gd")
 
 # Construction materials are paid up front (see StructurePlacementHandler and the AI) and
 # then wait at a depot until they reach the site, either straight from the yard of a
@@ -24,6 +25,12 @@ var _construction_progress = 1.0
 		pass
 
 
+func _ready():
+	await super()
+	if is_under_construction():
+		_change_geometry_material(UNDER_CONSTRUCTION_MATERIAL)  # again, for the swapped-in model
+
+
 func is_revealing():
 	return super() and is_constructed()
 
@@ -35,6 +42,9 @@ func mark_as_under_construction():
 	var cost = Constants.Match.Units.CONSTRUCTION_COSTS.get(_scene_path(), {})
 	materials_pending = cost.duplicate()
 	materials_total = Utils.Dict.sum(cost)
+	var label = SiteStatusLabel.new()
+	label.name = "SiteStatusLabel"
+	add_child(label)
 	if hp == null:
 		await ready
 	hp = 1
@@ -137,6 +147,8 @@ func _finish_construction():
 
 
 func _change_geometry_material(material):
-	for child in find_child("Geometry").find_children("*"):
+	# owned = false: the model swapped in from data/units (GameData.apply_model) is added at
+	# runtime and has no owner, so the default lookup skipped it and sites looked finished
+	for child in find_child("Geometry").find_children("*", "", true, false):
 		if "material_override" in child:
 			child.material_override = material
