@@ -1,0 +1,328 @@
+{
+  "id": "advisor",
+  "kind": "advisor",
+  "description": "Base advisor announcements",
+  "folder": "res://assets/audio/voices/advisor/",
+  "lines": {
+    "match_started": [
+      {
+        "file": "match_started_01.ogg",
+        "text": "Battle control online.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "match_started_02.ogg",
+        "text": "Systems online. Welcome, commander.",
+        "speaker": "af_heart"
+      }
+    ],
+    "match_aborted": [
+      {
+        "file": "match_aborted_01.ogg",
+        "text": "Battle control offline.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "match_aborted_02.ogg",
+        "text": "Signing off.",
+        "speaker": "af_heart"
+      }
+    ],
+    "victory": [
+      {
+        "file": "victory_01.ogg",
+        "text": "You are victorious.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "victory_02.ogg",
+        "text": "Victory. The desert is ours.",
+        "speaker": "af_heart"
+      }
+    ],
+    "defeat": [
+      {
+        "file": "defeat_01.ogg",
+        "text": "You have lost.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "defeat_02.ogg",
+        "text": "Mission failed. Our base has fallen.",
+        "speaker": "af_heart"
+      }
+    ],
+    "base_under_attack": [
+      {
+        "file": "base_under_attack_01.ogg",
+        "text": "Our base is under attack.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "base_under_attack_02.ogg",
+        "text": "Warning, the base is under attack.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "base_under_attack_03.ogg",
+        "text": "Enemy forces at the base.",
+        "speaker": "af_heart"
+      }
+    ],
+    "unit_lost": [
+      {
+        "file": "unit_lost_01.ogg",
+        "text": "Unit lost.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "unit_lost_02.ogg",
+        "text": "We lost a unit.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "unit_lost_03.ogg",
+        "text": "Unit destroyed.",
+        "speaker": "af_heart"
+      }
+    ],
+    "training": [
+      {
+        "file": "training_01.ogg",
+        "text": "Training.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "training_02.ogg",
+        "text": "Production started.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "training_03.ogg",
+        "text": "Building.",
+        "speaker": "af_heart"
+      }
+    ],
+    "construction_complete": [
+      {
+        "file": "construction_complete_01.ogg",
+        "text": "Construction complete.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "construction_complete_02.ogg",
+        "text": "Building finished.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "construction_complete_03.ogg",
+        "text": "Structure ready.",
+        "speaker": "af_heart"
+      }
+    ],
+    "research_complete": [
+      {
+        "file": "research_complete_01.ogg",
+        "text": "Research complete.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "research_complete_02.ogg",
+        "text": "New technology available.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "research_complete_03.ogg",
+        "text": "Our scientists made a breakthrough.",
+        "speaker": "af_heart"
+      }
+    ],
+    "tier_industrial": [
+      {
+        "file": "tier_industrial_01.ogg",
+        "text": "Industrial age reached. New units available.",
+        "speaker": "af_heart"
+      }
+    ],
+    "tier_electric": [
+      {
+        "file": "tier_electric_01.ogg",
+        "text": "Electric age reached. Advanced units available.",
+        "speaker": "af_heart"
+      }
+    ],
+    "not_enough_resources": [
+      {
+        "file": "not_enough_resources_01.ogg",
+        "text": "Not enough resources.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "not_enough_resources_02.ogg",
+        "text": "Insufficient funds.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "not_enough_resources_03.ogg",
+        "text": "We can't afford that.",
+        "speaker": "af_heart"
+      }
+    ],
+    "cannot_place": [
+      {
+        "file": "cannot_place_01.ogg",
+        "text": "Cannot build there.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "cannot_place_02.ogg",
+        "text": "Invalid location.",
+        "speaker": "af_heart"
+      }
+    ],
+    "low_oil": [
+      {
+        "file": "low_oil_01.ogg",
+        "text": "Oil reserves low.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "low_oil_02.ogg",
+        "text": "We are running out of oil.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "low_oil_03.ogg",
+        "text": "Warning, oil is low.",
+        "speaker": "af_heart"
+      }
+    ],
+    "storage_full": [
+      {
+        "file": "storage_full_01.ogg",
+        "text": "Storage full. Send haulers.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "storage_full_02.ogg",
+        "text": "Extractor storage is full.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "storage_full_03.ogg",
+        "text": "Our storage is full.",
+        "speaker": "af_heart"
+      }
+    ],
+    "trade_complete": [
+      {
+        "file": "trade_complete_01.ogg",
+        "text": "Trade complete.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "trade_complete_02.ogg",
+        "text": "Deal done. Goods delivered.",
+        "speaker": "af_heart"
+      }
+    ],
+    "convoy_lost": [
+      {
+        "file": "convoy_lost_01.ogg",
+        "text": "Our convoy was raided.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "convoy_lost_02.ogg",
+        "text": "Cargo lost on the road.",
+        "speaker": "af_heart"
+      }
+    ],
+    "war_declared": [
+      {
+        "file": "war_declared_01.ogg",
+        "text": "We are at war.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "war_declared_02.ogg",
+        "text": "War has been declared.",
+        "speaker": "af_heart"
+      }
+    ],
+    "treaty_signed": [
+      {
+        "file": "treaty_signed_01.ogg",
+        "text": "Treaty signed.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "treaty_signed_02.ogg",
+        "text": "Agreement reached.",
+        "speaker": "af_heart"
+      }
+    ],
+    "helper_alert": [
+      {
+        "file": "helper_alert_01.ogg",
+        "text": "Helper alert.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "helper_alert_02.ogg",
+        "text": "Your helper needs attention.",
+        "speaker": "af_heart"
+      }
+    ],
+    "helper_on": [
+      {
+        "file": "helper_on_01.ogg",
+        "text": "Helper online. I'll run the economy.",
+        "speaker": "af_heart"
+      }
+    ],
+    "helper_off": [
+      {
+        "file": "helper_off_01.ogg",
+        "text": "Helper offline. You're in command.",
+        "speaker": "af_heart"
+      }
+    ],
+    "constructor_pulled_back": [
+      {
+        "file": "constructor_pulled_back_01.ogg",
+        "text": "Constructor pulled back. Enemies nearby.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "constructor_pulled_back_02.ogg",
+        "text": "Pulling our builder to safety.",
+        "speaker": "af_heart"
+      }
+    ],
+    "constructor_rerouted": [
+      {
+        "file": "constructor_rerouted_01.ogg",
+        "text": "Constructor rerouted around the enemy.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "constructor_rerouted_02.ogg",
+        "text": "Taking the builder the long way round.",
+        "speaker": "af_heart"
+      }
+    ],
+    "constructor_held": [
+      {
+        "file": "constructor_held_01.ogg",
+        "text": "Constructor holding. The way is blocked.",
+        "speaker": "af_heart"
+      },
+      {
+        "file": "constructor_held_02.ogg",
+        "text": "Builder waiting for a clear path.",
+        "speaker": "af_heart"
+      }
+    ]
+  }
+}

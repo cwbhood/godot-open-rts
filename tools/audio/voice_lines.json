@@ -1,0 +1,546 @@
+{
+  "_comment": "Script for tools/audio/make_voices.py. Each speech set lists its speakers (Kokoro TTS voices), a radio style and the lines per action; speakers take turns so a squad sounds like several people. Machine sets are synthesized, see make_voices.py.",
+  "speech_sets": {
+    "infantry": {
+      "description": "Riflemen and militia on a field radio",
+      "speakers": [
+        "am_fenrir",
+        "am_michael",
+        "am_puck"
+      ],
+      "speed": 1.12,
+      "style": "field_radio",
+      "lines": {
+        "select": [
+          "Rifle squad here.",
+          "Go ahead.",
+          "Standing by.",
+          "Squad ready.",
+          "What's the word?",
+          "Listening.",
+          "Boots on the ground."
+        ],
+        "select_repeat": [
+          "Yes, we're still here.",
+          "Sand in my boots, sir. Orders?",
+          "Can we actually go somewhere?",
+          "Stop poking the radio."
+        ],
+        "move": [
+          "Moving out!",
+          "On our way.",
+          "Double time!",
+          "Heading there now.",
+          "Copy, moving.",
+          "Let's go, let's go!",
+          "Advancing."
+        ],
+        "attack": [
+          "Open fire!",
+          "Engaging!",
+          "Light 'em up!",
+          "Target in sight!",
+          "Weapons free!",
+          "Taking the shot!"
+        ],
+        "retreat": [
+          "Falling back!",
+          "Pull back, pull back!",
+          "Withdrawing!",
+          "Get to cover!",
+          "We're getting out of here!"
+        ],
+        "build": [
+          "We'll dig in there.",
+          "Setting up.",
+          "Fortifying.",
+          "Sandbags going up."
+        ],
+        "cannot": [
+          "Can't get there.",
+          "No way through, sir.",
+          "Negative, that's not possible.",
+          "We can't do that."
+        ],
+        "under_attack": [
+          "Taking fire!",
+          "Contact! Contact!",
+          "We're pinned down!",
+          "Under fire, need support!",
+          "Incoming!"
+        ],
+        "ready": [
+          "Rifle squad reporting.",
+          "Infantry ready.",
+          "Squad assembled.",
+          "Ready to move out."
+        ]
+      }
+    },
+    "vehicle_crew": {
+      "description": "Tank and truck crews over the vehicle intercom",
+      "speakers": [
+        "am_onyx",
+        "am_eric",
+        "bm_lewis"
+      ],
+      "speed": 1.08,
+      "style": "vehicle_radio",
+      "lines": {
+        "select": [
+          "Crew ready.",
+          "Engine's warm.",
+          "Armor standing by.",
+          "Driver here.",
+          "Tracks ready.",
+          "Go for crew.",
+          "Turret ready."
+        ],
+        "select_repeat": [
+          "Still idling, commander.",
+          "We're burning fuel just sitting here.",
+          "Yes, the engine still works.",
+          "Gunner says hi."
+        ],
+        "move": [
+          "Rolling out.",
+          "Treads turning.",
+          "On the move.",
+          "Full throttle.",
+          "Heading out.",
+          "Moving, copy.",
+          "Making tracks."
+        ],
+        "attack": [
+          "Gun up!",
+          "Target locked, firing!",
+          "Main gun, fire!",
+          "Engaging target!",
+          "Loading shell!",
+          "Ready on the gun, firing!"
+        ],
+        "retreat": [
+          "Reversing!",
+          "Backing off!",
+          "Pulling out!",
+          "Get us out of here, driver!",
+          "Falling back to repair."
+        ],
+        "build": [
+          "Moving to escort.",
+          "Covering the site.",
+          "Holding position there."
+        ],
+        "cannot": [
+          "Can't reach it.",
+          "Terrain's too rough.",
+          "Negative, no path.",
+          "We can't do that, commander."
+        ],
+        "under_attack": [
+          "We're hit!",
+          "Armor's taking damage!",
+          "Hull breach!",
+          "Incoming rounds!",
+          "They're on us!"
+        ],
+        "ready": [
+          "Vehicle ready.",
+          "Fueled and ready.",
+          "Armor rolling off the line.",
+          "Crew aboard, ready."
+        ]
+      }
+    },
+    "officer": {
+      "description": "Commanders of heavy armor and artillery, calm and formal",
+      "speakers": [
+        "bm_george",
+        "bm_fable"
+      ],
+      "speed": 1.0,
+      "style": "command_radio",
+      "lines": {
+        "select": [
+          "Commander here.",
+          "At your service.",
+          "Awaiting your orders.",
+          "Battery ready.",
+          "Report.",
+          "Give me a target.",
+          "Standing ready."
+        ],
+        "select_repeat": [
+          "Patience is a virtue, commander.",
+          "I did hear you the first time.",
+          "Shall I put that in writing?",
+          "My tea is getting cold."
+        ],
+        "move": [
+          "Advancing as ordered.",
+          "Very well, moving.",
+          "Relocating.",
+          "Proceeding.",
+          "Understood, on our way.",
+          "Repositioning."
+        ],
+        "attack": [
+          "Coordinates received. Fire!",
+          "Bring the guns to bear.",
+          "Commence firing.",
+          "Target acquired. Engage.",
+          "Fire for effect!",
+          "Give them everything."
+        ],
+        "retreat": [
+          "Orderly withdrawal.",
+          "Disengaging.",
+          "Fall back, maintain formation.",
+          "Withdrawing to safer ground."
+        ],
+        "build": [
+          "We'll secure the site.",
+          "Holding that position.",
+          "Guarding construction."
+        ],
+        "cannot": [
+          "That is not possible, commander.",
+          "Out of the question.",
+          "We cannot comply.",
+          "No route available."
+        ],
+        "under_attack": [
+          "We are under fire!",
+          "Return fire, all crews!",
+          "Enemy guns on us!",
+          "Hostiles engaging!"
+        ],
+        "ready": [
+          "Command vehicle ready.",
+          "Battery deployed and ready.",
+          "Reporting for duty."
+        ]
+      }
+    },
+    "pilot": {
+      "description": "Helicopter and gunship pilots, heavy radio static over the rotors",
+      "speakers": [
+        "af_nova",
+        "am_echo",
+        "af_kore"
+      ],
+      "speed": 1.12,
+      "style": "pilot_radio",
+      "lines": {
+        "select": [
+          "Pilot here.",
+          "Airborne and ready.",
+          "Rotors turning.",
+          "Eyes in the sky.",
+          "Go ahead, ground.",
+          "Wings ready.",
+          "Flight standing by."
+        ],
+        "select_repeat": [
+          "Fuel isn't free, ground.",
+          "Still up here, circling.",
+          "Roger, roger, roger.",
+          "Getting dizzy up here."
+        ],
+        "move": [
+          "Flying there now.",
+          "Vector received.",
+          "Inbound.",
+          "Changing heading.",
+          "On approach.",
+          "Copy, en route.",
+          "Banking now."
+        ],
+        "attack": [
+          "Weapons hot!",
+          "Beginning attack run!",
+          "Target painted, firing!",
+          "Rockets away!",
+          "Strafing run!",
+          "Guns guns guns!"
+        ],
+        "retreat": [
+          "Breaking off!",
+          "Pulling up!",
+          "Bugging out!",
+          "Returning to base!",
+          "Getting clear!"
+        ],
+        "build": [
+          "Providing air cover.",
+          "Circling the site.",
+          "Overwatch in position."
+        ],
+        "cannot": [
+          "Unable, ground.",
+          "Negative, can't comply.",
+          "No can do.",
+          "That's out of range."
+        ],
+        "under_attack": [
+          "Taking ground fire!",
+          "Mayday, we're hit!",
+          "Missile lock! Evading!",
+          "Anti-air on us!"
+        ],
+        "ready": [
+          "Pilot ready for takeoff.",
+          "Bird's fueled up.",
+          "Flight ready.",
+          "Wheels up when you are."
+        ]
+      }
+    },
+    "worker": {
+      "description": "Constructors, workers and haulers, practical and cheerful",
+      "speakers": [
+        "am_adam",
+        "af_sarah",
+        "am_liam"
+      ],
+      "speed": 1.1,
+      "style": "work_radio",
+      "lines": {
+        "select": [
+          "Builder here.",
+          "Need something built?",
+          "Tools ready.",
+          "Yeah, boss?",
+          "Hard hat on.",
+          "What's the job?",
+          "Ready to work."
+        ],
+        "select_repeat": [
+          "I've got real work to do, you know.",
+          "Still here, boss.",
+          "Is this a union break?",
+          "Measure twice, click once."
+        ],
+        "move": [
+          "Heading over.",
+          "On my way.",
+          "Going.",
+          "Right away.",
+          "Moving the gear.",
+          "Off I go."
+        ],
+        "attack": [
+          "Uh, I'm a builder!",
+          "With a wrench?",
+          "Fine, I'll try!",
+          "This isn't in my contract!"
+        ],
+        "retreat": [
+          "Getting out of here!",
+          "Run for it!",
+          "Not paid enough for this!",
+          "Back to the yard!"
+        ],
+        "build": [
+          "I'll get it built.",
+          "Starting construction.",
+          "Laying foundations.",
+          "Hammer time.",
+          "Building it now.",
+          "On the job."
+        ],
+        "cannot": [
+          "Can't build there.",
+          "No can do, boss.",
+          "That won't work.",
+          "Not possible."
+        ],
+        "under_attack": [
+          "They're shooting at me!",
+          "Help! Builder under fire!",
+          "Ow! Hey!",
+          "I need protection!"
+        ],
+        "ready": [
+          "Ready to build.",
+          "New crew reporting.",
+          "Worker ready.",
+          "Tools packed, let's work."
+        ]
+      }
+    },
+    "trader": {
+      "description": "Caravan traders, civilians on a trade route",
+      "speakers": [
+        "bm_daniel",
+        "af_river"
+      ],
+      "speed": 1.08,
+      "style": "work_radio",
+      "lines": {
+        "select": [
+          "Caravan here.",
+          "Goods secure.",
+          "Trader listening.",
+          "What's the deal?",
+          "Cargo's loaded."
+        ],
+        "select_repeat": [
+          "Time is money, friend.",
+          "The camels are getting restless.",
+          "Still haggling?"
+        ],
+        "move": [
+          "Taking the road.",
+          "On the trade route.",
+          "Wagons rolling.",
+          "Heading out."
+        ],
+        "attack": [
+          "We're traders, not soldiers!",
+          "I'll throw a crate at them.",
+          "Do I look armed?"
+        ],
+        "retreat": [
+          "Protect the cargo!",
+          "Turn the caravan around!",
+          "Run, run!"
+        ],
+        "build": [
+          "Delivering supplies.",
+          "Unloading there.",
+          "Bringing the goods over."
+        ],
+        "cannot": [
+          "The road doesn't go there.",
+          "Can't take the cargo there.",
+          "No route."
+        ],
+        "under_attack": [
+          "Bandits! Protect the goods!",
+          "Caravan under attack!",
+          "They're after the cargo!"
+        ],
+        "ready": [
+          "Caravan ready to trade.",
+          "Goods loaded, ready.",
+          "Trade caravan at your service."
+        ]
+      }
+    }
+  },
+  "advisor": {
+    "description": "Base advisor announcements",
+    "speakers": [
+      "af_heart"
+    ],
+    "speed": 1.0,
+    "style": "advisor",
+    "lines": {
+      "match_started": [
+        "Battle control online.",
+        "Systems online. Welcome, commander."
+      ],
+      "match_aborted": [
+        "Battle control offline.",
+        "Signing off."
+      ],
+      "victory": [
+        "You are victorious.",
+        "Victory. The desert is ours."
+      ],
+      "defeat": [
+        "You have lost.",
+        "Mission failed. Our base has fallen."
+      ],
+      "base_under_attack": [
+        "Our base is under attack.",
+        "Warning, the base is under attack.",
+        "Enemy forces at the base."
+      ],
+      "unit_lost": [
+        "Unit lost.",
+        "We lost a unit.",
+        "Unit destroyed."
+      ],
+      "training": [
+        "Training.",
+        "Production started.",
+        "Building."
+      ],
+      "construction_complete": [
+        "Construction complete.",
+        "Building finished.",
+        "Structure ready."
+      ],
+      "research_complete": [
+        "Research complete.",
+        "New technology available.",
+        "Our scientists made a breakthrough."
+      ],
+      "tier_industrial": [
+        "Industrial age reached. New units available."
+      ],
+      "tier_electric": [
+        "Electric age reached. Advanced units available."
+      ],
+      "not_enough_resources": [
+        "Not enough resources.",
+        "Insufficient funds.",
+        "We can't afford that."
+      ],
+      "cannot_place": [
+        "Cannot build there.",
+        "Invalid location."
+      ],
+      "low_oil": [
+        "Oil reserves low.",
+        "We are running out of oil.",
+        "Warning, oil is low."
+      ],
+      "storage_full": [
+        "Storage full. Send haulers.",
+        "Extractor storage is full.",
+        "Our storage is full."
+      ],
+      "trade_complete": [
+        "Trade complete.",
+        "Deal done. Goods delivered."
+      ],
+      "convoy_lost": [
+        "Our convoy was raided.",
+        "Cargo lost on the road."
+      ],
+      "war_declared": [
+        "We are at war.",
+        "War has been declared."
+      ],
+      "treaty_signed": [
+        "Treaty signed.",
+        "Agreement reached."
+      ],
+      "helper_alert": [
+        "Helper alert.",
+        "Your helper needs attention."
+      ],
+      "helper_on": [
+        "Helper online. I'll run the economy."
+      ],
+      "helper_off": [
+        "Helper offline. You're in command."
+      ],
+      "constructor_pulled_back": [
+        "Constructor pulled back. Enemies nearby.",
+        "Pulling our builder to safety."
+      ],
+      "constructor_rerouted": [
+        "Constructor rerouted around the enemy.",
+        "Taking the builder the long way round."
+      ],
+      "constructor_held": [
+        "Constructor holding. The way is blocked.",
+        "Builder waiting for a clear path."
+      ]
+    }
+  }
+}

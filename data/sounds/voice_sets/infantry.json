@@ -1,0 +1,256 @@
+{
+  "id": "infantry",
+  "kind": "speech",
+  "description": "Riflemen and militia on a field radio",
+  "folder": "res://assets/audio/voices/infantry/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Rifle squad here.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Go ahead.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Standing by.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Squad ready.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "What's the word?",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "select_06.ogg",
+        "text": "Listening.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "select_07.ogg",
+        "text": "Boots on the ground.",
+        "speaker": "am_fenrir"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Yes, we're still here.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Sand in my boots, sir. Orders?",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Can we actually go somewhere?",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "select_repeat_04.ogg",
+        "text": "Stop poking the radio.",
+        "speaker": "am_michael"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Moving out!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "On our way.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Double time!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Heading there now.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Copy, moving.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "move_06.ogg",
+        "text": "Let's go, let's go!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "move_07.ogg",
+        "text": "Advancing.",
+        "speaker": "am_puck"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Open fire!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Engaging!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Light 'em up!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "Target in sight!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "attack_05.ogg",
+        "text": "Weapons free!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "attack_06.ogg",
+        "text": "Taking the shot!",
+        "speaker": "am_puck"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Falling back!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Pull back, pull back!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Withdrawing!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "Get to cover!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "retreat_05.ogg",
+        "text": "We're getting out of here!",
+        "speaker": "am_puck"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "We'll dig in there.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Setting up.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Fortifying.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "build_04.ogg",
+        "text": "Sandbags going up.",
+        "speaker": "am_puck"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't get there.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "No way through, sir.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "Negative, that's not possible.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "We can't do that.",
+        "speaker": "am_fenrir"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "Taking fire!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Contact! Contact!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "We're pinned down!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "Under fire, need support!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "under_attack_05.ogg",
+        "text": "Incoming!",
+        "speaker": "am_puck"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Rifle squad reporting.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Infantry ready.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Squad assembled.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "Ready to move out.",
+        "speaker": "am_puck"
+      }
+    ]
+  }
+}

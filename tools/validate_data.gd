@@ -16,7 +16,7 @@ const KNOWN_UNIT_FIELDS = [
 	"id", "category", "scene", "base", "base_scene", "blueprint", "name", "description",
 	"icon", "icon_tint", "tier", "cost", "build_time_s", "produced_by", "built_by",
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
-	"model_scale", "model_offset", "model_rotation_y_deg"
+	"model_scale", "model_offset", "model_rotation_y_deg", "voice"
 ]
 const KNOWN_PROPERTIES = [
 	"sight_range", "hp", "hp_max", "attack_damage", "attack_interval", "attack_range",
@@ -52,6 +52,7 @@ func _run():
 	_check_maps(data["maps"])
 	_check_ai(data["ai_personalities"], resources)
 	_check_roads(data["roads"], resources, data["tiers"].size())
+	_check_voices(data["units"])
 	print(
 		"validate_data: {0} units, {1} commodities, {2} maps, {3} AI personalities".format(
 			[data["units"].size(), resources.size(), data["maps"].size(),
@@ -245,3 +246,25 @@ func _check_roads(entries, resources, tiers_count):
 			_error(where, "tier must be between 1 and {0}".format([tiers_count]))
 		_check_cost(where, entry.get("cost_per_10_m", {}), resources)
 		_check_translation(where, entry.get("name"))
+
+
+func _check_voices(units):
+	"""every unit needs a voice set with a sound for each action; files must exist"""
+	var actions = GameData.voices().get("unit_actions", [])
+	for entry in units:
+		var where = "units/{0}.json".format([entry["id"]])
+		var set_id = GameData.voice_set_id_for(entry)
+		var voice_set = GameData.voice_set_by_id(set_id) if set_id != null else null
+		if voice_set == null:
+			_error(where, "voice set '{0}' not found in data/sounds/voice_sets/".format([set_id]))
+			continue
+		for action in actions:
+			if voice_set.get("lines", {}).get(action, []).is_empty():
+				_error(where, "voice set '{0}' has no sound for '{1}'".format([set_id, action]))
+	var VoiceBank = load("res://source/match/audio/VoiceBank.gd")
+	for voice_set in GameData.voice_sets():
+		for action in voice_set.get("lines", {}):
+			for line in voice_set["lines"][action]:
+				var path = VoiceBank.line_path(voice_set, line)
+				if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+					_error("sounds/voice_sets/" + voice_set["id"] + ".json", "missing " + path)

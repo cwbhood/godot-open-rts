@@ -1,0 +1,251 @@
+{
+  "id": "vehicle_crew",
+  "kind": "speech",
+  "description": "Tank and truck crews over the vehicle intercom",
+  "folder": "res://assets/audio/voices/vehicle_crew/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Crew ready.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Engine's warm.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Armor standing by.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Driver here.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Tracks ready.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "select_06.ogg",
+        "text": "Go for crew.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "select_07.ogg",
+        "text": "Turret ready.",
+        "speaker": "am_onyx"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Still idling, commander.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "We're burning fuel just sitting here.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Yes, the engine still works.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "select_repeat_04.ogg",
+        "text": "Gunner says hi.",
+        "speaker": "am_eric"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Rolling out.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Treads turning.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "On the move.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Full throttle.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Heading out.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "move_06.ogg",
+        "text": "Moving, copy.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "move_07.ogg",
+        "text": "Making tracks.",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Gun up!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Target locked, firing!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Main gun, fire!",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "Engaging target!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "attack_05.ogg",
+        "text": "Loading shell!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "attack_06.ogg",
+        "text": "Ready on the gun, firing!",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Reversing!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Backing off!",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Pulling out!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "Get us out of here, driver!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "retreat_05.ogg",
+        "text": "Falling back to repair.",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Moving to escort.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Covering the site.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Holding position there.",
+        "speaker": "am_eric"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't reach it.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "Terrain's too rough.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "Negative, no path.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "We can't do that, commander.",
+        "speaker": "am_onyx"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "We're hit!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Armor's taking damage!",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Hull breach!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "Incoming rounds!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "under_attack_05.ogg",
+        "text": "They're on us!",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Vehicle ready.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Fueled and ready.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Armor rolling off the line.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "Crew aboard, ready.",
+        "speaker": "bm_lewis"
+      }
+    ]
+  }
+}

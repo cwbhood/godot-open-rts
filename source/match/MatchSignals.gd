@@ -18,6 +18,8 @@ signal terrain_targeted(position)
 signal unit_spawned(unit)
 signal unit_targeted(unit)
 signal unit_selected(unit)
+signal units_ordered(units, order)  # human orders: "move", "attack", "build" or "cannot"
+signal structure_placement_refused(player)  # clicked to place a blueprint on a bad spot
 signal unit_deselected(unit)
 signal unit_damaged(unit)
 signal unit_died(unit)
