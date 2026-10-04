@@ -134,6 +134,7 @@ def page(filename, title, description, body, preview=False, schema=None, noindex
         <li><a href="{REPO}/issues">Report a bug</a></li>
         <li><a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> (the base)</li>
         <li><a href="https://godotengine.org">Godot Engine</a></li>
+        <li><a href="https://cwbhood.github.io/open-overwatch/">Open Overwatch</a>, also by Destin</li>
       </ul>
     </div>
   </div>
@@ -786,6 +787,10 @@ def about_body():
     bio = "".join(f"<p>{esc(x)}</p>" for x in c["bio"])
     principles = "".join(f'<div class="card"><h3>{esc(t)}</h3><p>{esc(d)}</p></div>' for t, d in c["principles"])
     links = " &middot; ".join(f'<a href="{esc(u)}" rel="me">{esc(n)}</a>' for n, u in c["links"])
+    others = ""
+    if c.get("other_projects"):
+        items = "".join(f'<li><a href="{esc(u)}">{esc(n)}</a>: {esc(d)}</li>' for n, u, d in c["other_projects"])
+        others = f'<h2>Also by me</h2><ul>{items}</ul>'
     return f"""
 <div class="wrap page-head">
   <p class="eyebrow">About the creator</p>
@@ -802,6 +807,7 @@ def about_body():
       <p class="eyebrow">{esc(c["role"])}</p>
       {bio}
       <p class="small muted">Find me on {links}.</p>
+      {others}
     </div>
   </div>
 </section>
@@ -821,7 +827,7 @@ PERSON = {
     "url": BASE + "about.html",
     "image": BASE + "assets/img/creator.jpg",
     "jobTitle": CREATOR["role"],
-    "sameAs": [u for _, u in CREATOR["links"]],
+    "sameAs": CREATOR.get("same_as") or [u for _, u in CREATOR["links"]],
 }
 WEBSITE = {"@type": "WebSite", "@id": BASE + "#website", "url": BASE, "name": "Ironbound", "inLanguage": "en", "publisher": {"@id": BASE + "about.html#person"}}
 GAME = {
