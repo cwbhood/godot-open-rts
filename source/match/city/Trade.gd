@@ -12,20 +12,24 @@ enum Result {
 	PARTNER_BUSY,
 	PARTNER_REFUSED,
 	EMBARGO,
+	AT_WAR,
 }
 
 enum Verdict { GOOD, FAIR, BAD }
+
+const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 
 
 static func local_price(player, resource):
 	return _price_at_stock(player, resource, float(player.get(resource)))
 
 
-static func assess(player, given, received):
+static func assess(player, given, received, extra_received_value = 0.0):
 	"""whether a trade pays off for 'player' right now, as
 	{"verdict": Verdict, "reason": translated line}. Goods are valued at the prices the
 	player would have halfway through the trade, so giving away the last of something
-	counts for a lot and receiving more of what is piling up counts for little."""
+	counts for a lot and receiving more of what is piling up counts for little.
+	'extra_received_value' counts something besides goods, like a treaty."""
 	var trade = Constants.Match.Trade
 	for resource in given:
 		var left = int(player.get(resource)) - int(given[resource])
@@ -37,7 +41,7 @@ static func assess(player, given, received):
 	for resource in given:
 		var stock = float(player.get(resource)) - given[resource] / 2.0
 		given_value += given[resource] * _price_at_stock(player, resource, stock)
-	var received_value = 0.0
+	var received_value = extra_received_value
 	for resource in received:
 		var stock = float(player.get(resource)) + received[resource] / 2.0
 		received_value += received[resource] * _price_at_stock(player, resource, stock)
@@ -59,10 +63,12 @@ static func value_for(player, resources):
 	return value
 
 
-static func fair_amount(player, give_resource, give_amount, get_resource):
+static func fair_amount(player, give_resource, give_amount, get_resource, partner = null):
 	"""how much of 'get_resource' 'player' would hand over for the offered goods"""
 	var offered_value = give_amount * local_price(player, give_resource)
-	return int(floor(offered_value / (local_price(player, get_resource) * _margin(player))))
+	return int(
+		floor(offered_value / (local_price(player, get_resource) * _margin(player, partner)))
+	)
 
 
 static func propose(proposer, partner, offered, requested):
@@ -71,7 +77,7 @@ static func propose(proposer, partner, offered, requested):
 	var validity = validate(proposer, partner, offered, requested)
 	if validity != Result.ACCEPTED:
 		return validity
-	if not ai_accepts(partner, requested, offered):
+	if not ai_accepts(partner, requested, offered, proposer):
 		return Result.PARTNER_REFUSED
 	execute(proposer, partner, offered, requested)
 	return Result.ACCEPTED
@@ -84,6 +90,8 @@ static func validate(proposer, partner, offered, requested):
 		for resource in resources:
 			if not resource in Constants.Match.Resources.ALL or resources[resource] < 0:
 				return Result.INVALID
+	if Diplomacy.at_war(proposer, partner):
+		return Result.AT_WAR
 	var market = _market(proposer)
 	if market != null and market.is_embargoed(proposer, partner):
 		return Result.EMBARGO
@@ -102,9 +110,11 @@ static func validate(proposer, partner, offered, requested):
 	return Result.ACCEPTED
 
 
-static func ai_accepts(ai_player, given, received):
+static func ai_accepts(ai_player, given, received, partner = null):
 	"""AI accepts when what it receives is worth more than what it gives, in its prices"""
-	return value_for(ai_player, received) >= value_for(ai_player, given) * _margin(ai_player)
+	return (
+		value_for(ai_player, received) >= value_for(ai_player, given) * _margin(ai_player, partner)
+	)
 
 
 static func scarce_resource_of(player):
@@ -182,8 +192,11 @@ static func _hoarding_factor(player):
 	return player.get_meta("trade_hoarding_factor", 1.0)
 
 
-static func _margin(player):
-	return player.get_meta("trade_profit_margin", Constants.Match.Trade.AI_PROFIT_MARGIN)
+static func _margin(player, partner = null):
+	var margin = player.get_meta("trade_profit_margin", Constants.Match.Trade.AI_PROFIT_MARGIN)
+	if partner != null and Diplomacy.allied(player, partner):
+		margin = min(margin, Constants.Match.Diplomacy.ALLY_TRADE_MARGIN)  # allies pay fair
+	return margin
 
 
 static func _can_afford(player, resources):

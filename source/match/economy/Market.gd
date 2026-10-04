@@ -56,7 +56,7 @@ func propose_agreement(proposer, partner, offered, requested):
 	var result = Trade.validate(proposer, partner, offered, requested)
 	if result != Trade.Result.ACCEPTED:
 		return result
-	if not partner is Human and not Trade.ai_accepts(partner, requested, offered):
+	if not partner is Human and not Trade.ai_accepts(partner, requested, offered, proposer):
 		return Trade.Result.PARTNER_REFUSED
 	(
 		agreements
@@ -151,7 +151,8 @@ func _tick(delta):
 			continue
 		agreement["next_s"] = _elapsed_s + AGREEMENT_INTERVAL_S
 		if (
-			Trade._can_afford(a, agreement["offered"])
+			not Trade.Diplomacy.at_war(a, b)
+			and Trade._can_afford(a, agreement["offered"])
 			and Trade._can_afford(b, agreement["requested"])
 		):
 			Trade.execute(a, b, agreement["offered"], agreement["requested"])
@@ -188,6 +189,7 @@ func _on_city_threat_changed(player, threat_level, position):
 	for unit in get_tree().get_nodes_in_group("units"):
 		if (
 			unit.player != player
+			and Trade.Diplomacy.at_war(player, unit.player)
 			and unit.attack_damage != null
 			and (
 				unit.global_position_yless.distance_to(position * Vector3(1, 0, 1))

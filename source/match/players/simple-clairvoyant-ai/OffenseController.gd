@@ -140,8 +140,12 @@ func _try_creating_new_battlegroup():
 		func(player): return player != _player
 	)
 	adversary_players.shuffle()
+	# factions it is at war with come first
+	adversary_players.sort_custom(
+		func(a, b): return _ai.Diplomacy.at_war(_player, a) and not _ai.Diplomacy.at_war(_player, b)
+	)
 	var battlegroup = AutoAttackingBattlegroup.new(
-		_ai.expected_number_of_units_in_battlegroup, adversary_players
+		_ai.expected_number_of_units_in_battlegroup, adversary_players, _ai
 	)
 	_battlegroups.append(battlegroup)
 	battlegroup.tree_exited.connect(_on_battlegroup_died.bind(battlegroup))

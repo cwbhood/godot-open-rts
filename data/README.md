@@ -136,9 +136,17 @@ deposits placed as instances of the `deposit_scene` of each commodity.
   "trade_profit_margin": 1.25,
   "trade_offer_interval_s": 60,
   "proposes_agreements": false,
+  "peacefulness": 0.5,
+  "accepts_alliances": false,
+  "attacks_neutrals": true,
   "upgrades_roads": false
 }
 ```
+
+Diplomacy fields: `peacefulness` scales how cheaply the AI signs non-aggression pacts and
+alliances (1.0 is average, below 1 it asks for more goods, above 1 it signs for free and
+offers pacts itself), `accepts_alliances` says whether it ever allies, and
+`attacks_neutrals` whether it attacks factions it is not at war with (which starts a war).
 
 Every personality shows up in the player list of the Play menu.
 

@@ -7,6 +7,7 @@ signal place_structure(structure_prototype)
 signal schedule_navigation_rebake(domain)
 signal navigate_unit_to_rally_point(unit, rally_point)  # currently, only for human players
 signal trade_offered(proposer, partner, offered, requested)  # AI offering a trade to a human
+signal diplomacy_offered(proposer, partner, kind, offered, requested)  # AI offering a treaty
 
 # notifications
 signal match_started
@@ -35,3 +36,5 @@ signal embargo_changed(imposer, target, active)
 signal agreement_changed(a, b)
 signal road_upgraded(player, extractor, level)
 signal aircraft_crashed(unit)
+signal diplomacy_changed(a, b, state)
+signal treaty_signed(proposer, partner, kind, offered, requested)

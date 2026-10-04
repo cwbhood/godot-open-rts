@@ -7,6 +7,7 @@ signal action_changed(new_action)
 signal action_updated
 
 const GameData = preload("res://source/data-model/GameData.gd")
+const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const MATERIAL_ALBEDO_TO_REPLACE = Color(0.99, 0.81, 0.48)
 const MATERIAL_ALBEDO_TO_REPLACE_EPSILON = 0.05
 
@@ -62,6 +63,8 @@ func _ready():
 
 func take_damage(damage, attacker):
 	if attacker != null and is_instance_valid(attacker) and "player" in attacker:
+		if not Diplomacy.register_hit(attacker.player, player):
+			return  # a pact or an alliance protects us from them
 		last_attacker_player = attacker.player
 	var hp_before = hp
 	hp -= damage

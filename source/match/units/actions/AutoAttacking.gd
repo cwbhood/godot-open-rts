@@ -4,6 +4,7 @@ const AttackingWhileInRange = preload("res://source/match/units/actions/Attackin
 const FollowingToReachDistance = preload(
 	"res://source/match/units/actions/FollowingToReachDistance.gd"
 )
+const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 
 var _target_unit = null
 var _sub_action = null
@@ -15,6 +16,7 @@ static func is_applicable(source_unit, target_unit):
 		source_unit.attack_range != null
 		and "player" in target_unit
 		and source_unit.player != target_unit.player
+		and Diplomacy.can_attack(source_unit.player, target_unit.player)
 		and target_unit.movement_domain in source_unit.attack_domains
 		and not (
 			target_unit.has_method("is_protected_from")

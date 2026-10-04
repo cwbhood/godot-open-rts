@@ -9,6 +9,10 @@ const TradeController = preload(
 const RaidingController = preload(
 	"res://source/match/players/simple-clairvoyant-ai/RaidingController.gd"
 )
+const DiplomacyController = preload(
+	"res://source/match/players/simple-clairvoyant-ai/DiplomacyController.gd"
+)
+const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 
 # personalities (data/ai/*.json) override the numbers below
@@ -29,6 +33,9 @@ const GameData = preload("res://source/data-model/GameData.gd")
 @export var trade_offer_interval_s = 30.0
 @export var proposes_agreements = false
 @export var upgrades_roads = true
+@export var peacefulness = 1.0
+@export var accepts_alliances = true
+@export var attacks_neutrals = true
 
 var _provisioning_ongoing = false
 var _resource_requests = {
@@ -81,6 +88,23 @@ func _ready():
 		_on_resource_request.bind(raiding_controller, ResourceRequestPriority.LOW)
 	)
 	raiding_controller.setup(self)
+	var diplomacy_controller = DiplomacyController.new()
+	diplomacy_controller.name = "DiplomacyController"
+	add_child(diplomacy_controller)
+	diplomacy_controller.setup(self)
+
+
+func wants_to_attack(player):
+	"""whether this AI sends troops or raiders against 'player': never through a treaty,
+	always at war or against its ally's enemies, and against neutrals by personality"""
+	if player == self or not Diplomacy.can_attack(self, player):
+		return false
+	if Diplomacy.at_war(self, player):
+		return true
+	var ally = Diplomacy.ally_of(self)
+	if ally != null and Diplomacy.at_war(ally, player):
+		return true
+	return attacks_neutrals
 
 
 func _apply_personality():

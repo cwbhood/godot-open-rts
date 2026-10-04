@@ -51,7 +51,7 @@ func _try_offering_trade():
 		if partner is Human:
 			MatchSignals.trade_offered.emit(_player, partner, offered, requested)
 			return
-		if not Trade.ai_accepts(partner, requested, offered):
+		if not Trade.ai_accepts(partner, requested, offered, _player):
 			continue
 		if _ai.proposes_agreements and market != null and market.agreements_of(_player).is_empty():
 			market.propose_agreement(_player, partner, offered, requested)
