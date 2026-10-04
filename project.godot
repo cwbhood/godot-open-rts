@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Open RTS"
+config/version="0.9.0"
 run/main_scene="res://source/Main.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
@@ -26,9 +27,11 @@ Globals="*res://source/Globals.gd"
 MatchSignals="*res://source/match/MatchSignals.gd"
 Signals="*res://source/Signals.gd"
 Utils="*res://source/Utils.gd"
+CrashReporter="*res://source/crash/CrashReporter.gd"
 
 [debug]
 
+settings/gdscript/always_track_call_stacks=true
 gdscript/warnings/unused_signal=0
 gdscript/warnings/standalone_expression=0
 gdscript/warnings/incompatible_ternary=0
@@ -44,6 +47,10 @@ window/size/viewport_height=1080
 [dotnet]
 
 project/assembly_name="Open RTS"
+
+[ironbound]
+
+crash_reports/endpoint=""
 
 [gui]
 
