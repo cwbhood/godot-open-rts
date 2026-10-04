@@ -19,6 +19,11 @@ func _ready():
 	_movement_trait.movement_finished.connect(_on_movement_finished)
 
 
+func get_plan():
+	"""where the unit is headed, for the order lines drawn under selected units"""
+	return {"kind": "move", "points": [_target_position], "loop": false}
+
+
 func _exit_tree():
 	if is_inside_tree():
 		_movement_trait.stop()

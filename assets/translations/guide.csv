@@ -73,7 +73,7 @@ HINT_CARGO_DESTROYED,"A hauler was destroyed and its cargo lost. Escort haulers 
 HELP_TITLE,Manual
 HELP_CLOSE,Close (Esc)
 HELP_BASICS_TITLE,Basics and controls
-HELP_BASICS_BODY,"You run a frontier city. You do not place houses: the city builds itself when goods reach it. Your job is the economy around it (extractors, supply lines, power), trade, and the army that protects it.\n\n[b]Mouse:[/b] left-click selects, drag selects many, right-click orders (move, attack, build, escort). Double-click selects all units of a kind.\n[b]Camera:[/b] W A S D move, the mouse wheel zooms, Q and E rotate.\n[b]Groups:[/b] Ctrl+number saves a selection, the number recalls it.\n[b]Building:[/b] R rotates a blueprint, right-click cancels it.\n[b]Help:[/b] F1 opens this manual."
+HELP_BASICS_BODY,"You run a frontier city. You do not place houses: the city builds itself when goods reach it. Your job is the economy around it (extractors, supply lines, power), trade, and the army that protects it.\n\n[b]Mouse:[/b] left-click selects, drag selects many, right-click orders (move, attack, build, escort). Double-click selects all units of a kind on screen. Right-drag draws a line for the selected units; Shift queues orders. Army orders (fight, patrol, guard...) are under [b]Unit orders[/b].\n[b]Camera:[/b] W A S D move, the mouse wheel zooms, Q and E rotate.\n[b]Groups:[/b] Ctrl+number saves a selection, the number recalls it.\n[b]Building:[/b] R rotates a blueprint, right-click cancels it.\n[b]Help:[/b] F1 opens this manual."
 HELP_CONSTRUCTORS_TITLE,Constructors and building
 HELP_CONSTRUCTORS_BODY,"Constructors build every structure. Select one to open its build menu; hover a button to see what the building does, its cost and its tier.\n\nPlacing a building pays for it at once and lays out a site. [b]The site only grows while a constructor stands next to it[/b]: the constructor that placed it drives there on its own. If you send it elsewhere, the site waits; select a constructor and right-click the site to resume. The label above every site says what it waits for.\n\nExtractors (lumber mill, mine, oil derrick) must touch a matching deposit. With a constructor selected, hovering a deposit picks the right extractor for you.\n\nTo cancel a site, select it and press the X button bottom right: you get back the materials not yet on the road."
 HELP_AUTO_EXPAND_TITLE,Auto-expand
@@ -124,3 +124,35 @@ HELPER_ALERT_HOLD,"Constructor held back: {0} enemy units at its destination. It
 HELP_HELPER_TITLE,Helper
 HELP_HELPER_BODY,"The helper is an assistant you switch on in the panel at the top left (or press [b]H[/b]). It starts off. While it is on it:\n1. [b]runs the economy:[/b] puts idle constructors on auto-expand and keeps three constructors,\n2. [b]builds an army:[/b] queues the strongest combat units your bank can spare at your factories, up to the [b]Army size[/b] you set (and asks a constructor for a vehicle factory if you have none). They wait at the factory rally point,\n3. [b]scouts:[/b] keeps one scout buggy visiting the parts of the map nobody has seen lately; it holds fire and turns back from enemies,\n4. [b]guards constructors:[/b] it remembers every enemy your units have seen. A constructor whose path passes near them is rerouted around them; one whose destination is threatened is held back and resumes the order once the way is clear; one that enemies come close to runs to the nearest safe command center. Warnings appear in the panel and the hint bar; click one to look.\n\n[b]It never attacks.[/b] It gives no attack orders, its scout holds fire, and its units only fight back like any idle unit at war. It never starts a war and treats factions under a pact or alliance as friends.\n\n[b]Keep in bank[/b] sets, per commodity, what the helper (and auto-expand while the helper is on) must leave you. Your own orders always win: an order you give a constructor replaces the helper's, and turning auto-expand off on a constructor keeps the helper from turning it back on. Switching the helper off hands everything back."
 HELPER_ALERT_BLOCKED,"Constructor held back: {0} enemy units block the way and there is no safe way round. It resumes when the way is clear (click to look)"
+GUIDE_STEP_COMMANDS_TITLE,Command your army
+GUIDE_STEP_COMMANDS,"Select some units and hold the right mouse button while dragging: they spread out along the line you draw. Or press P and click to patrol, or B to patrol around your base and extractors. F1 > Unit orders lists every order."
+HINT_ARMY_ORDERS,"Tip: hold right-click and drag to line these units up. F = fight your way there, P = patrol, B = patrol your base, V = guard, Z = retreat, L/K = fire stance / hold position. Shift queues orders."
+HELP_COMMANDS_TITLE,Unit orders and formations
+HELP_COMMANDS_BODY,"[b]Line up:[/b] with units selected, hold the right mouse button and drag. Rings show where each unit will stand; let go and they spread out evenly along the line. A short line makes several rows, on the side the units come from. A plain right-click still moves or attacks.\n[b]Queue:[/b] hold Shift while giving orders to add them after the current ones. Lines on the ground under selected units show their orders: green move, red fight, blue patrol, yellow guard.\n\nThe buttons under a selection (and their keys):\n[b]Fight (F):[/b] click a spot; the units go there and fight whatever they meet on the way, then carry on. Drag with the left button to fight into a line.\n[b]Patrol (P):[/b] click a spot to patrol between there and here. Shift-click adds more patrol points; the units loop through them and fight what they find.\n[b]Patrol base (B):[/b] the units loop around your city and out past every extractor and outlying building, spread along the loop.\n[b]Guard (V):[/b] click one of your units or buildings; the guards stay with it and fight enemies that come near.\n[b]Retreat (Z):[/b] back to the nearest command center without stopping to fight.\n[b]Stop (X):[/b] drop all orders.\n[b]Fire stance (L):[/b] fire at will, return fire (only shoot back at whoever hits them) or hold fire.\n[b]Hold position (K):[/b] idle units shoot what is in range but never chase.\n\nControl groups: Ctrl+number saves a selection, the number recalls it. Double-click a unit to select all of its kind on screen.\n\n[b]Changing keys:[/b] put a [keys] section in controls.cfg in the game's user folder, e.g. command_patrol=""O"". The names are command_fight, command_patrol, command_guard, command_patrol_base, command_stop, command_retreat, command_fire_stance and command_hold_position."
+COMMAND_FIGHT,Fight
+COMMAND_PATROL,Patrol
+COMMAND_PATROL_BASE,Patrol base
+COMMAND_GUARD,Guard
+COMMAND_RETREAT,Retreat
+COMMAND_FIRE_STANCE,Fire stance
+COMMAND_HOLD_POSITION,Hold position
+COMMAND_FIGHT_TOOLTIP,"Fight: click where to go; the units fight whatever they meet on the way. Drag with the left button to fight into a line. Shift queues it."
+COMMAND_PATROL_TOOLTIP,"Patrol: click a spot to patrol between there and here; Shift-click adds more patrol points. Patrolling units fight what they find."
+COMMAND_PATROL_BASE_TOOLTIP,Patrol base: loop around your city and out past your extractors and outlying buildings.
+COMMAND_GUARD_TOOLTIP,Guard: click one of your units or buildings; the guards stay with it and fight enemies that come near.
+COMMAND_RETREAT_TOOLTIP,Retreat: drive back to the nearest command center without stopping to fight.
+COMMAND_FIRE_STANCE_TOOLTIP,"Fire stance: fire at will, return fire (only shoot back) or hold fire. Click to switch."
+COMMAND_HOLD_POSITION_TOOLTIP,"Hold position: idle units shoot what is in range but never chase it. Click to switch."
+COMMAND_FIRE_STANCE_SHORT_AT_WILL,Fire at will
+COMMAND_FIRE_STANCE_SHORT_RETURN,Return fire
+COMMAND_FIRE_STANCE_SHORT_HOLD,Hold fire
+COMMAND_HOLD_SHORT_ON,Holding
+COMMAND_HOLD_SHORT_OFF,Free to chase
+COMMAND_FIRE_STANCE_AT_WILL,Fire stance: fire at will
+COMMAND_FIRE_STANCE_RETURN,Fire stance: return fire
+COMMAND_FIRE_STANCE_HOLD,Fire stance: hold fire
+COMMAND_HOLD_ON,Hold position: on
+COMMAND_HOLD_OFF,Hold position: off
+COMMAND_PROMPT_FIGHT,"Fight: click where to go, or drag a line (Shift: queue, right-click: cancel)"
+COMMAND_PROMPT_PATROL,"Patrol: click a patrol point (Shift-click for more, right-click: cancel)"
+COMMAND_PROMPT_GUARD,"Guard: click one of your units or buildings (right-click: cancel)"

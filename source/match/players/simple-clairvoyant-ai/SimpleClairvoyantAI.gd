@@ -12,6 +12,7 @@ const RaidingController = preload(
 const DiplomacyController = preload(
 	"res://source/match/players/simple-clairvoyant-ai/DiplomacyController.gd"
 )
+const ArmyPosture = preload("res://source/match/players/simple-clairvoyant-ai/ArmyPosture.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 
@@ -92,6 +93,10 @@ func _ready():
 	diplomacy_controller.name = "DiplomacyController"
 	add_child(diplomacy_controller)
 	diplomacy_controller.setup(self)
+	var army_posture = ArmyPosture.new()  # idle troops hold a line instead of clumping
+	army_posture.name = "ArmyPosture"
+	add_child(army_posture)
+	army_posture.setup(self)
 
 
 func wants_to_attack(player):

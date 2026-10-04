@@ -15,6 +15,8 @@ const GameData = preload("res://source/data-model/GameData.gd")
 const ReplayRecorder = preload("res://source/match/ReplayRecorder.gd")
 const SandboxPanel = preload("res://source/match/hud/SandboxPanel.gd")
 const Guide = preload("res://source/match/hud/Guide.gd")
+const UnitCommandHandler = preload("res://source/match/handlers/UnitCommandHandler.gd")
+const Keybinds = preload("res://source/match/Keybinds.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Drone = preload("res://source/match/units/Drone.tscn")
@@ -91,6 +93,10 @@ func _ready():
 		var diplomacy_hud = DiplomacyHud.new()
 		diplomacy_hud.name = "DiplomacyHud"
 		$HUD.add_child(diplomacy_hud)
+	if get_node_or_null("UnitCommandHandler") == null:
+		Keybinds.apply_overrides()
+		# added last: its input runs before the selection box and the terrain's clicks
+		add_child.call_deferred(UnitCommandHandler.new())
 	MatchSignals.setup_and_spawn_unit.connect(_setup_and_spawn_unit)
 	_setup_subsystems_dependent_on_map()
 	_setup_players()

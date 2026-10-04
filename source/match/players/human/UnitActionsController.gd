@@ -5,6 +5,7 @@ const ResourceUnit = preload("res://source/match/units/non-player/ResourceUnit.g
 const Hauler = preload("res://source/match/units/Hauler.gd")
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
+const UnitCommands = preload("res://source/match/players/human/UnitCommands.gd")
 
 
 class Actions:
@@ -41,6 +42,12 @@ func _try_navigating_selected_units_towards_position(target_point):
 				and Actions.Moving.is_applicable(unit)
 			)
 	)
+	if Input.is_action_pressed("shift_selecting"):
+		# Shift: the move is carried out after the orders the units already have
+		UnitCommands.point_order(
+			terrain_units_to_move + air_units_to_move, target_point, "move", true
+		)
+		return
 	var new_unit_targets = Utils.Match.Unit.Movement.crowd_moved_to_new_pivot(
 		terrain_units_to_move, target_point
 	)

@@ -11,6 +11,8 @@ const REFRESH_INTERVAL = 0.25
 const ESCORT_RADIUS_M = 7.0
 const MAX_CHASE_M = 12.0  # gives up a chase this far from the convoy
 
+var escort_radius_m = ESCORT_RADIUS_M
+var max_chase_m = MAX_CHASE_M
 var _escorted = null
 var _sub_action = null
 var _attacking = null
@@ -60,7 +62,7 @@ func _refresh():
 			or not _attacking.is_inside_tree()
 			or (
 				_escorted.global_position_yless.distance_to(_attacking.global_position_yless)
-				> MAX_CHASE_M
+				> max_chase_m
 			)
 		):
 			_follow()
@@ -74,13 +76,17 @@ func _closest_threat():
 	var closest = null
 	var closest_distance = INF
 	for unit in get_tree().get_nodes_in_group("units"):
-		if not AutoAttacking.is_applicable(_unit, unit):
+		if not AutoAttacking.is_applicable(_unit, unit) or not _may_engage(unit):
 			continue
 		var distance = _escorted.global_position_yless.distance_to(unit.global_position_yless)
-		if distance <= ESCORT_RADIUS_M and distance < closest_distance:
+		if distance <= escort_radius_m and distance < closest_distance:
 			closest = unit
 			closest_distance = distance
 	return closest
+
+
+func _may_engage(_unit_to_attack):
+	return true
 
 
 func _replace_sub_action(new_sub_action):

@@ -17,6 +17,7 @@ signal match_finished_with_defeat
 signal terrain_targeted(position)
 signal unit_spawned(unit)
 signal unit_targeted(unit)
+signal unit_command_issued(command)  # a player order from UnitCommandHandler
 signal unit_selected(unit)
 signal unit_deselected(unit)
 signal unit_damaged(unit)

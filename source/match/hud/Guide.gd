@@ -36,6 +36,7 @@ const STEPS = [
 	["TIER", "CITY_TIERS"],
 	["TRADE", "TRADE"],
 	["ARMY", "COMBAT"],
+	["COMMANDS", "COMMANDS"],
 ]
 
 var player = null
@@ -48,6 +49,7 @@ var _step = 0
 var _delivered = false
 var _traded = false
 var _army = false
+var _commanded = false  # the player used a line, patrol or another army order
 var _hints_shown = {}
 var _hint_queue = []
 var _hint_time_left_s = 0.0
@@ -93,6 +95,8 @@ func _ready():
 		func(a_player): _on_short_of_resources(a_player, "HINT_NOT_ENOUGH_FOR_PRODUCTION")
 	)
 	MatchSignals.aircraft_crashed.connect(_on_aircraft_crashed)
+	MatchSignals.unit_command_issued.connect(func(_command): _commanded = true)
+	MatchSignals.unit_selected.connect(_on_unit_selected)
 	MatchSignals.cargo_destroyed.connect(_on_cargo_destroyed)
 	_on_match_started()
 
@@ -301,6 +305,8 @@ func _step_done(key):
 			return player.get_tier() >= 2
 		"TRADE":
 			return _traded
+		"COMMANDS":
+			return _commanded
 	return _army  # gdlint: ignore = max-returns
 
 
@@ -365,6 +371,18 @@ func _on_trade_completed(proposer, partner, _offered, _requested):
 func _on_unit_production_finished(unit, _producer):
 	if is_instance_valid(unit) and unit.player == player and unit.attack_damage != null:
 		_army = true
+
+
+func _on_unit_selected(unit):
+	if player == null or unit.player != player or unit.attack_range == null:
+		return
+	if unit is Structure or unit.movement_speed <= 0.0:
+		return
+	var army = get_tree().get_nodes_in_group("selected_units").filter(
+		func(other): return other.player == player and other.attack_range != null
+	)
+	if army.size() >= 3:
+		show_hint("HINT_ARMY_ORDERS")
 
 
 func _on_unit_spawned(unit):

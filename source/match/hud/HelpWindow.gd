@@ -15,6 +15,7 @@ const TOPICS = [
 	"CITY_TIERS",
 	"TRADE",
 	"COMBAT",
+	"COMMANDS",
 	"AIRCRAFT",
 ]
 

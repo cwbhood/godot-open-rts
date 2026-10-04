@@ -2,7 +2,7 @@ extends "res://source/match/units/actions/Action.gd"
 
 const AttackingWhileInRange = preload("res://source/match/units/actions/AttackingWhileInRange.gd")
 const AutoAttacking = preload("res://source/match/units/actions/AutoAttacking.gd")
-const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
+const Stances = preload("res://source/match/units/actions/Stances.gd")
 
 const REFRESH_INTERVAL = 1.0 / 60.0 * 10.0
 
@@ -28,22 +28,19 @@ func is_idle():
 
 
 func _get_units_to_attack():
-	if _unit.get_meta("hold_fire", false):
+	if Stances.fire_stance(_unit) == Stances.Fire.HOLD:
 		return []  # e.g. the helper's scout: it looks, it does not fight
 	# every idle armed unit runs this six times a second against every unit of the match, so
 	# the cheap distance test goes first and the weather-dependent sight range is read once
-	var sight_range = _unit.sight_range
+	var reach = _unit.sight_range
+	if Stances.holds_position(_unit):
+		reach = min(reach, _unit.attack_range)  # holding: only what it can hit from here
 	var position = _unit.global_position_yless
 	var units_to_attack = []
 	for unit in get_tree().get_nodes_in_group("units"):
-		if position.distance_to(unit.global_position_yless) > sight_range:
+		if position.distance_to(unit.global_position_yless) > reach:
 			continue
-		if (
-			unit.player != _unit.player
-			and Diplomacy.engages_on_sight(_unit.player, unit.player)
-			and unit.movement_domain in _unit.attack_domains
-			and not (unit.has_method("is_protected_from") and unit.is_protected_from(_unit.player))
-		):
+		if Stances.may_engage_on_sight(_unit, unit):
 			units_to_attack.append(unit)
 	return units_to_attack
 
@@ -51,7 +48,9 @@ func _get_units_to_attack():
 func _attack_unit(unit):
 	_timer.timeout.disconnect(_on_timer_timeout)
 	_sub_action = (
-		AutoAttacking.new(unit) if _unit.movement_speed > 0.0 else AttackingWhileInRange.new(unit)
+		AutoAttacking.new(unit)
+		if _unit.movement_speed > 0.0 and not Stances.holds_position(_unit)
+		else AttackingWhileInRange.new(unit)
 	)
 	_sub_action.tree_exited.connect(_on_attack_finished)
 	add_child(_sub_action)

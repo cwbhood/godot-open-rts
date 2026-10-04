@@ -69,6 +69,9 @@ func take_damage(damage, attacker):
 		if not Diplomacy.register_hit(attacker.player, player):
 			return  # a pact or an alliance protects us from them
 		last_attacker_player = attacker.player
+		if attacker.is_in_group("units"):  # units on return fire shoot back at it
+			set_meta("last_hit_by", attacker)
+			set_meta("last_hit_at_ms", Time.get_ticks_msec())
 	var hp_before = hp
 	hp -= damage
 	if hp < hp_before:
