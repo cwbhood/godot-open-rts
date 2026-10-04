@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How to play | Ironbound</title>
+<meta name="description" content="The Ironbound manual: controls, constructors, supply lines, power, city tiers, trade, diplomacy and unit orders for this Godot RTS.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://cwbhood.github.io/godot-open-rts/play.html">
+<meta name="author" content="Destin Jones">
+<meta name="theme-color" content="#14110d">
+<meta property="og:site_name" content="Ironbound">
+<meta property="og:title" content="How to play | Ironbound">
+<meta property="og:description" content="The Ironbound manual: controls, constructors, supply lines, power, city tiers, trade, diplomacy and unit orders for this Godot RTS.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cwbhood.github.io/godot-open-rts/play.html">
+<meta property="og:image" content="https://cwbhood.github.io/godot-open-rts/assets/img/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Ironbound title over tanks and helicopters fighting beside an oasis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to play | Ironbound">
+<meta name="twitter:description" content="The Ironbound manual: controls, constructors, supply lines, power, city tiers, trade, diplomacy and unit orders for this Godot RTS.">
+<meta name="twitter:image" content="https://cwbhood.github.io/godot-open-rts/assets/img/share.jpg">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="preload" href="assets/fonts/big-shoulders-stencil-display-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Ironbound","item":"https://cwbhood.github.io/godot-open-rts/"},{"@type":"ListItem","position":2,"name":"How to play","item":"https://cwbhood.github.io/godot-open-rts/play.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="var(--accent)" d="M7 2h18l5 5v18l-5 5H7l-5-5V7z"/><path fill="var(--accent-ink)" d="M12 8h8v3h-2v10h2v3h-8v-3h2V11h-2z"/><g fill="var(--accent-ink)"><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="24.5" cy="7.5" r="1.4"/><circle cx="7.5" cy="24.5" r="1.4"/><circle cx="24.5" cy="24.5" r="1.4"/></g></svg>Ironbound</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="play.html" aria-current="page">How to play</a></li>
+<li><a href="factions.html">Factions</a></li>
+<li><a href="changelog.html">Changelog</a></li>
+<li><a href="roadmap.html">Roadmap</a></li>
+<li><a href="open-source.html">Open source</a></li>
+<li><a href="support.html">Crash reports</a></li>
+<li><a href="community.html">Community</a></li>
+<li><a href="about.html">About</a></li>
+<li><a class="nav-cta" href="download.html">Download</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<div class="ribbon"><p>Early development. The game is playable and changing every day; expect rough edges.</p></div>
+<main id="main">
+
+<div class="wrap page-head">
+  <p class="eyebrow">Manual</p>
+  <h1>How to play</h1>
+  <p>The same guide you get in the game with <kbd>F1</kbd>, plus the tutorial steps. Matches take up to 45 minutes against one to three AI rivals.</p>
+</div>
+<div class="wrap" style="padding-top:2rem">
+  <div class="gallery">
+    <a href="assets/img/auto-expand.webp"><figure><div class="shot"><img src="assets/img/auto-expand-sm.webp" alt="The auto-expand panel listing constructors and what they are doing" width="720" height="405" loading="lazy" decoding="async"></div><figcaption>Auto-expand panel</figcaption></figure></a>
+    <a href="assets/img/trade.webp"><figure><div class="shot"><img src="assets/img/trade-sm.webp" alt="A trade offer with a good deal verdict" width="720" height="405" loading="lazy" decoding="async"></div><figcaption>Trade offers come with a verdict</figcaption></figure></a>
+    <a href="assets/img/manual.webp"><figure><div class="shot"><img src="assets/img/manual-sm.webp" alt="The in-game manual open on the Basics page" width="720" height="405" loading="lazy" decoding="async"></div><figcaption>The F1 manual in the game</figcaption></figure></a>
+  </div>
+</div>
+<div class="wrap docs"><nav class="toc" aria-label="On this page"><ol><li><a href="#basics">Basics and controls</a></li>
+<li><a href="#tutorial">Your first match</a></li>
+<li><a href="#constructors">Constructors and building</a></li>
+<li><a href="#auto-expand">Auto-expand</a></li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#supply-lines">Supply lines, roads and power</a></li>
+<li><a href="#city">City and tiers</a></li>
+<li><a href="#trade">Trade and diplomacy</a></li>
+<li><a href="#orders">Combat and unit orders</a></li>
+<li><a href="#helper">The helper</a></li>
+<li><a href="#limits">Limits and match end</a></li></ol></nav><article><section aria-labelledby="basics"><h2 id="basics">Basics and controls</h2>
+<p>You run a frontier city. You do not place houses: the city builds itself when goods reach it. Your job is the economy around it (extractors, supply lines, power), trade, and the army that protects it.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Do this</th><th>With</th></tr></thead>
+<tbody>
+<tr><td>Select</td><td>Left-click; drag to select many; double-click selects every unit of that kind on screen</td></tr>
+<tr><td>Order (move, attack, build, escort)</td><td>Right-click</td></tr>
+<tr><td>Line up selected units</td><td>Hold right-click and drag</td></tr>
+<tr><td>Queue orders</td><td>Hold <kbd>Shift</kbd></td></tr>
+<tr><td>Move the camera</td><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>; mouse wheel zooms; <kbd>Q</kbd> <kbd>E</kbd> rotate</td></tr>
+<tr><td>Control groups</td><td><kbd>Ctrl</kbd>+number saves, the number recalls</td></tr>
+<tr><td>Rotate a blueprint</td><td><kbd>R</kbd>; right-click cancels it</td></tr>
+<tr><td>Manual</td><td><kbd>F1</kbd></td></tr>
+</tbody></table></div></section>
+<section aria-labelledby="tutorial"><h2 id="tutorial">Your first match</h2>
+<p>Choose <em>Guided</em> in the Play menu and the tutorial walks you through these steps:</p>
+<ol>
+<li><strong>Select a constructor.</strong> The yellow bulldozers build everything. Left-click one; its build menu opens bottom right.</li>
+<li><strong>Lay out an extractor.</strong> Move the mouse over a deposit (woods, iron or copper ore, an oil field). The right extractor appears next to it: click to place it. You pay right away.</li>
+<li><strong>Let the constructor build it.</strong> The constructor drives to the site and must stay there until it is done. The label above the site says what it waits for.</li>
+<li><strong>Get goods home.</strong> Haulers drive what extractors dig up back to your command center along a supply line. Goods count only once they arrive.</li>
+<li><strong>Build power.</strong> Extractors and factories slow down without it. Build a power plant (it burns a little oil); pylons carry the grid to far extractors.</li>
+<li><strong>Let constructors expand for you.</strong> Select a constructor and press Auto-expand (<kbd>G</kbd>).</li>
+<li><strong>Grow the city to Industrial.</strong> A fed, powered city earns science; at 150 it reaches tier 2.</li>
+<li><strong>Trade with a faction.</strong> In the City panel, pick a faction, choose what to give and get, and propose.</li>
+<li><strong>Build an army.</strong> Build a vehicle factory and produce tanks. Park some near far extractors: raiders go for haulers first.</li>
+<li><strong>Command your army.</strong> Drag a line with the right mouse button, or press <kbd>P</kbd> to patrol and <kbd>B</kbd> to patrol your base.</li>
+</ol></section>
+<section aria-labelledby="constructors"><h2 id="constructors">Constructors and building</h2>
+<p>Constructors build every structure. Hover a build button to see what it does, its cost and its tier. Placing a building pays for it at once and lays out a site. <strong>The site only grows while a constructor stands next to it.</strong> If you send the constructor elsewhere, the site waits; select a constructor and right-click the site to resume.</p>
+<p>Extractors must touch a matching deposit. With a constructor selected, hovering a deposit picks the right extractor for you. To cancel a site, select it and press the X button; you get back the materials not yet on the road.</p></section>
+<section aria-labelledby="auto-expand"><h2 id="auto-expand">Auto-expand</h2>
+<p>Select constructors and press <strong>Auto-expand</strong> (<kbd>G</kbd>). They then work on their own, in this order:</p>
+<ol><li>run home when enemies come close,</li><li>finish any site nobody is working on,</li><li>build a power plant when the grid is short,</li><li>build pylons to wire far extractors,</li><li>build an extractor on the best free deposit near a command center,</li><li>pave the longest supply route (from Industrial on).</li></ol>
+<p><strong>It spends your bank.</strong> <em>Keep in bank</em> sets how much of each commodity it must leave you. Any order you give an auto constructor pauses it until the order is done.</p></section>
+<section aria-labelledby="resources"><h2 id="resources">Resources</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Commodity</th><th>From</th><th>Used for</th></tr></thead>
+<tbody>
+<tr><td><span class="tag tag-timber">Timber</span></td><td>Woods, lumber mill</td><td>Buildings and roads; your city eats a little</td></tr>
+<tr><td><span class="tag tag-iron">Iron</span></td><td>Iron ore, mine</td><td>The main building and vehicle material</td></tr>
+<tr><td><span class="tag tag-copper">Copper</span></td><td>Copper ore, mine</td><td>Power plants, pylons and advanced units</td></tr>
+<tr><td><span class="tag tag-oil">Oil</span></td><td>Oil field, oil derrick</td><td>Fuel for power plants and haulers</td></tr>
+</tbody></table></div>
+<p>Deposits run dry over time; their look shows how much is left. Part of every delivery goes to the city warehouse to feed citizens, the rest to your bank.</p></section>
+<section aria-labelledby="supply-lines"><h2 id="supply-lines">Supply lines, roads and power</h2>
+<p>Extractors fill a small local store. <strong>Haulers</strong> drive the goods to the closest command center along a supply line drawn on the ground. A full extractor stops. Sites inside the <strong>yard</strong> (about 9 m around a command center) get materials straight away; sites further out wait for a hauler.</p>
+<p>Every route starts as a dirt track. Upgrade it to a paved road (&times;1.4 hauler speed, needs Industrial) or a railway (&times;2, needs Electric) with the extractor's Road button.</p>
+<p>The top bar shows power supply and demand in MW. Without enough power, extraction drops, factories slow down and the city earns less science. Power plants burn oil; pylons extend the grid.</p></section>
+<section aria-labelledby="city"><h2 id="city">City and tiers</h2>
+<p>The city panel (top right) shows population, needs, the warehouse and civil defense. Citizens eat timber, iron, copper and oil; a fed, powered city grows, builds workshops (faster production for you) and earns <strong>science</strong>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Tier</th><th>Science</th><th>Largest city</th></tr></thead>
+<tbody>
+<tr><td>1 Frontier</td><td>Start</td><td>60 citizens</td></tr>
+<tr><td>2 Industrial</td><td>150</td><td>100 citizens</td></tr>
+<tr><td>3 Electric</td><td>450</td><td>130 citizens</td></tr>
+</tbody></table></div></section>
+<section aria-labelledby="trade"><h2 id="trade">Trade and diplomacy</h2>
+<p>In the city panel, pick a faction, choose what you give and what you get, and propose. Each faction has its own prices; the panel shows both, the fair price, and a verdict judged at your prices (good, fair or bad). A deal is bad when it leaves you with under 10 of something.</p>
+<p>Accepted goods travel by caravan, which can be raided. Trade agreements repeat a deal; an embargo stops trade. You can also declare war, sign non-aggression pacts and form alliances.</p></section>
+<section aria-labelledby="orders"><h2 id="orders">Combat and unit orders</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Order</th><th>Key</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Fight</td><td><kbd>F</kbd></td><td>Go to a spot and fight whatever is met on the way</td></tr>
+<tr><td>Patrol</td><td><kbd>P</kbd></td><td>Loop between points; Shift-click adds more</td></tr>
+<tr><td>Patrol base</td><td><kbd>B</kbd></td><td>Loop around your city and past every extractor</td></tr>
+<tr><td>Guard</td><td><kbd>V</kbd></td><td>Stay with a unit or building and defend it</td></tr>
+<tr><td>Retreat</td><td><kbd>Z</kbd></td><td>Back to the nearest command center without stopping</td></tr>
+<tr><td>Stop</td><td><kbd>X</kbd></td><td>Drop all orders</td></tr>
+<tr><td>Fire stance</td><td><kbd>L</kbd></td><td>Fire at will, return fire or hold fire</td></tr>
+<tr><td>Hold position</td><td><kbd>K</kbd></td><td>Shoot what is in range but never chase</td></tr>
+</tbody></table></div>
+<p>AI factions raid supply lines and far extractors first. Keep units near long routes. Fixed-wing drones must land at an <strong>airport</strong> to refuel and crash when they run dry.</p>
+<p>Keys can be changed in <code>controls.cfg</code> in the game's user folder.</p></section>
+<section aria-labelledby="helper"><h2 id="helper">The helper</h2>
+<p>The helper is an assistant you switch on at the top left (or press <kbd>H</kbd>). It puts idle constructors on auto-expand, builds defenders up to the army size you set, scouts with a buggy and keeps constructors away from enemies. <strong>It never attacks.</strong> Your own orders always win, and switching it off hands everything back.</p></section>
+<section aria-labelledby="limits"><h2 id="limits">Limits and match end</h2>
+<p><strong>Unit cap.</strong> Every unit takes slots: constructors, haulers, scouts, raiders and drones 1; tanks and missile trucks 2; artillery and helicopters 3; heavy tanks and gunships 4; battle tanks 5. Your cap is 150, within a match-wide cap of 400.</p>
+<p><strong>Match end.</strong> The clock counts down 45 minutes, or 5 minutes after the last deposit on the map runs dry. The best score wins: citizens + unit slots in use + 5 per finished building + science&nbsp;/&nbsp;10. Destroying every enemy wins at once.</p></section></article></div>
+<dialog class="lightbox" aria-label="Screenshot">
+  <img src="data:," alt="">
+  <div class="lightbox-bar"><span class="lightbox-caption small muted"></span><button type="button">Close</button></div>
+</dialog>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="stack">
+      <a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="var(--accent)" d="M7 2h18l5 5v18l-5 5H7l-5-5V7z"/><path fill="var(--accent-ink)" d="M12 8h8v3h-2v10h2v3h-8v-3h2V11h-2z"/><g fill="var(--accent-ink)"><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="24.5" cy="7.5" r="1.4"/><circle cx="7.5" cy="24.5" r="1.4"/><circle cx="24.5" cy="24.5" r="1.4"/></g></svg>Ironbound</a>
+      <p>A free, open source real-time strategy game made with Godot. Created by <a href="about.html">Destin Jones</a>. MIT licensed. No accounts, no ads, no cookies and no tracking on this site.</p>
+    </div>
+    <div>
+      <h2>Play</h2>
+      <ul>
+        <li><a href="download.html">Download</a></li>
+        <li><a href="play.html">How to play</a></li>
+        <li><a href="factions.html">Factions</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Project</h2>
+      <ul>
+        <li><a href="changelog.html">Changelog</a></li>
+        <li><a href="roadmap.html">Roadmap</a></li>
+        <li><a href="open-source.html">Licence, credits and mods</a></li>
+        <li><a href="support.html">Crash reports</a></li>
+        <li><a href="about.html">About the creator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Elsewhere</h2>
+      <ul>
+        <li><a href="https://github.com/cwbhood/godot-open-rts">Source code on GitHub</a></li>
+        <li><a href="https://github.com/cwbhood/godot-open-rts/issues">Report a bug</a></li>
+        <li><a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> (the base)</li>
+        <li><a href="https://godotengine.org">Godot Engine</a></li>
+        <li><a href="https://cwbhood.github.io/open-overwatch/">Open Overwatch</a>, also by Destin</li>
+      </ul>
+    </div>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

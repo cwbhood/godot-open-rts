@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crash reports | Ironbound</title>
+<meta name="description" content="How Ironbound&#x27;s opt-in crash reports work, what they contain, and where they are stored on your computer.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://cwbhood.github.io/godot-open-rts/support.html">
+<meta name="author" content="Destin Jones">
+<meta name="theme-color" content="#14110d">
+<meta property="og:site_name" content="Ironbound">
+<meta property="og:title" content="Crash reports | Ironbound">
+<meta property="og:description" content="How Ironbound&#x27;s opt-in crash reports work, what they contain, and where they are stored on your computer.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cwbhood.github.io/godot-open-rts/support.html">
+<meta property="og:image" content="https://cwbhood.github.io/godot-open-rts/assets/img/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Ironbound title over tanks and helicopters fighting beside an oasis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Crash reports | Ironbound">
+<meta name="twitter:description" content="How Ironbound&#x27;s opt-in crash reports work, what they contain, and where they are stored on your computer.">
+<meta name="twitter:image" content="https://cwbhood.github.io/godot-open-rts/assets/img/share.jpg">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="preload" href="assets/fonts/big-shoulders-stencil-display-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Ironbound","item":"https://cwbhood.github.io/godot-open-rts/"},{"@type":"ListItem","position":2,"name":"Crash reports","item":"https://cwbhood.github.io/godot-open-rts/support.html"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="var(--accent)" d="M7 2h18l5 5v18l-5 5H7l-5-5V7z"/><path fill="var(--accent-ink)" d="M12 8h8v3h-2v10h2v3h-8v-3h2V11h-2z"/><g fill="var(--accent-ink)"><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="24.5" cy="7.5" r="1.4"/><circle cx="7.5" cy="24.5" r="1.4"/><circle cx="24.5" cy="24.5" r="1.4"/></g></svg>Ironbound</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="play.html">How to play</a></li>
+<li><a href="factions.html">Factions</a></li>
+<li><a href="changelog.html">Changelog</a></li>
+<li><a href="roadmap.html">Roadmap</a></li>
+<li><a href="open-source.html">Open source</a></li>
+<li><a href="support.html" aria-current="page">Crash reports</a></li>
+<li><a href="community.html">Community</a></li>
+<li><a href="about.html">About</a></li>
+<li><a class="nav-cta" href="download.html">Download</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<div class="ribbon"><p>Early development. The game is playable and changing every day; expect rough edges.</p></div>
+<main id="main">
+
+<div class="wrap page-head">
+  <p class="eyebrow">When something breaks</p>
+  <h1>Crash reports</h1>
+  <p>If the game crashes or freezes, it saves a report on your computer. Nothing leaves your computer unless you say so.</p>
+</div>
+<div class="wrap" style="padding-top:2rem"><div class="gallery"><a href="assets/img/crash-prompt.webp"><figure><div class="shot"><img src="assets/img/crash-prompt-sm.webp" alt="The main menu asking whether to send the last crash report" width="720" height="405" loading="lazy" decoding="async"></div><figcaption>The prompt on the next start</figcaption></figure></a></div></div>
+<div class="wrap docs"><nav class="toc" aria-label="On this page"><ol><li><a href="#how">How it works</a></li>
+<li><a href="#contents">What a report contains</a></li>
+<li><a href="#where">Where reports are kept</a></li>
+<li><a href="#manual">Report a problem by hand</a></li></ol></nav><article><section aria-labelledby="how"><h2 id="how">How it works</h2><ol>
+<li>The game writes a report when it crashes, freezes for 20 seconds or more, or logs 100 errors within 10 seconds.</li>
+<li>The next time you start it, the main menu asks <em>Send last crash report?</em> and shows you the exact text.</li>
+<li>Press <strong>Send</strong> to open a prefilled bug report on GitHub, then press <em>Submit</em> there. Press <strong>Don't send</strong> and the report stays on your computer.</li>
+</ol></section>
+<section aria-labelledby="contents"><h2 id="contents">What a report contains</h2><p>Game version and build, Godot version, the map, players and AI styles, match time, weather, unit count, frame rate and memory, your OS, CPU and GPU, the most frequent errors with their call stacks, the crash backtrace and the last log lines.</p>
+<p><strong>It contains no names, accounts or addresses.</strong> Folder paths are shortened so your user name does not appear.</p></section>
+<section aria-labelledby="where"><h2 id="where">Where reports are kept</h2><div class="table-wrap"><table><thead><tr><th>System</th><th>Folder</th></tr></thead><tbody>
+<tr><td>Windows</td><td><code>%APPDATA%\Godot\app_userdata\Open RTS\crash_reports</code></td></tr>
+<tr><td>Linux</td><td><code>~/.local/share/godot/app_userdata/Open RTS/crash_reports</code></td></tr>
+<tr><td>macOS</td><td><code>~/Library/Application Support/Godot/app_userdata/Open RTS/crash_reports</code></td></tr>
+</tbody></table></div></section>
+<section aria-labelledby="manual"><h2 id="manual">Report a problem by hand</h2><p>For bugs that are not crashes, <a href="https://github.com/cwbhood/godot-open-rts/issues/new">open an issue</a>: say what you did, what you expected and what happened, and attach a screenshot if you can. A GitHub account is needed.</p></section></article></div>
+<dialog class="lightbox" aria-label="Screenshot">
+  <img src="data:," alt="">
+  <div class="lightbox-bar"><span class="lightbox-caption small muted"></span><button type="button">Close</button></div>
+</dialog>
+
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="stack">
+      <a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="var(--accent)" d="M7 2h18l5 5v18l-5 5H7l-5-5V7z"/><path fill="var(--accent-ink)" d="M12 8h8v3h-2v10h2v3h-8v-3h2V11h-2z"/><g fill="var(--accent-ink)"><circle cx="7.5" cy="7.5" r="1.4"/><circle cx="24.5" cy="7.5" r="1.4"/><circle cx="7.5" cy="24.5" r="1.4"/><circle cx="24.5" cy="24.5" r="1.4"/></g></svg>Ironbound</a>
+      <p>A free, open source real-time strategy game made with Godot. Created by <a href="about.html">Destin Jones</a>. MIT licensed. No accounts, no ads, no cookies and no tracking on this site.</p>
+    </div>
+    <div>
+      <h2>Play</h2>
+      <ul>
+        <li><a href="download.html">Download</a></li>
+        <li><a href="play.html">How to play</a></li>
+        <li><a href="factions.html">Factions</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Project</h2>
+      <ul>
+        <li><a href="changelog.html">Changelog</a></li>
+        <li><a href="roadmap.html">Roadmap</a></li>
+        <li><a href="open-source.html">Licence, credits and mods</a></li>
+        <li><a href="support.html">Crash reports</a></li>
+        <li><a href="about.html">About the creator</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Elsewhere</h2>
+      <ul>
+        <li><a href="https://github.com/cwbhood/godot-open-rts">Source code on GitHub</a></li>
+        <li><a href="https://github.com/cwbhood/godot-open-rts/issues">Report a bug</a></li>
+        <li><a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> (the base)</li>
+        <li><a href="https://godotengine.org">Godot Engine</a></li>
+        <li><a href="https://cwbhood.github.io/open-overwatch/">Open Overwatch</a>, also by Destin</li>
+      </ul>
+    </div>
+  </div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

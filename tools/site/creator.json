@@ -1,0 +1,51 @@
+{
+  "_how_to_edit": "Change the text below, then run: python3 tools/site/build.py site. Photo: replace site/assets/img/creator.webp, creator-sm.webp and creator.jpg (square, 640x640).",
+  "name": "Destin Jones",
+  "role": "Creator of Ironbound",
+  "headline": "Builds in the open, with AI on the team",
+  "photo_alt": "Portrait of Destin Jones, creator of Ironbound",
+  "bio": [
+    "I'm Destin Jones, the creator of Ironbound. I love open source and vibe coding, and I'm always chasing the next new approach that lets technology get more done. Ironbound is a full real-time strategy game built in public, and a working test of how far that approach can go.",
+    "I drive these projects with Claude as my building partner. I set the direction and make the calls, Claude helps build it, and all of it ships in the open so anyone can read it, fork it and take it further.",
+    "The results are all public. Ironbound went from a fork of Open RTS to a game with a self-building city, supply lines, trade, diplomacy, weather, unit voices and a scripted test harness in its first two days, across more than 25 pull requests anyone can read on GitHub."
+  ],
+  "principles": [
+    [
+      "Open by default",
+      "Code, art scripts, tests and design notes live in the repository. Anyone can read how a feature was built and why."
+    ],
+    [
+      "AI as a teammate",
+      "Claude does the heavy lifting on code and content. A person sets the goals, reviews the work and owns the decisions."
+    ],
+    [
+      "Small, testable steps",
+      "Every change lands as its own pull request, and matches are played by scripts to prove a change works before it ships."
+    ],
+    [
+      "Capture the method",
+      "The tools that made the game ship with it, so the next project starts faster than this one did."
+    ]
+  ],
+  "links": [
+    [
+      "GitHub",
+      "https://github.com/cwbhood"
+    ],
+    [
+      "Open Overwatch",
+      "https://cwbhood.github.io/open-overwatch/"
+    ]
+  ],
+  "other_projects": [
+    [
+      "Open Overwatch",
+      "https://cwbhood.github.io/open-overwatch/",
+      "my earlier open source project (source on GitHub at cwbhood/open-overwatch)."
+    ]
+  ],
+  "same_as": [
+    "https://github.com/cwbhood",
+    "https://cwbhood.github.io/open-overwatch/#creator"
+  ]
+}
