@@ -8,11 +8,14 @@ enum BlueprintPositionValidity {
 	OUT_OF_MAP,
 	NO_DEPOSIT_NEARBY,
 	TIER_TOO_LOW,
+	IN_WATER,
+	NEEDS_SHORE,
 }
 
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const Worker = preload("res://source/match/units/Worker.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 
 const ROTATION_BY_KEY_STEP = 45.0
 const ROTATION_DEAD_ZONE_DISTANCE = 0.1
@@ -129,6 +132,21 @@ func _calculate_blueprint_position_validity():
 		)
 	):
 		return BlueprintPositionValidity.NO_DEPOSIT_NEARBY
+	var water_validity = (
+		{
+			WaterRules.IN_WATER: BlueprintPositionValidity.IN_WATER,
+			WaterRules.NEEDS_SHORE: BlueprintPositionValidity.NEEDS_SHORE,
+		}
+		. get(
+			WaterRules.structure_problem(
+				_match.map,
+				scene_path,
+				_active_blueprint_node.global_position,
+				_pending_structure_radius
+			),
+			BlueprintPositionValidity.VALID
+		)
+	)
 	var placement_validity = Utils.Match.Unit.Placement.validate_agent_placement_position(
 		_active_blueprint_node.global_position,
 		_pending_structure_radius,
@@ -139,7 +157,7 @@ func _calculate_blueprint_position_validity():
 		),
 		_pending_structure_navmap_rid
 	)
-	return (
+	var validity = (
 		{
 			Utils.Match.Unit.Placement.COLLIDES_WITH_AGENT:
 			BlueprintPositionValidity.COLLIDES_WITH_OBJECT,
@@ -147,6 +165,7 @@ func _calculate_blueprint_position_validity():
 		}
 		. get(placement_validity, BlueprintPositionValidity.VALID)
 	)
+	return water_validity if water_validity != BlueprintPositionValidity.VALID else validity
 
 
 func _player_has_enough_resources():
@@ -199,6 +218,10 @@ func _update_feedback_label(blueprint_position_validity):
 			_feedback_label.text = tr("BLUEPRINT_NO_DEPOSIT_NEARBY")
 		BlueprintPositionValidity.TIER_TOO_LOW:
 			_feedback_label.text = tr("BLUEPRINT_TIER_TOO_LOW")
+		BlueprintPositionValidity.IN_WATER:
+			_feedback_label.text = tr("BLUEPRINT_IN_WATER")
+		BlueprintPositionValidity.NEEDS_SHORE:
+			_feedback_label.text = tr("BLUEPRINT_NEEDS_SHORE")
 		BlueprintPositionValidity.VALID:
 			_feedback_label.text = _logistics_hint()
 
@@ -413,6 +436,7 @@ func _snap_blueprint_next_to_deposit():
 					BlueprintPositionValidity.COLLIDES_WITH_OBJECT,
 					BlueprintPositionValidity.NOT_NAVIGABLE,
 					BlueprintPositionValidity.OUT_OF_MAP,
+					BlueprintPositionValidity.IN_WATER,
 				]
 			):
 				_feedback_label.global_transform.origin = (

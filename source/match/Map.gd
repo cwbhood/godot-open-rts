@@ -13,6 +13,18 @@ const EXTRA_MARGIN = 2
 			terrain_mesh.size = size + Vector2(EXTRA_MARGIN, EXTRA_MARGIN) * 2
 			terrain_mesh.center_offset = Vector3(size.x, 0.0, size.y) / 2.0
 
+# WaterLayout.gd of maps with seas, lakes or fords; null on maps without any water
+var water = null
+
+
+func has_water() -> bool:
+	return water != null and water.has_water()
+
+
+func water_depth_at(pos: Vector3) -> int:
+	"""WaterLayout.Depth (0 = land) under a point; cheap enough for per-tick use"""
+	return water.depth_fast(Vector2(pos.x, pos.z)) if has_water() else 0
+
 
 func get_topdown_polygon_2d():
 	return [Vector2(0, 0), Vector2(size.x, 0), size, Vector2(0, size.y)]

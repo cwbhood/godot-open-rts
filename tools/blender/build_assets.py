@@ -2649,6 +2649,160 @@ def defense_aa(M):
         T.box((0.35, 0.045, 0.03), loc=(0, -0.09, 0.48), rot=(15, 0, 0), m="TeamColor")
 
 
+# ---- water units and the shipyard ----------------------------------------
+# Boats and amphibious hulls float in game: WaterMotion.gd lowers them by ~0.3 m when
+# swimming, so their hulls are sealed boxes with the team colour on the deck, where it
+# stays visible above the water line.
+
+def boat_hull(P, L, W, h, m="HullOlive", bow=0.35, stern_w=0.85, deck=None):
+    """Sealed hull: flat bottom, raked bow, slightly narrower transom. Returns deck z."""
+    hw = W / 2
+    rings = []
+    for y, wf, zb in ((-L / 2, stern_w, 0.06), (-L / 2 + 0.2, 1.0, 0.0),
+                      (L / 2 - bow, 1.0, 0.0), (L / 2 - bow * 0.35, 0.55, 0.06),
+                      (L / 2, 0.08, 0.16)):
+        w = hw * wf
+        rings.append([V(-w, y, zb), V(w, y, zb), V(w * 1.06, y, h), V(-w * 1.06, y, h)])
+    P.add(g_rings(rings), m=lambda c, n: (deck or m) if n.z > 0.7 else m)
+    return h
+
+
+@register("units", "amphibious_apc")
+def amphibious_apc(M):
+    """Amphibious APC: boat-shaped eight-wheeled hull with a trim vane, waterjets and a
+    small machine-gun turret; swims with the hull half under water."""
+    P = M.main
+    L, W = 1.5, 0.86
+    for y in (0.46, 0.16, -0.16, -0.46):
+        for sx in (-1, 1):
+            tire(P, sx * 0.4, y, 0.14, 0.12)
+    z = boat_hull(P, L, W, 0.42, m="HullOlive", bow=0.4, deck="HullOliveDark")
+    with P.at(loc=(0, 0, 0.0)):
+        P.prism([(-0.36, -0.7), (0.36, -0.7), (0.36, 0.12), (0.26, 0.34), (-0.26, 0.34),
+                 (-0.36, 0.12)], 0.16, loc=(0, 0, z), top_scale=(0.9, 0.92),
+                m=plate_mat("TeamColor", "HullOlive", thr=0.8))
+    zt = z + 0.16
+    # trim vane folded on the bow, waterjet nozzles at the stern
+    P.box((0.7, 0.05, 0.18), loc=(0, L / 2 - 0.06, 0.24), rot=(-35, 0, 0), m="HullOliveDark")
+    for sx in (-1, 1):
+        P.cyl(0.06, 0.1, loc=(sx * 0.24, -L / 2 - 0.02, 0.16), rot=(90, 0, 0), m="DarkMetal",
+              n=8)
+        P.box((0.05, 0.5, 0.05), loc=(sx * 0.37, -0.25, zt), base=True, m="DarkMetal")
+    for x in (-0.15, 0.15):  # rear hatches
+        P.box((0.22, 0.26, 0.03), loc=(x, -0.48, zt), base=True, m="HullOliveDark")
+    lamp_pair(P, 0.28, L / 2 - 0.2, z - 0.02, size=(0.06, 0.03, 0.04))
+    T = M.part("Turret", origin=(0, 0.08, zt))
+    with T.at(loc=(0, 0.08, zt)):
+        T.cyl(0.17, 0.12, m=plate_mat("TeamColor", "HullOliveDark", thr=0.8), n=8)
+        T.box((0.18, 0.12, 0.1), loc=(0, 0.12, 0.04), m="HullOliveDark")
+        T.cyl(0.022, 0.42, loc=(0, 0.16, 0.08), rot=(-90, 0, 0), m="Gunmetal", n=6)
+        T.cyl(0.03, 0.06, loc=(0, 0.56, 0.08), rot=(-90, 0, 0), m="DarkMetal", n=6)
+        antenna(T, -0.12, -0.1, 0.12, 0.38)
+
+
+@register("units", "hover_skimmer")
+def hover_skimmer(M):
+    """Hover skimmer: light hovercraft on a black rubber skirt, twin ducted fans and a
+    pintle gun; the same on sand and water."""
+    P = M.main
+    L, W = 1.1, 0.68
+    skirt = [V(math.cos(a) * W / 2, math.sin(a) * L / 2, 0) for a in
+             [i * math.tau / 14 for i in range(14)]]
+    rings = [[p * 0.92 for p in skirt], [p + V(0, 0, 0.16) for p in skirt],
+             [p * 0.94 + V(0, 0, 0.2) for p in skirt]]
+    P.add(g_rings(rings), m="Rubber")
+    P.prism([(-0.26, -0.46), (0.26, -0.46), (0.28, 0.2), (0.12, 0.46), (-0.12, 0.46),
+             (-0.28, 0.2)], 0.12, loc=(0, 0, 0.2), top_scale=(0.9, 0.92),
+            m=plate_mat("TeamColor", "Khaki", thr=0.8))
+    P.box((0.24, 0.24, 0.14), loc=(0, 0.06, 0.32), base=True, top_shift=(0, -0.03),
+          taper=0.85, m=lambda c, n: "Glass" if n.y > 0.3 else "Khaki")
+    for sx in (-1, 1):  # ducted fans
+        with P.at(loc=(sx * 0.17, -0.36, 0.32), rot=(90, 0, 0)):
+            P.lathe([(0.13, -0.06), (0.15, -0.04), (0.15, 0.06), (0.13, 0.06)], m="DarkMetal",
+                    n=10, caps=False)
+            P.cyl(0.03, 0.08, loc=(0, 0, -0.04), m="Metal", n=6)
+            P.box((0.24, 0.015, 0.01), loc=(0, 0, 0.0), m="Graphite")
+        P.box((0.02, 0.08, 0.16), loc=(sx * 0.17, -0.47, 0.25), base=True, m="Amber")  # rudders
+    P.cyl(0.025, 0.12, loc=(0, 0.2, 0.32), m="DarkMetal", n=6)
+    with P.at(loc=(0, 0.2, 0.44)):
+        P.box((0.1, 0.16, 0.07), m="Gunmetal")
+        P.cyl(0.018, 0.3, loc=(0, 0.06, 0.0), rot=(-90, 0, 0), m="DarkMetal", n=6)
+    lamp_pair(P, 0.14, 0.42, 0.26, size=(0.05, 0.02, 0.03))
+
+
+@register("units", "patrol_boat")
+def patrol_boat(M):
+    """Patrol boat: planing hull with a raked bow, wheelhouse, deck gun forward and a
+    team-coloured stripe; most of the hull sits under the water line in game."""
+    P = M.main
+    L, W = 1.9, 0.62
+    z = boat_hull(P, L, W, 0.34, m="SteelBlue", bow=0.55, stern_w=0.9, deck="Concrete")
+    for sx in (-1, 1):  # rub rail and team stripe along the sheer
+        P.box((0.02, L - 0.6, 0.05), loc=(sx * 0.33, -0.12, z - 0.07), m="TeamColor")
+        P.box((0.025, L - 0.5, 0.025), loc=(sx * 0.335, -0.1, z - 0.01), m="DarkMetal")
+    # wheelhouse
+    P.box((0.42, 0.46, 0.22), loc=(0, -0.12, z), base=True, taper=0.92,
+          m=lambda c, n: "Glass" if c.z > z + 0.12 and abs(n.z) < 0.5 else "WhitePaint")
+    P.box((0.48, 0.52, 0.04), loc=(0, -0.12, z + 0.22), base=True, m="TeamColor")
+    P.cyl(0.015, 0.34, loc=(0, -0.2, z + 0.26), m="DarkMetal", n=4)  # mast
+    P.box((0.16, 0.02, 0.02), loc=(0, -0.2, z + 0.52), m="DarkMetal")
+    P.cyl(0.03, 0.03, loc=(0, -0.2, z + 0.6), m="Lamp", n=6)
+    # deck gun forward, depth charges aft
+    with P.at(loc=(0, 0.42, z)):
+        P.cyl(0.1, 0.06, m="Gunmetal", n=8)
+        P.box((0.16, 0.14, 0.1), loc=(0, 0.0, 0.06), m="Gunmetal")
+        P.cyl(0.025, 0.38, loc=(0, 0.06, 0.11), rot=(-90, 0, 0), m="DarkMetal", n=6)
+    for x in (-0.16, 0.16):
+        P.cyl(0.05, 0.1, loc=(x, -0.72, z), m="DarkMetal", n=6)
+    P.box((0.5, 0.04, 0.06), loc=(0, -L / 2 + 0.02, z - 0.04), m="Amber")  # transom stripe
+    lamp_pair(P, 0.12, 0.1, z + 0.18, size=(0.04, 0.02, 0.03))
+
+
+@register("buildings", "shipyard")
+def shipyard(M):
+    """Shipyard: built on the shore. A quay pad, a covered slipway running down to the
+    water at the front (+Y), a crane and a small office."""
+    P = M.main
+    z = pad(P, 3.2, 2.2, stripes=True)
+    oy = -0.5  # land side
+    # boat shed over the slipway
+    sx0, sx1 = -0.75, 0.55
+    P.box((sx1 - sx0, 1.5, 0.05), loc=((sx0 + sx1) / 2, 0.55, z), base=True, m="Concrete")
+    for x in (sx0, sx1):
+        for y in (0.0, 0.6, 1.2):
+            P.beam((x, y, z), (x, y, z + 0.8), 0.06, m="SteelBlue")
+    P.extrude_x([(-0.15, z + 0.8), (1.35, z + 0.8), (0.6, z + 1.15)], sx0 - 0.05, sx1 + 0.05,
+                m=lambda c, n: "TeamColor" if n.z > 0.3 else "SteelBlueDark")
+    # slipway ramp running into the water beyond the front edge
+    P.prism([(-0.4, 1.0), (0.2, 1.0), (0.2, 1.75), (-0.4, 1.75)], 0.05, loc=(0, 0, z - 0.08),
+            m="ConcreteDark")
+    for x in (-0.3, 0.1):
+        P.box((0.04, 1.6, 0.03), loc=(x, 0.9, z + 0.05), base=True, m="Rust")
+    # a hull on the stocks
+    with P.at(loc=(-0.1, 0.5, z + 0.12)):
+        boat_hull(P, 1.0, 0.36, 0.2, m="SteelBlue", bow=0.3, deck="Concrete")
+    for y in (0.2, 0.7):
+        P.box((0.3, 0.06, 0.12), loc=(-0.1, y, z + 0.05), base=True, m="Wood")
+    # crane on the quay
+    cx, cy = 1.15, 0.7
+    P.box((0.3, 0.3, 0.1), loc=(cx, cy, z), base=True, m="Amber")
+    P.beam((cx, cy, z + 0.1), (cx, cy, z + 1.1), 0.08, m="Amber")
+    P.beam((cx, cy - 0.3, z + 1.1), (cx, cy + 0.9, z + 1.1), 0.07,
+           m=lambda c, n: hazard(c, n, 0.12))
+    P.cyl(0.006, 0.5, loc=(cx, cy + 0.8, z + 0.6), m="DarkMetal", n=4)
+    P.box((0.2, 0.2, 0.12), loc=(cx, cy - 0.3, z + 0.98), base=True, m="DarkMetal")
+    # office and stores on the land side
+    P.box((0.8, 0.5, 0.42), loc=(1.0, oy - 0.25, z), base=True, m="WallConcrete")
+    P.box((0.84, 0.54, 0.05), loc=(1.0, oy - 0.25, z + 0.42), base=True, m="TeamColor")
+    windows_row(P, 0.75, 1.25, oy + 0.005, z + 0.24, 2, lit=(0,))
+    crate_stack(P, -1.3, -0.65, z, seed=3)
+    barrel_group(P, -1.25, 0.25, z)
+    # bollards along the water edge
+    for x in (-1.4, -0.9, 0.7, 1.4):
+        P.cyl(0.05, 0.1, loc=(x, 1.02, z), m="DarkMetal", n=6)
+    lamp_post(P, 1.45, -0.95, z)
+
+
 # ---- city buildings (built by the city itself, about 2 m across) ------------
 
 def plaster_walls(c, n, base="Plaster", dado="PlasterDark", z_split=0.12):

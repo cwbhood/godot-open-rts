@@ -17,6 +17,8 @@ const ROTATION_LOW_PASS_FILTER_VELOCITY_THRESHOLD = 0.01  # velocities below wil
 
 const PASSIVE_MOVEMENT_TRACKING_ENABLED = true
 
+const WaterMotion = preload("res://source/match/units/traits/WaterMotion.gd")
+
 @export var domain = Constants.Match.Navigation.Domain.TERRAIN
 @export var speed: float = 4.0
 
@@ -32,6 +34,7 @@ var _previously_set_global_transform_of_unit = null
 
 var _passive_movement_detected = false
 var _weather = null
+var _water_motion = null  # WaterMotion.gd on maps with water
 
 @onready var _match = find_parent("Match")
 @onready var _unit = get_parent()
@@ -62,6 +65,7 @@ func _ready():
 	velocity_computed.connect(_on_velocity_computed)
 	navigation_finished.connect(_on_navigation_finished)
 	set_navigation_map(_match.navigation.get_navigation_map_rid_by_domain(domain))
+	_setup_water_motion()
 	_align_unit_position_to_navigation()
 	move(
 		(
@@ -81,10 +85,24 @@ func get_speed_multiplier():
 	var logistics = _unit.player.get_node_or_null("Logistics") if "player" in _unit else null
 	if logistics != null and logistics.is_unit_out_of_fuel(_unit):
 		multiplier *= Constants.Match.Fuel.OUT_OF_FUEL_SPEED_FACTOR
+	if _water_motion != null:
+		multiplier *= _water_motion.speed_multiplier
 	var road_speed_multiplier = _unit.get("road_speed_multiplier")
 	if road_speed_multiplier != null:
 		multiplier *= road_speed_multiplier
 	return multiplier
+
+
+func _setup_water_motion():
+	var a_map = _match.map
+	if domain == Constants.Match.Navigation.Domain.AIR or not a_map.has_method("has_water"):
+		return
+	if not a_map.has_water():
+		return
+	_water_motion = WaterMotion.new()
+	_water_motion.name = "WaterMotion"
+	_unit.add_child.call_deferred(_water_motion)
+	_water_motion.setup.call_deferred(domain, a_map, self)
 
 
 func move(movement_target: Vector3):

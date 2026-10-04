@@ -17,6 +17,7 @@ const PROJECTILES = {
 	"rocket": "res://source/match/units/projectiles/Rocket.tscn",
 }
 const DOMAINS = {"terrain": 1, "air": 0}  # mirrors Constants.Match.Navigation.Domain
+const MOVEMENT_DOMAINS = {"land": 1, "water": 2, "amphibious": 3}  # navigation domains
 const GENERATED_SCENES_ROOT = "res://data-units/"
 
 static var _cache = null
@@ -144,6 +145,9 @@ static func _build_generated_scene(unit):
 		push_error("GameData: unit '{0}' has an unknown base".format([unit["id"]]))
 		return null
 	var root = base_scene.instantiate()
+	var movement = root.get_node_or_null("Movement")
+	if "movement" in unit and movement != null:  # "land", "water" or "amphibious"
+		movement.domain = MOVEMENT_DOMAINS.get(unit["movement"], movement.domain)
 	if "model" in unit:
 		var model = apply_model(root, unit)
 		if model != null:

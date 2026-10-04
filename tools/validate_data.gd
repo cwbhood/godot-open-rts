@@ -16,7 +16,7 @@ const KNOWN_UNIT_FIELDS = [
 	"id", "category", "scene", "base", "base_scene", "blueprint", "name", "description",
 	"icon", "icon_tint", "tier", "cost", "build_time_s", "produced_by", "built_by",
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
-	"model_scale", "model_offset", "model_rotation_y_deg"
+	"model_scale", "model_offset", "model_rotation_y_deg", "movement", "water_speed", "placement"
 ]
 const KNOWN_PROPERTIES = [
 	"sight_range", "hp", "hp_max", "attack_damage", "attack_interval", "attack_range",
@@ -144,6 +144,17 @@ func _check_units(entries, resources, tiers_count):
 			_error(where, "build_time_s must be >= 0")
 		if "speed" in entry and float(entry["speed"]) <= 0.0:
 			_error(where, "speed must be > 0")
+		if "movement" in entry and not entry["movement"] in GameData.MOVEMENT_DOMAINS:
+			_error(
+				where,
+				"movement must be one of {0}".format([GameData.MOVEMENT_DOMAINS.keys()])
+			)
+		if "movement" in entry and not "base" in entry:
+			_warn(where, "movement applies to units with a base only; the scene sets it otherwise")
+		if "water_speed" in entry and float(entry["water_speed"]) <= 0.0:
+			_error(where, "water_speed must be > 0")
+		if "placement" in entry and entry["placement"] != "shore":
+			_error(where, "placement must be \"shore\"")
 		for kind in entry.get("extracts", []):
 			if not kind in resources:
 				_error(where, "extracts unknown commodity '{0}'".format([kind]))
@@ -221,7 +232,23 @@ func _check_maps(entries):
 		)
 		if deposits.is_empty():
 			_warn(where, "map has no resource deposits")
+		_check_map_water(where, map)
 		map.free()
+
+
+func _check_map_water(where, map):
+	"""start points and deposits must be on dry land"""
+	if not map.has_method("has_water") or not map.has_water():
+		return
+	var points = []
+	for marker in map.find_child("SpawnPoints").get_children():
+		points.append([marker.position, "start point " + marker.name])
+	var deposits_node = map.get_node_or_null("Deposits")
+	for marker in deposits_node.get_children() if deposits_node != null else []:
+		points.append([marker.position, "{0} deposit".format([marker.get_meta("kind", "")])])
+	for point in points:
+		if map.water.is_wet_near(Vector2(point[0].x, point[0].z), 1.5):
+			_error(where, "{0} at {1} is in or right next to water".format([point[1], point[0]]))
 
 
 func _check_ai(entries, resources):

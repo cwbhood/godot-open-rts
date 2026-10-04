@@ -204,3 +204,13 @@ DIPLOMACY_TOAST_OTHERS_WAR,{0} and {1} are at war.,{0} i {1} są w stanie wojny.
 DIPLOMACY_TOAST_OTHERS_ALLIANCE,{0} and {1} are now allies.,{0} i {1} zawarły sojusz.
 DIPLOMACY_TOAST_PROTECTED,"You have a treaty with {0} ({1}), so your units won't attack them.","Masz traktat z {0} ({1}), więc twoje jednostki ich nie zaatakują."
 CITY_PANEL_COLLAPSE_TOOLTIP,Fold the city and trade panel away (incoming offers still show),Zwiń panel miasta i handlu (oferty nadal się pojawią)
+SHIPYARD,Shipyard,Stocznia
+SHIPYARD_DESCRIPTION,"builds boats and amphibious vehicles; must stand on the shore, next to deep water","buduje łodzie i pojazdy amfibijne; musi stać na brzegu, przy głębokiej wodzie"
+PATROL_BOAT,Patrol boat,Łódź patrolowa
+PATROL_BOAT_DESCRIPTION,"fast gunboat; sails deep and shallow water, cannot go ashore","szybka kanonierka; pływa po głębokiej i płytkiej wodzie, nie wychodzi na ląd"
+AMPHIBIOUS_APC,Amphibious APC,Amfibijny transporter
+AMPHIBIOUS_APC_DESCRIPTION,"armoured eight-wheeler that swims; slower in water, slows down while climbing in or out","opancerzony ośmiokołowiec, który pływa; w wodzie wolniejszy, zwalnia przy wjeździe i wyjeździe"
+HOVER_SKIMMER,Hover skimmer,Poduszkowiec
+HOVER_SKIMMER_DESCRIPTION,"light hovercraft, as fast on water as on sand; fragile","lekki poduszkowiec, na wodzie tak szybki jak na piasku; kruchy"
+BLUEPRINT_IN_WATER,Cannot build in water,Nie można budować w wodzie
+BLUEPRINT_NEEDS_SHORE,Must be built on the shore next to deep water,Trzeba zbudować na brzegu przy głębokiej wodzie
