@@ -19,6 +19,7 @@ extends "res://tests/playtest/PlaytestChecks.gd"
 
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
+const Structure = preload("res://source/match/units/Structure.gd")
 const TankScene = preload("res://source/match/units/Tank.tscn")
 const HaulerScene = preload("res://source/match/units/Hauler.tscn")
 const Hauler = preload("res://source/match/units/Hauler.gd")
@@ -81,7 +82,7 @@ func _check_line_drag():
 	var tanks = _spawn_squad(_human, _cc.global_position + Vector3(10, 0, 10), 6)
 	await _frames(30)
 	await _select(tanks)
-	var center = _cc.global_position + Vector3(16, 0, 20)
+	var center = _clear_line_center(_cc.global_position + Vector3(16, 0, 20))
 	camera_on(center, 22.0)
 	await _frames(10)
 	var start = center + Vector3(-9, 0, 0)
@@ -444,6 +445,25 @@ func _all_arrived(units):
 				or unit.action.has_method("is_idle")
 			)
 	)
+
+
+func _clear_line_center(preferred):
+	"""a spot near 'preferred' with no deposit or structure within reach of an 18 m line
+	through it: the maps' deposits move when their layouts change (fair start zones)"""
+	var blockers = (
+		get_tree().get_nodes_in_group("resource_units")
+		+ get_tree().get_nodes_in_group("units").filter(func(unit): return unit is Structure)
+	)
+	for dz in [0, 6, -6, 12, -12, 18]:
+		var center = preferred + Vector3(0, 0, dz)
+		var clear = blockers.all(
+			func(node):
+				var offset = node.global_position - center
+				return abs(offset.z) > 4.0 or abs(offset.x) > 13.0
+		)
+		if clear:
+			return center
+	return preferred
 
 
 func _spread(units):
