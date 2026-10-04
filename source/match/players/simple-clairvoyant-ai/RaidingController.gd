@@ -44,6 +44,11 @@ func provision(resources, _metadata):
 	factory.production_queue.produce(RaiderScene, true)
 
 
+func committed_units():
+	"""raiders out on a raid; the ones still forming wait with the rest of the army"""
+	return _raiding.filter(func(unit): return is_instance_valid(unit))
+
+
 func _tick(delta):
 	if _ai.raid_party_size <= 0 or _ai.raid_interval_s <= 0:
 		return

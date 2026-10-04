@@ -177,6 +177,28 @@ alliances (1.0 is average, below 1 it asks for more goods, above 1 it signs for 
 offers pacts itself), `accepts_alliances` says whether it ever allies, and
 `attacks_neutrals` whether it attacks factions it is not at war with (which starts a war).
 
+`defence` says where the army stands while it is home (not attacking or raiding). Every
+field is optional; missing ones take the defaults shown:
+
+```json
+"defence": {
+  "shape": "groups",      // "groups" (front, flanks, reserve, guards) or "ring" around the city
+  "front_m": 16,          // front line distance beyond the edge of the city
+  "choke_search_m": 12,   // the front may move this much nearer or farther to a narrow pass
+  "staging_share": 0,     // above 0: front at this share of the way to the rival's city
+  "front": 0.5,           // shares of the army per group
+  "flanks": 0.2,          // a flank closed by the map edge or impassable ground joins the front
+  "reserve": 0.2,
+  "guards": 0.1,          // at the remote extractors nearest the threat
+  "guard_routes": false,  // guards stand halfway along the road instead of at the extractor
+  "max_guard_posts": 2,
+  "spacing_m": 4,         // between neighbours in a formation
+  "ring_m": 5,            // "ring": distance beyond the edge of the city
+  "react_m": 22,          // enemies this far beyond the city edge are fought by the nearest units
+  "leash_m": 30           // units dragged farther than this from their spot walk back
+}
+```
+
 Every personality shows up in the player list of the Play menu.
 
 ## Mods

@@ -34,7 +34,11 @@ const KNOWN_AI_FIELDS = [
 	"expected_number_of_units_in_battlegroup", "raid_party_size", "raid_interval_s",
 	"trade_hoarding_factor", "trade_profit_margin", "trade_offer_interval_s",
 	"proposes_agreements", "upgrades_roads", "peacefulness", "accepts_alliances",
-	"attacks_neutrals"
+	"attacks_neutrals", "defence"
+]
+const KNOWN_DEFENCE_FIELDS = [
+	"shape", "front_m", "choke_search_m", "staging_share", "front", "flanks", "reserve",
+	"guards", "guard_routes", "max_guard_posts", "spacing_m", "ring_m", "react_m", "leash_m"
 ]
 
 var _errors = 0
@@ -259,6 +263,15 @@ func _check_ai(entries, resources):
 		for field in entry:
 			if not field in KNOWN_AI_FIELDS:
 				_warn(where, "unknown field '{0}' is ignored".format([field]))
+		var defence = entry.get("defence", {})
+		if not defence is Dictionary:
+			_error(where, "defence must be an object like {\"front_m\": 16}")
+			defence = {}
+		for field in defence:
+			if not field in KNOWN_DEFENCE_FIELDS:
+				_warn(where, "unknown defence field '{0}' is ignored".format([field]))
+		if defence.get("shape", "groups") not in ["groups", "ring"]:
+			_error(where, "defence shape must be \"groups\" or \"ring\"")
 		for kind in entry.get("extractor_targets", {}):
 			if not kind in resources:
 				_error(where, "extractor_targets names unknown commodity '{0}'".format([kind]))

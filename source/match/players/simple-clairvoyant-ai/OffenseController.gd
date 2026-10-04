@@ -129,6 +129,15 @@ func _provision_unit(unit_scene, structure_producing_unit, resources, metadata):
 	structure_producing_unit.production_queue.produce(unit_scene, true)
 
 
+func committed_units():
+	"""units of battlegroups that are on the attack right now"""
+	var units = []
+	for battlegroup in _battlegroups:
+		if is_instance_valid(battlegroup) and battlegroup.is_attacking():
+			units += battlegroup.units()
+	return units
+
+
 func _try_creating_new_battlegroup():
 	if not _battlegroups.is_empty():
 		_enforce_secondary_structure_existence()
