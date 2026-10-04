@@ -207,19 +207,7 @@ func _player_sample(player):
 		"difficulty": player.get("difficulty_id"),
 		"kills": _kills.get(player.get_index(), 0),
 		"losses": _losses.get(player.get_index(), 0),
-		"army":
-		(
-			units
-			. filter(
-				func(unit):
-					return (
-						unit.get("attack_damage") != null
-						and unit.attack_damage > 0
-						and not unit is Structure
-					)
-			)
-			. size()
-		),
+		"army": units.filter(_is_military).size(),
 		"structures":
 		units.filter(func(unit): return unit is Structure and unit.is_constructed()).size(),
 		"stock": player.get_stock(),
@@ -300,6 +288,10 @@ func _finish():
 	file.close()
 	print("SIM done, summary written to ", ProjectSettings.globalize_path(_args["out"]))
 	get_tree().quit()
+
+
+func _is_military(unit):
+	return unit.get("attack_damage") != null and unit.attack_damage > 0 and not unit is Structure
 
 
 func _on_node_added(node):
