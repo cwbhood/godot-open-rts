@@ -12,6 +12,7 @@ const Generator = preload("res://source/match/maps/DesertMapGenerator.gd")
 const MapScene = preload("res://source/match/Map.tscn")
 const IsometricCamera = preload("res://source/match/IsometricCamera3D.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
+const FairStart = preload("res://source/match/maps/FairStart.gd")
 
 const MOD_DIR = "user://mods/custom_maps"
 const GENERATOR_SCRIPT = "res://source/match/maps/DesertMapGenerator.gd"
@@ -23,6 +24,7 @@ const BRUSH_LIMITS = {
 	"outcrop": Vector2(1.0, 5.0),
 }
 const ERASE_REACH = 4.0
+const START_ZONE_RADIUS = 7.0
 
 var _layout = _empty_layout()
 var _size = Vector2(100, 100)
@@ -47,6 +49,7 @@ func _ready():
 	_map = MapScene.instantiate()
 	_map.set_script(Generator)
 	_map.spawn_deposits = false
+	_map.start_zone_radius = START_ZONE_RADIUS
 	_map._generated = true  # the first layout is generated below
 	add_child(_map)
 	_new_random_layout()
@@ -93,6 +96,29 @@ func _mirroring() -> bool:
 	return _ui.mirror.button_pressed
 
 
+func _copies(pos: Vector2) -> Array:
+	"""pos plus its mirrored copies: the opposite point, or with 4-way mirroring on a square
+	map, the same point turned a quarter, half and three quarters around the center"""
+	var copies = [pos]
+	if _ui.mirror_4.button_pressed and is_equal_approx(_size.x, _size.y):
+		var center = _size / 2.0
+		var offset = pos - center
+		copies.append_array(
+			[
+				center - offset,
+				center + Vector2(-offset.y, offset.x),
+				center + Vector2(offset.y, -offset.x)
+			]
+		)
+	elif _mirroring():
+		copies.append(_mirror(pos))
+	var unique = []
+	for copy in copies:
+		if unique.all(func(other): return other.distance_to(copy) > 2.0):
+			unique.append(copy)
+	return unique
+
+
 func _to_list(pos: Vector2):
 	return [snappedf(pos.x, 0.01), snappedf(pos.y, 0.01)]
 
@@ -102,9 +128,7 @@ func _to_vector(list) -> Vector2:
 
 
 func _place_at(pos: Vector2):
-	var positions = [pos]
-	if _mirroring() and pos.distance_to(_mirror(pos)) > 2.0:
-		positions.append(_mirror(pos))
+	var positions = _copies(pos)
 	var radius = _ui.brush.value
 	match _tool:
 		Tool.LAKE:
@@ -145,8 +169,9 @@ func _add_forest_circle(pos: Vector2, radius: float, kind: String):
 
 func _erase_at(pos: Vector2):
 	var erased = _erase_nearest(pos)
-	if erased and _mirroring():
-		_erase_nearest(_mirror(pos))
+	if erased:
+		for copy in _copies(pos).slice(1):
+			_erase_nearest(copy)
 	if erased:
 		_queue_rebuild()
 	else:
@@ -255,9 +280,28 @@ func _rebuild_markers():
 	for i in range(_layout.spawns.size()):
 		var pos = _to_vector(_layout.spawns[i])
 		_add_marker(pos, Color(0.95, 0.95, 0.95), 3.0, tr("MAP_EDITOR_START_N").format([i + 1]))
+		_add_zone_ring(pos)
 	for deposit in _layout.deposits:
 		var color = Color(colors.get(deposit.kind, "#ffffff"))
 		_add_marker(_to_vector(deposit.center), color, 1.2, tr(deposit.kind.to_upper()))
+
+
+func _add_zone_ring(pos: Vector2):
+	"""the start zone: players may place their city anywhere inside this ring"""
+	var ring = MeshInstance3D.new()
+	var mesh = TorusMesh.new()
+	mesh.inner_radius = START_ZONE_RADIUS - 0.25
+	mesh.outer_radius = START_ZONE_RADIUS
+	mesh.rings = 64
+	var material = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(1.0, 1.0, 1.0, 0.85)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh.material = material
+	ring.mesh = mesh
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ring.position = Vector3(pos.x, 0.15, pos.y)
+	_markers.add_child(ring)
 
 
 func _add_marker(pos: Vector2, color: Color, height: float, text: String):
@@ -317,6 +361,7 @@ func _save():
 		"scene": scene_path,
 		"players": _layout.spawns.size(),
 		"size": [int(_size.x), int(_size.y)],
+		"start_zone_radius": START_ZONE_RADIUS,
 		"generator": {"seed": _seed},
 		"layout": _layout,
 	}
@@ -514,6 +559,10 @@ func _build_ui():
 	_ui.mirror.text = tr("MAP_EDITOR_MIRROR")
 	_ui.mirror.button_pressed = true
 	box.add_child(_ui.mirror)
+	_ui.mirror_4 = CheckBox.new()
+	_ui.mirror_4.text = tr("MAP_EDITOR_MIRROR_4")
+	_ui.mirror_4.tooltip_text = tr("MAP_EDITOR_MIRROR_4_TOOLTIP")
+	box.add_child(_ui.mirror_4)
 
 	_add_heading(box, tr("MAP_EDITOR_TOOLS"))
 	var group = ButtonGroup.new()
@@ -657,6 +706,11 @@ func _update_info():
 			]
 		)
 	)
+	var problems = FairStart.problems(_map)
+	if problems.is_empty():
+		_ui.info.text += "\n" + tr("MAP_EDITOR_FAIR")
+	else:
+		_ui.info.text += "\n" + tr("MAP_EDITOR_UNFAIR").format([problems[0]])
 
 
 func _set_status(text):

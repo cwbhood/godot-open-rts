@@ -204,6 +204,9 @@ static func maps():
 			"players": int(a_map["players"]),
 			"size": Vector2i(int(a_map["size"][0]), int(a_map["size"][1])),
 		}
+		for optional in ["id", "start_zone_radius", "start_pick_seconds"]:
+			if optional in a_map:
+				maps_by_scene[a_map["scene"]][optional] = a_map[optional]
 	return maps_by_scene
 
 

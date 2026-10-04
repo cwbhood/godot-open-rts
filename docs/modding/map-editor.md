@@ -16,11 +16,15 @@ The quickest way to make a map is the in-game editor: **Main menu → Map editor
    - **Rocks** places a rock outcrop that units walk around,
    - **Deposit** places an oil, iron, copper or timber deposit for constructors to
      harvest,
-   - **Start point** places where a faction's city begins,
+   - **Start point** places a start zone (the white ring). Before a match each player
+     clicks inside one of these rings to place their starter city,
    - **Desert (erase)** removes whatever is under the cursor. Right-click erases with any
      tool.
 3. Leave **Mirror placements** on to copy every placement to the opposite side of the
    map (point symmetry), so both sides get an equally good map.
+   For a 4-player square map, tick **Mirror 4 ways**: every placement is copied to all
+   four quarters, turned around the center. The info line under the tools says whether
+   the start zones are fair, and names the first difference when they are not.
 4. Give it a name and press **Save map**. It shows up in the Play menu straight away.
 
 The map is rebuilt after every change, so you see the shores, trees and sand exactly as

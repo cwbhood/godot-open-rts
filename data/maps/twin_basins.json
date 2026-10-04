@@ -1,0 +1,24 @@
+{
+  "id": "twin_basins",
+  "name": "Twin Basins (large)",
+  "scene": "res://source/match/maps/TwinBasins.tscn",
+  "players": 2,
+  "size": [160, 160],
+  "start_zone_radius": 7,
+  "start_pick_seconds": 30,
+  "generator": {
+    "seed": 42,
+    "symmetry": "point",
+    "spawn_inset": 0.12,
+    "center_lake": true,
+    "lake_pairs": 2,
+    "forest_pairs": 5,
+    "outcrop_pairs": 6,
+    "home_deposits": ["timber", "iron", "oil"],
+    "contested_deposits": ["copper", "copper", "iron", "oil"],
+    "contested_richness": 1.5,
+    "middle_deposits": ["oil", "oil", "iron", "iron", "copper", "copper"],
+    "middle_richness": 3.0,
+    "middle_reach": 0.4
+  }
+}
