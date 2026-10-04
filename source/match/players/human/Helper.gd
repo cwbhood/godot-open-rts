@@ -757,7 +757,7 @@ func _manage_scout():
 func _steer_scout():
 	if _scout == null or not is_instance_valid(_scout) or not scouting:
 		return
-	_mark_seen(_scout.global_position, max(_scout.sight_range, SCOUT_CELL_M * 0.5))
+	_mark_seen(_scout.global_position, max(_scout.sight_range, SCOUT_CELL_M * 0.6))
 	var danger = _threat_near(_scout.global_position, SCOUT_EXTRA_M)
 	if danger != null:
 		_scout_cells[_cell_of(danger[1])] = -(_clock_s + SCOUT_AVOID_S)
@@ -814,7 +814,7 @@ func _mark_seen(position, radius):
 			var cell_center = Vector3(
 				(cell.x + 0.5) * SCOUT_CELL_M, 0, (cell.y + 0.5) * SCOUT_CELL_M
 			)
-			if cell_center.distance_to(position * Vector3(1, 0, 1)) > radius + SCOUT_CELL_M * 0.5:
+			if cell_center.distance_to(position * Vector3(1, 0, 1)) > radius:
 				continue
 			var previous = _scout_cells.get(cell, 0.0)
 			if previous < 0.0 and -previous > _clock_s:
