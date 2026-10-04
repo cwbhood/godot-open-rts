@@ -219,19 +219,7 @@ func _player_sample(player):
 		"difficulty": player.get("difficulty_id"),
 		"kills": _kills.get(player.get_index(), 0),
 		"losses": _losses.get(player.get_index(), 0),
-		"army":
-		(
-			units
-			. filter(
-				func(unit):
-					return (
-						unit.get("attack_damage") != null
-						and unit.attack_damage > 0
-						and not unit is Structure
-					)
-			)
-			. size()
-		),
+		"army": _army_size(units),
 		"structures":
 		units.filter(func(unit): return unit is Structure and unit.is_constructed()).size(),
 		"stock": player.get_stock(),
@@ -332,3 +320,12 @@ func _on_unit_exiting(unit):
 
 func _player_index(player):
 	return _players().find(player)
+
+
+func _army_size(units):
+	# a plain loop: Godot cannot parse the multi-line lambda gdformat makes of a filter here
+	var count = 0
+	for unit in units:
+		if unit.get("attack_damage") != null and unit.attack_damage > 0 and not unit is Structure:
+			count += 1
+	return count
