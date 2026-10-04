@@ -90,6 +90,10 @@ func _check_ai_holds_a_line():
 	var rival_cc = _units_of(_rival).filter(func(unit): return unit is CommandCenter)[0]
 	var tanks = _spawn_squad(_rival, rival_cc.global_position + Vector3(0, 0, 7), 8)
 	await _frames(20)
+	var visibility_handler = _match.find_child("UnitVisibilityHandler", true, false)
+	visibility_handler.visible = false  # the screenshots show the rival's units
+	for unit in get_tree().get_nodes_in_group("units"):
+		unit.visible = true
 	camera_on(rival_cc.global_position, 30.0)
 	await _shot("ai-0-before-clumped")
 	var clump = _spread(tanks)
@@ -129,6 +133,7 @@ func _check_ai_holds_a_line():
 	)
 	camera_on(forward, 30.0)
 	await _shot("ai-1-after-holding-a-line")
+	visibility_handler.visible = true
 	for tank in tanks:
 		if is_instance_valid(tank):
 			tank.queue_free()

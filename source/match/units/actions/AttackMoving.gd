@@ -11,12 +11,17 @@ const Stances = preload("res://source/match/units/actions/Stances.gd")
 
 const REFRESH_INTERVAL = 0.3
 const LEASH_M = 14.0
+const ARRIVED_M = 3.0
+# after a fight the first move order can end at once (the stopped chase still reports
+# "navigation finished"), so a drive that ends short of the point is retried a few times
+const MAX_REDRIVES = 3
 
 var _target_position = null
 var _sub_action = null
 var _engaged = null
 var _engaged_from = null
 var _timer = null
+var _redrives = 0
 
 @onready var _unit = Utils.NodeEx.find_parent_with_group(self, "units")
 
@@ -78,6 +83,7 @@ func _drive():
 
 
 func _engage(target):
+	_redrives = 0
 	_engaged = target
 	_engaged_from = _unit.global_position_yless
 	_replace_sub_action(
@@ -94,6 +100,11 @@ func _on_sub_action_finished():
 		return
 	_sub_action = null
 	if _engaged == null:
-		queue_free()  # arrived
+		var left = _unit.global_position_yless.distance_to(_target_position * Vector3(1, 0, 1))
+		if left > ARRIVED_M and _redrives < MAX_REDRIVES:
+			_redrives += 1
+			_drive.call_deferred()
+			return
+		queue_free()  # arrived, or as close as it gets
 		return
 	_drive.call_deferred()  # the enemy is gone: back on the route
