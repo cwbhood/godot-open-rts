@@ -103,6 +103,9 @@ var _next_shot_s = 0.0
 var _weather_index = 0
 var _rng = RandomNumberGenerator.new()
 var _finished = false
+var _doing = "starting"  # last bot step, for the hang watchdog
+var _watchdog = Thread.new()
+var _frames_seen = 0
 
 
 func _ready():
@@ -115,6 +118,7 @@ func _ready():
 	Engine.max_physics_steps_per_frame = int(_args["steps"])
 	DirAccess.make_dir_recursive_absolute(_args["out"])
 	OS.add_logger(_logger)
+	_watchdog.start(_watch_main_thread)
 	MatchSignals.match_finished_with_victory.connect(func(): _result = "victory")
 	MatchSignals.match_finished_with_defeat.connect(func(): _result = "defeat")
 	_say("start map=%s ai=%s minutes=%s" % [_args["map"], _args["ai"], _args["minutes"]])
@@ -244,19 +248,26 @@ func _think():
 		if not AutoExpand.is_enabled_on(worker):
 			builder = worker
 			break
+	_doing = "build"
 	if workers.is_empty() and _has(stock, {"iron": 4, "oil": 2}):
 		await _produce_at(_base(), UNITS + "Worker.tscn")
 	if builder != null and _idle(builder):
 		await _next_building(builder, stock)
+	_doing = "produce"
 	await _produce_army(stock)
+	_doing = "trade"
 	if int(_elapsed_s) % 64 < 8:
 		await _trade_round()
+	_doing = "diplomacy"
 	if int(_elapsed_s) % 150 < 8:
 		await _diplomacy_round()
 	if int(_elapsed_s) % 120 < 8:
 		await _cycle_weather()
+	_doing = "attack"
 	await _maybe_attack()
+	_doing = "answer offers"
 	await _answer_offers()
+	_doing = "waiting"
 
 
 func _next_building(builder, stock):
@@ -430,6 +441,12 @@ func _confirm_placement(scene_path, how):
 		return false
 	var before = _count_own(scene_path)
 	var mouse = get_viewport().get_mouse_position()
+	var over = get_viewport().gui_get_hovered_control()
+	if over != null:  # a player cannot click through a panel either
+		_say("%s (%s): the spot is under %s, giving up" % [name, how, over.name])
+		_bump(_stats["placements_failed"], name + ":UNDER_HUD")
+		await _cancel_placement()
+		return false
 	await _mouse_button(mouse, MOUSE_BUTTON_LEFT, true)
 	await _frames(2)
 	await _mouse_button(mouse, MOUSE_BUTTON_LEFT, false)
@@ -483,7 +500,8 @@ func _produce_at(producer, scene_path):
 	await _frames(3)
 	if _queue_size(producer) <= before:
 		var stock = _human.get_stock()
-		if _has(stock, _cost(scene_path)):
+		var full = _queue_size(producer) >= Constants.Match.Units.PRODUCTION_QUEUE_LIMIT
+		if _has(stock, _cost(scene_path)) and not full:
 			_finding("production", "clicking %s did not queue it" % scene_path.get_file())
 		return false
 	_say("queued " + scene_path.get_file().get_basename())
@@ -759,33 +777,26 @@ func _log_economy():
 			}
 		)
 	_timeline.append(line)
-	_say(
-		(
-			"t=%d fps=%.1f %s"
-			% [
-				line["t"],
-				line["fps"],
-				" | ".join(
-					line["players"].map(
-						func(p):
-							return (
-								"P%d %s T%d sci=%s pop=%s u=%d s=%d x=%d %s"
-								% [
-									p["p"],
-									p["ai"],
-									p["tier"],
-									p["science"],
-									p["pop"],
-									p["units"],
-									p["structures"],
-									p["extractors"],
-									p["stock"]
-								]
-							)
-					)
-				)
-			]
-		)
+	var parts = []
+	for p in line["players"]:
+		parts.append(_describe_player(p))
+	_say("t=%d fps=%.1f %s" % [line["t"], line["fps"], " | ".join(parts)])
+
+
+func _describe_player(p):
+	return (
+		"P%d %s T%d sci=%s pop=%s u=%d s=%d x=%d %s"
+		% [
+			p["p"],
+			p["ai"],
+			p["tier"],
+			p["science"],
+			p["pop"],
+			p["units"],
+			p["structures"],
+			p["extractors"],
+			p["stock"]
+		]
 	)
 
 
@@ -821,19 +832,21 @@ func _click_control(control, what):
 	if control is BaseButton and control.disabled:
 		_say(what + " is disabled")
 		return false
-	if not get_viewport().get_visible_rect().encloses(control.get_global_rect()):
+	var scroll = control.get_parent()
+	while scroll != null and not scroll is ScrollContainer:
+		scroll = scroll.get_parent()
+	var reachable = get_viewport().get_visible_rect()
+	if scroll != null:  # scroll to it first, as a player would
+		scroll.ensure_control_visible(control)
+		await _frames(2)
+		reachable = reachable.intersection(scroll.get_global_rect())
+	if not reachable.grow(1).encloses(control.get_global_rect()):
 		_finding(
 			"hud",
 			"%s is (partly) off screen at %s" % [what, control.get_global_rect()],
 			true,
 			"offscreen-" + what
 		)
-	var scroll = control.get_parent()
-	while scroll != null and not scroll is ScrollContainer:
-		scroll = scroll.get_parent()
-	if scroll != null:  # scroll to it first, as a player would
-		scroll.ensure_control_visible(control)
-		await _frames(2)
 	var fired = [false]
 	var on_press = func(): fired[0] = true
 	var signal_name = "pressed" if control.has_signal("pressed") else ""
@@ -864,12 +877,18 @@ func _click_control(control, what):
 				"hud", "two copies of the %s menu button are stacked" % what, false, "dup-" + what
 			)
 			return true
+		if not control.is_visible_in_tree():
+			_say(what + " went away before the click landed (offer expired?)")
+			return false
+		if hovered == control and control is BaseButton and control.disabled:
+			_say(what + " became disabled before the click landed")
+			return false
 		_stats["clicks_missed"] += 1
 		_finding(
 			"hud",
 			(
 				"clicking %s did nothing (mouse over %s)"
-				% [what, hovered.name if hovered != null else "nothing"]
+				% [what, _describe_control(hovered, control, center)]
 			),
 			true,
 			"click-" + what
@@ -877,6 +896,21 @@ func _click_control(control, what):
 		await _shot("click-missed-" + what.replace(" ", "-"))
 		return false
 	return true
+
+
+func _describe_control(hovered, target, point):
+	if hovered == null:
+		return "nothing"
+	if hovered == target:
+		return (
+			"the button itself, enabled, rect %s has point: %s"
+			% [target.get_global_rect(), target.get_global_rect().has_point(point)]
+		)
+	var tip = str(hovered.get("tooltip_text")).get_slice("\n", 0).left(40)
+	return (
+		"%s '%s' under %s, target in tree: %s"
+		% [hovered.get_class(), tip, hovered.get_parent().name, target.is_inside_tree()]
+	)
 
 
 func _select(units):
@@ -921,6 +955,7 @@ func _select(units):
 			await _shot("select-missed-" + unit.name)
 			MatchSignals.deselect_all_units.emit()
 			unit.find_child("Selection").select()
+			await _frames(2)
 	else:
 		var center = Vector3.ZERO
 		for unit in units:
@@ -1136,8 +1171,51 @@ func _frames(count):
 
 func _wait_s(seconds):
 	var until = _elapsed_s + seconds
+	var paused_frames = 0
 	while _elapsed_s < until and _result == "time limit":
 		await get_tree().physics_frame
+		paused_frames = paused_frames + 1 if get_tree().paused else 0
+		if paused_frames > 600:
+			_finding("pause", "the game paused itself and stayed paused (%s)" % _paused_by())
+			await _shot("paused")
+			_result = "paused"
+
+
+func _paused_by():
+	var visible = []
+	for layer_name in ["Menu", "MatchEndHandler", "FrameIncrementer"]:
+		var node = _match.find_child(layer_name, true, false)
+		if node is CanvasLayer and node.visible:
+			visible.append(layer_name)
+	return "visible: %s, last step: %s" % [visible, _doing]
+
+
+# Runs on its own thread: if the main thread stops producing frames, the game is stuck
+# in a script or engine loop. Print what the bot was doing and quit so the run ends.
+func _watch_main_thread():
+	var last = -1
+	var still_s = 0
+	while not _finished:
+		OS.delay_msec(5000)
+		if _frames_seen == last:
+			still_s += 5
+			if still_s >= 180:
+				print("HANG main thread froze for %d s, last bot step: %s" % [still_s, _doing])
+				OS.kill(OS.get_process_id())
+				return
+		else:
+			still_s = 0
+		last = _frames_seen
+
+
+func _process(_delta):
+	_frames_seen += 1
+
+
+func _exit_tree():
+	_finished = true
+	if _watchdog.is_started():
+		_watchdog.wait_to_finish()
 
 
 func _physics_process(delta):
