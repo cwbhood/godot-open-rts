@@ -75,9 +75,11 @@ func _run():
 	for _i in range(10):
 		await get_tree().physics_frame
 	_check(
-		boat.navigation_domain == Constants.Match.Navigation.Domain.WATER
-		and apc.navigation_domain == Constants.Match.Navigation.Domain.AMPHIBIOUS
-		and boat.movement_domain == Constants.Match.Navigation.Domain.TERRAIN,
+		(
+			boat.navigation_domain == Constants.Match.Navigation.Domain.WATER
+			and apc.navigation_domain == Constants.Match.Navigation.Domain.AMPHIBIOUS
+			and boat.movement_domain == Constants.Match.Navigation.Domain.TERRAIN
+		),
 		"domains",
 		"boat {0}/{1}, apc {2}".format(
 			[boat.navigation_domain, boat.movement_domain, apc.navigation_domain]
@@ -95,7 +97,11 @@ func _run():
 		_sample()
 		if _tracks.values().all(func(track): return track.done):
 			break
-	print("ran {0} s of game time in {1} s".format([snappedf(game_time, 0.1), (Time.get_ticks_msec() - started) / 1000.0]))
+	print(
+		"ran {0} s of game time in {1} s".format(
+			[snappedf(game_time, 0.1), (Time.get_ticks_msec() - started) / 1000.0]
+		)
+	)
 	_judge(map)
 	await _check_rebake(player)
 
@@ -167,7 +173,8 @@ func _judge(map):
 	_check(ford.depths[2] == 0, "ford: no deep water", _describe(ford))
 	_check(ford.depths[1] > 0, "ford: wades shallow water", _describe(ford))
 	_check(
-		ford.unit.global_position.distance_to(CENTRE) < 3.0, "ford: reaches the centre island",
+		ford.unit.global_position.distance_to(CENTRE) < 3.0,
+		"ford: reaches the centre island",
 		_describe(ford)
 	)
 	var wading = _median(ford.speed_shallow) / max(_median(ford.speed_land), 0.01)
@@ -179,13 +186,16 @@ func _judge(map):
 	var apc = _tracks.amphibious
 	_check(apc.depths[2] > 0, "amphibious: swims through deep water", _describe(apc))
 	_check(
-		apc.unit.global_position.distance_to(ISLET) < 4.0, "amphibious: reaches the islet",
+		apc.unit.global_position.distance_to(ISLET) < 4.0,
+		"amphibious: reaches the islet",
 		_describe(apc)
 	)
 	var deepest = apc.offsets.min() if not apc.offsets.is_empty() else 0.0
 	_check(
-		deepest < Constants.Match.Water.FLOAT_OFFSET_DEEP * 0.7
-		and abs(apc.offsets[-1] - apc.offsets[0]) < 0.06,
+		(
+			deepest < Constants.Match.Water.FLOAT_OFFSET_DEEP * 0.7
+			and abs(apc.offsets[-1] - apc.offsets[0]) < 0.06
+		),
 		"amphibious: sinks to {0} m in the sea and is back on its wheels ashore".format(
 			[snappedf(deepest, 0.01)]
 		),
@@ -213,7 +223,11 @@ func _judge(map):
 	)
 	var direct = Vector3(80, 0, 128).distance_to(BOAT_GOAL)
 	print("boat path {0} m, straight line {1} m".format([int(boat.path_length), int(direct)]))
-	print("amphibious path {0} m, land unit path {1} m".format([int(apc.path_length), int(land.path_length)]))
+	print(
+		"amphibious path {0} m, land unit path {1} m".format(
+			[int(apc.path_length), int(land.path_length)]
+		)
+	)
 
 
 func _check_rebake(player):
@@ -222,7 +236,9 @@ func _check_rebake(player):
 	var terrain = _match.navigation.terrain
 	var amphibious = _match.navigation.amphibious
 	var turret = load(TurretScene).instantiate()
-	MatchSignals.setup_and_spawn_unit.emit(turret, Transform3D(Basis(), Vector3(46, 0, 128)), player)
+	MatchSignals.setup_and_spawn_unit.emit(
+		turret, Transform3D(Basis(), Vector3(46, 0, 128)), player
+	)
 	await _wait_for_bake(terrain)
 	var samples_land = []
 	var samples_both = []
@@ -241,8 +257,18 @@ func _check_rebake(player):
 		await _wait_for_bake(terrain)
 	var land_ms = _median(samples_land)
 	var both_ms = _median(samples_both)
-	print("REBAKE main thread: land map {0} ms, land + amphibious {1} ms".format([snappedf(land_ms, 0.01), snappedf(both_ms, 0.01)]))
-	_check(both_ms - land_ms < 2.0, "rebake: amphibious map adds {0} ms on the main thread".format([snappedf(both_ms - land_ms, 0.01)]), "")
+	print(
+		"REBAKE main thread: land map {0} ms, land + amphibious {1} ms".format(
+			[snappedf(land_ms, 0.01), snappedf(both_ms, 0.01)]
+		)
+	)
+	_check(
+		both_ms - land_ms < 2.0,
+		"rebake: amphibious map adds {0} ms on the main thread".format(
+			[snappedf(both_ms - land_ms, 0.01)]
+		),
+		""
+	)
 	_results.append({"name": "rebake_ms", "land": land_ms, "land_and_amphibious": both_ms})
 
 
@@ -280,15 +306,18 @@ func _shoot(name, unit, depth):
 
 func _describe(track):
 	var movement = track.unit.find_child("Movement")
-	return "at {0}, frames on land/shallow/deep {1}, path {2} m, action {3}, finished {4}, idle {5}".format(
-		[
-			track.unit.global_position.snapped(Vector3.ONE * 0.1),
-			track.depths,
-			int(track.path_length),
-			track.unit.action,
-			movement.is_navigation_finished(),
-			track.idle_frames,
-		]
+	return (
+		"at {0}, frames on land/shallow/deep {1}, path {2} m, action {3}, finished {4}, idle {5}"
+		. format(
+			[
+				track.unit.global_position.snapped(Vector3.ONE * 0.1),
+				track.depths,
+				int(track.path_length),
+				track.unit.action,
+				movement.is_navigation_finished(),
+				track.idle_frames,
+			]
+		)
 	)
 
 
@@ -325,12 +354,16 @@ func _finish():
 	print("FRAME TIME ", summary)
 	_check(
 		summary.water_lookup_us < 5.0,
-		"water lookup costs {0} us per unit per tick".format([snappedf(summary.water_lookup_us, 0.01)]),
+		"water lookup costs {0} us per unit per tick".format(
+			[snappedf(summary.water_lookup_us, 0.01)]
+		),
 		str(summary)
 	)
 	_check(
 		summary.physics_ms_p95 < 16.7,
-		"frame time: physics p95 {0} ms (budget 16.7 ms per tick)".format([snappedf(summary.physics_ms_p95, 0.01)]),
+		"frame time: physics p95 {0} ms (budget 16.7 ms per tick)".format(
+			[snappedf(summary.physics_ms_p95, 0.01)]
+		),
 		str(summary)
 	)
 	var out_dir = _args.get("out", "user://water_test")
@@ -339,7 +372,11 @@ func _finish():
 	file.store_string(JSON.stringify({"checks": _results, "frame_time": summary}, "  "))
 	file.close()
 	var failed = _results.filter(func(result): return result.get("ok") == false)
-	print("WATER {0} checks, {1} failed".format([_results.filter(func(r): return "ok" in r).size(), failed.size()]))
+	print(
+		"WATER {0} checks, {1} failed".format(
+			[_results.filter(func(r): return "ok" in r).size(), failed.size()]
+		)
+	)
 	get_tree().quit(1 if not failed.is_empty() else 0)
 
 

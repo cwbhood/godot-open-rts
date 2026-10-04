@@ -33,8 +33,17 @@ func _initialize():
 		started = Time.get_ticks_msec()
 		NavigationServer3D.bake_from_source_geometry_data(navigation_mesh, geometry)
 		print(
-			"domain ", domain, ": ", faces.size() / 3, " triangles in ", faces_ms, " ms, bake ",
-			Time.get_ticks_msec() - started, " ms, ", navigation_mesh.get_polygon_count(), " polygons"
+			"domain ",
+			domain,
+			": ",
+			faces.size() / 3,
+			" triangles in ",
+			faces_ms,
+			" ms, bake ",
+			Time.get_ticks_msec() - started,
+			" ms, ",
+			navigation_mesh.get_polygon_count(),
+			" polygons"
 		)
 	map.free()
 	quit()

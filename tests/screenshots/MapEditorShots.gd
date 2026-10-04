@@ -57,12 +57,22 @@ func _ready():
 	print("editor water status: ", editor._ui.status.text)
 	var island_map = "user://mods/custom_maps/maps/editor_island_test.tscn"
 	print("editor island map listed: ", Constants.Match.MAPS.get(island_map) != null)
-	print("editor island layout sea: ", editor._layout.sea, " islands: ", editor._layout.islands.size())
+	print(
+		"editor island layout sea: ",
+		editor._layout.sea,
+		" islands: ",
+		editor._layout.islands.size()
+	)
 	editor._place_at(Vector2(50, 50))  # an island in the middle of the old lake is fine
 	editor._select_tool(editor.Tool.DEPOSIT)
 	editor._place_at(Vector2(50, 92))  # out at sea: saving must refuse
 	await _frames(20)
-	print("spawns: ", editor._layout.spawns, " depth there: ", editor._map.water.depth_fast(Vector2(50, 92)))
+	print(
+		"spawns: ",
+		editor._layout.spawns,
+		" depth there: ",
+		editor._map.water.depth_fast(Vector2(50, 92))
+	)
 	editor._save()
 	print("editor deposit at sea status: ", editor._ui.status.text)
 	get_tree().quit()

@@ -63,6 +63,7 @@ func _physics_process(delta):
 	elif depth == 1:
 		target = Constants.Match.Water.FLOAT_OFFSET_SHALLOW
 	_offset = move_toward(_offset, target, SINK_SPEED_M_PER_S * delta)
+	_bob_phase += BOB_SPEED * delta  # game time, so a slow frame does not jolt the hull
 	if _domain == Constants.Match.Navigation.Domain.AMPHIBIOUS:
 		var climbing = clamp(abs(_offset - target) / 0.12, 0.0, 1.0)
 		speed_multiplier = (
@@ -71,9 +72,5 @@ func _physics_process(delta):
 		)
 	if _geometry != null:
 		var floating = clamp(-_offset / 0.12, 0.0, 1.0)
-		var bob = (
-			sin(Time.get_ticks_msec() / 1000.0 * BOB_SPEED + _bob_phase)
-			* BOB_AMPLITUDE_M
-			* floating
-		)
+		var bob = sin(_bob_phase) * BOB_AMPLITUDE_M * floating
 		_geometry.position.y = _geometry_base_y + _offset + bob
