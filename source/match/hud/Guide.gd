@@ -186,9 +186,14 @@ func _layout():
 	var diplomacy_hud = get_parent().get_node_or_null("DiplomacyHud")
 	if diplomacy_hud != null and diplomacy_hud.is_visible_in_tree():
 		top = diplomacy_hud.position.y + diplomacy_hud.size.y + 6.0
-	_tutorial.position = Vector2(round((screen.x - _tutorial.size.x) / 2.0), top)
+	# centred, but kept left of the city panel (long translations make these wide)
+	var city = get_parent().get_node_or_null("CityHud")
+	var right_edge = screen.x - 4.0
+	if city != null and city.is_visible_in_tree():
+		right_edge = city.get_global_rect().position.x - 6.0
+	_tutorial.position = Vector2(_centred_x(_tutorial, screen.x, right_edge), top)
 	_hint_panel.position = Vector2(
-		round((screen.x - _hint_panel.size.x) / 2.0), _tutorial.position.y + _tutorial.size.y + 6
+		_centred_x(_hint_panel, screen.x, right_edge), _tutorial.position.y + _tutorial.size.y + 6
 	)
 	var minimap_top = screen.y - 225
 	auto_expand_panel.position = Vector2(
@@ -206,6 +211,10 @@ func _layout():
 	auto_expand_bar.position = Vector2(
 		right - auto_expand_bar.size.x, screen.y - 5 - auto_expand_bar.size.y
 	)
+
+
+func _centred_x(panel, screen_width, right_edge):
+	return round(max(4.0, min((screen_width - panel.size.x) / 2.0, right_edge - panel.size.x)))
 
 
 func toggle_help(topic = null, force_show = false):
