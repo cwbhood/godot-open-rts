@@ -58,8 +58,7 @@ Program, or a Windows code-signing certificate) and can be added to the workflow
    paid GitHub plan; on a public repository it is free.)
 2. Actions > Website > Run workflow. The site appears at
    https://cwbhood.github.io/godot-open-rts/ unless a custom domain is set.
-3. To publish on every change to `site/`, add the push trigger shown at the top of
-   `.github/workflows/pages.yml`.
+3. After that, every change to `site/` merged into main publishes itself.
 
 ## Later: a browser build
 
