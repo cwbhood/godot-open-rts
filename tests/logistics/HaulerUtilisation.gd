@@ -166,21 +166,23 @@ func _log():
 		row["players"].append(data)
 		print(
 			(
-				"UTIL t=%4d p%d %-8s trucks=%d working=%d util=%3.0f%% loaded=%3.0f%% "
-				+ "delivered=%4d per-truck-min=%4.1f extractors-full=%3.0f%%"
+				(
+					"UTIL t=%4d p%d %-8s trucks=%d working=%d util=%3.0f%% loaded=%3.0f%% "
+					+ "delivered=%4d per-truck-min=%4.1f extractors-full=%3.0f%%"
+				)
+				% [
+					row["t"],
+					data["player"],
+					data["personality"],
+					data["haulers_now"],
+					data["haulers_working_now"],
+					data["utilisation"] * 100.0,
+					data["loaded_share"] * 100.0,
+					data["delivered"],
+					data["delivered_per_truck_minute"],
+					data["extractor_full_share"] * 100.0,
+				]
 			)
-			% [
-				row["t"],
-				data["player"],
-				data["personality"],
-				data["haulers_now"],
-				data["haulers_working_now"],
-				data["utilisation"] * 100.0,
-				data["loaded_share"] * 100.0,
-				data["delivered"],
-				data["delivered_per_truck_minute"],
-				data["extractor_full_share"] * 100.0,
-			]
 		)
 	_timeline.append(row)
 

@@ -37,6 +37,7 @@ func _ready():
 	if atmosphere != null:  # screenshots in clear weather
 		atmosphere.random_weather = false
 		atmosphere.set_weather_immediately("clear")
+	_match.fog_of_war.visible = false  # the shots show the whole yard, as the F-key debug toggle
 	_depot = _own(func(unit): return unit is CommandCenter)
 	_human.add_resources({"timber": 300, "iron": 300, "copper": 100, "oil": 200})
 	_stop_the_rival()
@@ -98,17 +99,22 @@ func _check_full_extractor_stops():
 	)
 	_expect(deposits.size() >= 2, "the map has two mine deposits away from the yard")
 	for deposit in deposits.slice(0, 2):
-		var towards_depot = (_depot.global_position_yless - deposit.global_position_yless).normalized()
+		var towards_depot = (
+			(_depot.global_position_yless - deposit.global_position_yless).normalized()
+		)
 		var spot = deposit.global_position_yless + towards_depot * (deposit.radius + 1.3)
 		_mines.append(_spawn(MineScene, spot))
 	await _frames(10)
-	_expect(
-		_mines.all(func(mine): return mine.deposit != null), "both mines sit on a deposit"
-	)
+	_expect(_mines.all(func(mine): return mine.deposit != null), "both mines sit on a deposit")
 	Engine.time_scale = 4.0
 	var mine = _mines[0]
 	var filled = await _wait_for(func(): return mine.is_full(), 3000)
-	_expect(filled, "a mine nobody empties fills its buffer ({0}/{1})".format([mine.stored, mine.get_buffer_capacity()]))
+	_expect(
+		filled,
+		"a mine nobody empties fills its buffer ({0}/{1})".format(
+			[mine.stored, mine.get_buffer_capacity()]
+		)
+	)
 	var left = mine.deposit.amount if is_instance_valid(mine.deposit) else -1
 	await _wait_seconds(8.0)
 	_expect(
@@ -118,7 +124,10 @@ func _check_full_extractor_stops():
 	var gauge = mine.get_node_or_null("BufferGauge")
 	_expect(
 		gauge != null and gauge.visible and gauge.text.contains(tr("GAUGE_FULL")),
-		"its gauge says it is full: " + (gauge.text.replace("\n", " / ") if gauge != null else "none")
+		(
+			"its gauge says it is full: "
+			+ (gauge.text.replace("\n", " / ") if gauge != null else "none")
+		)
 	)
 	Engine.time_scale = 1.0
 	camera_on(mine.global_position, 14.0)
@@ -131,8 +140,12 @@ func _check_job_board_and_standby():
 	var delivered_before = Utils.Dict.sum(_logistics.delivered_total)
 	Engine.time_scale = 4.0
 	var mine = _mines[0]
-	var collected = await _wait_for(func(): return mine.stored < mine.get_buffer_capacity() / 2, 4000)
-	_expect(collected, "the job board sends a truck to the full mine (left {0})".format([mine.stored]))
+	var collected = await _wait_for(
+		func(): return mine.stored < mine.get_buffer_capacity() / 2, 4000
+	)
+	_expect(
+		collected, "the job board sends a truck to the full mine (left {0})".format([mine.stored])
+	)
 	var delivered = await _wait_for(
 		func(): return Utils.Dict.sum(_logistics.delivered_total) > delivered_before, 4000
 	)
@@ -144,10 +157,14 @@ func _check_job_board_and_standby():
 	_expect(unemployed.is_empty(), "no automated truck is left without an order")
 	_expect(
 		not waiting.is_empty() or counts["working"] == counts["total"],
-		"trucks without a job stand by or park instead of idling ({0} waiting)".format([waiting.size()])
+		"trucks without a job stand by or park instead of idling ({0} waiting)".format(
+			[waiting.size()]
+		)
 	)
 	var stats = _logistics.get_route_stats(mine)
-	_expect(stats["trips"] >= 1 and stats["delivered"] > 0, "the route counts its trips: " + str(stats))
+	_expect(
+		stats["trips"] >= 1 and stats["delivered"] > 0, "the route counts its trips: " + str(stats)
+	)
 	Engine.time_scale = 1.0
 	camera_on(mine.global_position.lerp(_depot.global_position, 0.4), 20.0)
 	await _shot("2-trucks-collect-and-stand-by")
@@ -159,16 +176,26 @@ func _check_storage():
 	print("  storage suggestion: ", suggestion["position"] if suggestion != null else null)
 	var reach = float(Constants.Match.Logistics.STORAGE.get("link_radius_m", 12.0))
 	var spot = center + (_depot.global_position_yless - center).normalized() * 2.5
-	var close_enough = _mines.all(func(mine): return mine.global_position_yless.distance_to(spot) <= reach)
+	var close_enough = _mines.all(
+		func(mine): return mine.global_position_yless.distance_to(spot) <= reach
+	)
 	if not close_enough:
-		spot = _mines[0].global_position_yless + (_depot.global_position_yless - _mines[0].global_position_yless).normalized() * 3.5
+		spot = (
+			_mines[0].global_position_yless
+			+ (_depot.global_position_yless - _mines[0].global_position_yless).normalized() * 3.5
+		)
 	var storage = _spawn(StorageScene, spot)
 	Engine.time_scale = 4.0
 	var linked = await _wait_for(func(): return _mines[0].linked_storage == storage, 600)
 	_expect(linked, "a mine next to a storage feeds it by conveyor")
 	var filling = await _wait_for(func(): return storage.stored >= 6, 3000)
-	_expect(filling, "the storage fills up ({0}) and holds {1}".format([storage.stored, storage.kind]))
-	_expect(not _mines[0].is_full(), "the linked mine keeps working ({0} in its buffer)".format([_mines[0].stored]))
+	_expect(
+		filling, "the storage fills up ({0}) and holds {1}".format([storage.stored, storage.kind])
+	)
+	_expect(
+		not _mines[0].is_full(),
+		"the linked mine keeps working ({0} in its buffer)".format([_mines[0].stored])
+	)
 	Engine.time_scale = 1.0
 	camera_on(storage.global_position, 16.0)
 	await _shot("3-storage-fed-by-conveyors")
@@ -183,7 +210,12 @@ func _check_train():
 	train.set_line([storage], true)
 	Engine.time_scale = 3.0
 	var laying = await _wait_for(func(): return _logistics.rails.get_length_m() > 3.0, 2000)
-	_expect(laying, "the train lays track as it goes ({0} m)".format([snapped(_logistics.rails.get_length_m(), 0.1)]))
+	_expect(
+		laying,
+		"the train lays track as it goes ({0} m)".format(
+			[snapped(_logistics.rails.get_length_m(), 0.1)]
+		)
+	)
 	Engine.time_scale = 1.0
 	camera_on(train.global_position, 14.0)
 	await _shot("4-train-laying-track")
@@ -194,7 +226,11 @@ func _check_train():
 	_expect(loaded, "the train loads at the storage: " + str(stats))
 	var delivered_before = Utils.Dict.sum(_logistics.delivered_total)
 	var back = await _wait_for(
-		func(): return Utils.Dict.sum(_logistics.delivered_total) > delivered_before and train.cargo.is_empty(),
+		func():
+			return (
+				Utils.Dict.sum(_logistics.delivered_total) > delivered_before
+				and train.cargo.is_empty()
+			),
 		9000
 	)
 	_expect(back, "and delivers at the depot ({0})".format([train.get_status_text()]))
@@ -203,9 +239,13 @@ func _check_train():
 		Utils.Dict.sum(_logistics.rails.track_spent_total) > spent_before,
 		"track is paid for: " + str(_logistics.rails.track_spent_total)
 	)
-	var running_fast = await _wait_for(func(): return train.status_key == "TRAIN_STATUS_RUNNING", 3000)
+	var running_fast = await _wait_for(
+		func(): return train.status_key == "TRAIN_STATUS_RUNNING", 3000
+	)
 	_expect(running_fast, "on the built track it runs at full speed")
-	_expect(storage in _logistics._sources_served_by_trains(), "trucks leave the train's stop alone")
+	_expect(
+		storage in _logistics._sources_served_by_trains(), "trucks leave the train's stop alone"
+	)
 	Engine.time_scale = 1.0
 	camera_on(train.global_position.lerp(_depot.global_position, 0.3), 26.0)
 	await _shot("5-train-running-the-loop")
@@ -236,17 +276,23 @@ func _check_surplus_and_recycling():
 	if button != null:
 		button.pressed.emit()
 	Engine.time_scale = 4.0
-	var recycled = await _wait_for(func(): return _haulers().size() <= haulers_before - surplus, 4000)
+	var recycled = await _wait_for(
+		func(): return _haulers().size() <= haulers_before - surplus, 4000
+	)
 	_expect(recycled, "{0} trucks drove to the depot and were taken apart".format([surplus]))
 	var refund = {}
 	for resource in _logistics.fleet.refunded_total:
-		refund[resource] = _logistics.fleet.refunded_total[resource] - refunded_before.get(resource, 0)
+		refund[resource] = (
+			_logistics.fleet.refunded_total[resource] - refunded_before.get(resource, 0)
+		)
 	var cost = Constants.Match.Units.PRODUCTION_COSTS[HaulerScene.resource_path]
 	var paid = Utils.Dict.sum(cost) * surplus
 	var share = Utils.Dict.sum(refund) / float(paid)
 	_expect(
 		abs(share - 0.75) <= 1.0 / paid + 0.001,
-		"recycling refunds 75% of their cost: {0} of {1} ({2}%)".format([refund, paid, int(share * 100)])
+		"recycling refunds 75% of their cost: {0} of {1} ({2}%)".format(
+			[refund, paid, int(share * 100)]
+		)
 	)
 	Engine.time_scale = 1.0
 
@@ -256,7 +302,9 @@ func _check_raided_route():
 	var position = hauler.global_position
 	hauler.hp = 0
 	await _frames(5)
-	_expect(not _logistics.danger_zones.is_empty(), "a destroyed truck marks its route as dangerous")
+	_expect(
+		not _logistics.danger_zones.is_empty(), "a destroyed truck marks its route as dangerous"
+	)
 	_expect(
 		_logistics._route_in_danger(position + Vector3(2, 0, 0), position - Vector3(2, 0, 0)),
 		"and routes through that spot are avoided"
