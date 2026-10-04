@@ -118,7 +118,7 @@ func assign_job(hauler):
 		if is_in_yard(site.global_position):
 			continue
 		var pending = Utils.Dict.sum(site.materials_pending)
-		if pending <= _site_loaders.get(site, 0) * hauler.cargo_capacity:
+		if pending <= _site_loaders.get(site.get_instance_id(), 0) * hauler.cargo_capacity:
 			continue
 		var depot = closest_depot(site.global_position)
 		if depot == null:
@@ -299,25 +299,32 @@ func assign_supply(hauler, site):
 	var depot = closest_depot(site.global_position)
 	if depot == null:
 		return false
-	_site_loaders[site] = _site_loaders.get(site, 0) + 1
+	# keyed by id: the lambda below may outlive the site (freed objects can't be captured)
+	var site_id = site.get_instance_id()
+	_site_loaders[site_id] = _site_loaders.get(site_id, 0) + 1
 	var state = {"loading": true}
 	var release_loader = func():
 		if state["loading"]:
 			state["loading"] = false
-			_site_loaders[site] = max(0, _site_loaders.get(site, 1) - 1)
+			_site_loaders[site_id] = max(0, _site_loaders.get(site_id, 1) - 1)
+			if _site_loaders[site_id] == 0:
+				_site_loaders.erase(site_id)
+	var site_ref = weakref(site)
 	var load_materials = func():
 		release_loader.call()
-		if not is_instance_valid(site) or not site.is_inside_tree():
+		var target = site_ref.get_ref()
+		if target == null or not target.is_inside_tree():
 			return false
-		var materials = site.take_pending_materials(hauler.get_free_capacity())
+		var materials = target.take_pending_materials(hauler.get_free_capacity())
 		if materials.is_empty():
 			return false
-		hauler.load_cargo(materials, site)
+		hauler.load_cargo(materials, target)
 		return true
 	var unload_materials = func():
-		if not is_instance_valid(site) or not site.is_inside_tree():
+		var target = site_ref.get_ref()
+		if target == null or not target.is_inside_tree():
 			return false
-		site.receive_materials(hauler.unload_cargo())
+		target.receive_materials(hauler.unload_cargo())
 		return true
 	hauler.road_speed_multiplier = 1.0
 	hauler.action = Hauling.new(
@@ -333,17 +340,20 @@ func _assign_pickup(hauler, extractor):
 	var amount = min(extractor.get_available_for_pickup(), hauler.get_free_capacity())
 	extractor.reserve_pickup(amount)
 	var state = {"reserved": true}
+	var extractor_ref = weakref(extractor)  # the lambdas may outlive the extractor
 	var release_reservation = func():
 		if state["reserved"]:
 			state["reserved"] = false
-			if is_instance_valid(extractor):
-				extractor.cancel_pickup_reservation(amount)
+			var source = extractor_ref.get_ref()
+			if source != null:
+				source.cancel_pickup_reservation(amount)
 	var take_goods = func():
-		if not is_instance_valid(extractor) or not extractor.is_inside_tree():
+		var source = extractor_ref.get_ref()
+		if source == null or not source.is_inside_tree():
 			state["reserved"] = false
 			return false
 		state["reserved"] = false
-		var goods = extractor.take_goods(amount)
+		var goods = source.take_goods(amount)
 		if goods.is_empty():
 			return false
 		hauler.load_cargo(goods)
@@ -367,10 +377,12 @@ func _assign_unloading(hauler):
 		and site.is_inside_tree()
 		and site.is_under_construction()
 	):
+		var site_ref = weakref(site)
 		var unload_materials = func():
-			if not is_instance_valid(site) or not site.is_inside_tree():
+			var target = site_ref.get_ref()
+			if target == null or not target.is_inside_tree():
 				return false
-			site.receive_materials(hauler.unload_cargo())
+			target.receive_materials(hauler.unload_cargo())
 			return true
 		hauler.action = Hauling.new([[site, unload_materials]], null, "SUPPLYING")
 		return true

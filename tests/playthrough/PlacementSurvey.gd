@@ -78,7 +78,8 @@ func _survey(map_path):
 		for step in range(2 * STEPS):
 			var angle = step * PI / STEPS
 			var spot = (
-				center + Vector3(0, 0, 1).rotated(Vector3.UP, angle) * (deposit.radius + radius + GAP_M)
+				center
+				+ Vector3(0, 0, 1).rotated(Vector3.UP, angle) * (deposit.radius + radius + GAP_M)
 			)
 			var result = Utils.Match.Unit.Placement.validate_agent_placement_position(
 				spot, radius, obstacles, navmap
@@ -94,26 +95,35 @@ func _survey(map_path):
 		var tally = per_kind.get(deposit.kind, [0, 0])
 		tally[0] += 1
 		if _verbose:
-			print("SURVEY   %s at %s: %d valid, %s" % [deposit.kind, center.snapped(Vector3.ONE * 0.1), valid, reasons])
+			print(
+				(
+					"SURVEY   %s at %s: %d valid, %s"
+					% [deposit.kind, center.snapped(Vector3.ONE * 0.1), valid, reasons]
+				)
+			)
 		if valid == 0:
 			tally[1] += 1
 			_blocked += 1
 			print(
-				"SURVEY %s: %s deposit at %s (r=%.1f) has no spot for %s: %s"
-				% [
-					map_path.get_file(),
-					deposit.kind,
-					center.snapped(Vector3.ONE * 0.1),
-					deposit.radius,
-					scene_path.get_file(),
-					reasons
-				]
+				(
+					"SURVEY %s: %s deposit at %s (r=%.1f) has no spot for %s: %s"
+					% [
+						map_path.get_file(),
+						deposit.kind,
+						center.snapped(Vector3.ONE * 0.1),
+						deposit.radius,
+						scene_path.get_file(),
+						reasons
+					]
+				)
 			)
 		per_kind[deposit.kind] = tally
 	for kind in per_kind:
 		print(
-			"SURVEY %s %s: %d deposits, %d blocked"
-			% [map_path.get_file(), kind, per_kind[kind][0], per_kind[kind][1]]
+			(
+				"SURVEY %s %s: %d deposits, %d blocked"
+				% [map_path.get_file(), kind, per_kind[kind][0], per_kind[kind][1]]
+			)
 		)
 	a_match.queue_free()
 	for _i in range(5):

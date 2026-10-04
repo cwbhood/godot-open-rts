@@ -48,7 +48,8 @@ func get_grid_links():
 	"""pairs of connected grid nodes, used to draw power lines"""
 	var links = []
 	for network in networks:
-		var nodes = network["nodes"]
+		# a node destroyed since the last tick stays listed until the next one
+		var nodes = network["nodes"].filter(func(node): return is_instance_valid(node))
 		for i in range(nodes.size()):
 			for j in range(i + 1, nodes.size()):
 				if _nodes_connect(nodes[i], nodes[j]):

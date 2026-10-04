@@ -54,6 +54,7 @@ var _tutorial = PanelContainer.new()
 var _tutorial_title = Label.new()
 var _tutorial_body = Label.new()
 var _tutorial_details = VBoxContainer.new()
+var _skip_button = Button.new()
 var _more_button = Button.new()
 var _fold_button = Button.new()
 var _hint_panel = PanelContainer.new()
@@ -125,7 +126,7 @@ func _build_tutorial():
 	_more_button.focus_mode = Control.FOCUS_NONE
 	_more_button.pressed.connect(func(): toggle_help(STEPS[min(_step, STEPS.size() - 1)][1], true))
 	buttons.add_child(_more_button)
-	var skip = Button.new()
+	var skip = _skip_button
 	skip.text = tr("GUIDE_SKIP")
 	skip.tooltip_text = tr("GUIDE_SKIP_TOOLTIP")
 	skip.focus_mode = Control.FOCUS_NONE
@@ -176,6 +177,9 @@ func _process(delta):
 func _layout():
 	"""positions are set by hand: the HUD layer gives this control no size to anchor to"""
 	var screen = get_viewport_rect().size
+	for panel in [_tutorial, _hint_panel]:
+		if panel.size.y > panel.get_combined_minimum_size().y + 1.0:
+			panel.reset_size()  # shrink back after shorter text
 	# the diplomacy bar sits at the top centre too, so the tutorial goes right under it
 	var top = 6.0
 	var diplomacy_hud = get_parent().get_node_or_null("DiplomacyHud")
@@ -243,6 +247,7 @@ func _refresh_tutorial():
 		_tutorial_body.text = tr("GUIDE_DONE")
 		_tutorial_title.add_theme_color_override("font_color", DONE_COLOR)
 		_more_button.hide()
+		_skip_button.hide()  # nothing left to skip
 		return
 	var key = STEPS[_step][0]
 	_tutorial_title.text = tr("GUIDE_TITLE").format(

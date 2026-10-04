@@ -181,8 +181,10 @@ func _start_from_menu():
 	_handler = _human.find_child("StructurePlacementHandler")
 	var weather = _atmosphere()
 	_say(
-		"match started: %d players, weather node %s"
-		% [get_tree().get_nodes_in_group("players").size(), weather != null]
+		(
+			"match started: %d players, weather node %s"
+			% [get_tree().get_nodes_in_group("players").size(), weather != null]
+		)
 	)
 
 
@@ -203,7 +205,12 @@ func _play():
 		if _elapsed_s >= _next_shot_s:
 			_next_shot_s += float(_args["shots-every"])
 			await _shot("t%04d" % int(_elapsed_s))
-	_say("played %.0f s of game time in %.0f s" % [_elapsed_s, (Time.get_ticks_msec() - start_ms) / 1000.0])
+	_say(
+		(
+			"played %.0f s of game time in %.0f s"
+			% [_elapsed_s, (Time.get_ticks_msec() - start_ms) / 1000.0]
+		)
+	)
 	await _shot("99-end")
 
 
@@ -315,15 +322,15 @@ func _produce_army(stock):
 
 
 func _maybe_attack():
-	var army = _own_units(
-		func(unit): return unit.scene_file_path in COMBAT_UNITS and _idle(unit)
-	)
+	var army = _own_units(func(unit): return unit.scene_file_path in COMBAT_UNITS and _idle(unit))
 	if army.size() < 6:
 		return
 	var target = _closest_enemy_target(army[0].global_position)
 	if target == null:
 		return
-	_say("attack with %d units on %s of P%d" % [army.size(), target.name, target.player.get_index()])
+	_say(
+		"attack with %d units on %s of P%d" % [army.size(), target.name, target.player.get_index()]
+	)
 	await _select(army)
 	await _right_click_world(target.global_position, "attack order")
 	_timeline.append({"t": int(_elapsed_s), "attack": army.size()})
@@ -341,7 +348,9 @@ func _place_extractor_by_hover(builder, kind):
 	await _look_at(deposit.global_position)
 	var screen = _camera.unproject_position(deposit.global_position)
 	var towards_builder = _camera.unproject_position(builder.global_position) - screen
-	var offset = towards_builder.normalized() * 6.0 if towards_builder.length() > 1 else Vector2(6, 4)
+	var offset = (
+		towards_builder.normalized() * 6.0 if towards_builder.length() > 1 else Vector2(6, 4)
+	)
 	await _mouse_move(screen + offset)
 	await _frames(6)
 	await _mouse_move(screen + offset * 1.2)
@@ -375,8 +384,9 @@ func _place_from_menu(builder, scene_path, spot):
 	if not await _click_control(button, scene_path.get_file() + " button"):
 		return false
 	await _frames(4)
-	if _handler.get("_pending_structure_prototype") == null or not _handler.call(
-		"_structure_placement_started"
+	if (
+		_handler.get("_pending_structure_prototype") == null
+		or not _handler.call("_structure_placement_started")
 	):
 		_finding("placement", "pressing %s did not start a blueprint" % scene_path.get_file())
 		return false
@@ -408,8 +418,10 @@ func _confirm_placement(scene_path, how):
 		var label = _handler.find_child("FeedbackLabel3D")
 		_finding(
 			"placement",
-			"%s (%s) could not be placed: %s, label says '%s'"
-			% [name, how, reason, label.text if label.visible else "<hidden>"],
+			(
+				"%s (%s) could not be placed: %s, label says '%s'"
+				% [name, how, reason, label.text if label.visible else "<hidden>"]
+			),
 			true,
 			"placement-" + name + "-" + reason
 		)
@@ -558,8 +570,15 @@ func _diplomacy_round():
 			await _click_control(hud.get("_offer_button"), "treaty offer button")
 			await _frames(3)
 			_say(
-				"offered %s to P%d (%s): %s"
-				% [kind, faction.get_index(), Diplomacy.State.keys()[state], hud.get("_result_label").text]
+				(
+					"offered %s to P%d (%s): %s"
+					% [
+						kind,
+						faction.get_index(),
+						Diplomacy.State.keys()[state],
+						hud.get("_result_label").text
+					]
+				)
 			)
 			if hud.get("_deal_box").visible:
 				hud.call("_on_chip_pressed", faction)  # close
@@ -592,16 +611,40 @@ func _sample_stuck_units():
 		var action = unit.action
 		if action == null or not history.all(func(entry): return entry[2] == action):
 			continue
-		var moved = history.map(func(entry): return entry[1].distance_to(unit.global_position)).max()
+		var moved = (
+			history.map(func(entry): return entry[1].distance_to(unit.global_position)).max()
+		)
 		var action_name = action.get_script().resource_path.get_file().get_basename()
-		if moved < 0.4 and action_name in ["Moving", "MovingToUnit", "Constructing", "CollectingGoods", "Hauling", "Landing", "Following"]:
+		if (
+			moved < 0.4
+			and (
+				action_name
+				in [
+					"Moving",
+					"MovingToUnit",
+					"Constructing",
+					"CollectingGoods",
+					"Hauling",
+					"Landing",
+					"Following"
+				]
+			)
+		):
 			if action_name == "Constructing" and _near_site(unit):
 				continue
 			_reported_stuck[unit] = true
 			_finding(
 				"stuck",
-				"%s of P%d sits still for %ds while %s at %s"
-				% [unit.name, unit.player.get_index(), STUCK_WINDOW_S, action_name, unit.global_position.snapped(Vector3.ONE * 0.1)],
+				(
+					"%s of P%d sits still for %ds while %s at %s"
+					% [
+						unit.name,
+						unit.player.get_index(),
+						STUCK_WINDOW_S,
+						action_name,
+						unit.global_position.snapped(Vector3.ONE * 0.1)
+					]
+				),
 				true,
 				"stuck-" + unit.scene_file_path.get_file() + action_name
 			)
@@ -614,7 +657,14 @@ func _sample_stuck_units():
 
 func _near_site(unit):
 	var target = unit.action.get("_target_unit") if unit.action != null else null
-	return target != null and is_instance_valid(target) and unit.global_position.distance_to(target.global_position) < target.radius + unit.radius + 1.5
+	return (
+		target != null
+		and is_instance_valid(target)
+		and (
+			unit.global_position.distance_to(target.global_position)
+			< target.radius + unit.radius + 1.5
+		)
+	)
 
 
 func _check_sites():
@@ -632,8 +682,15 @@ func _check_sites():
 			var label = unit.get_node_or_null("SiteStatusLabel")
 			_finding(
 				"site",
-				"%s site of P%d made no progress in %ds (%s)"
-				% [unit.name, unit.player.get_index(), SITE_STALL_S, label.text.replace("\n", " ") if label != null else "no label"],
+				(
+					"%s site of P%d made no progress in %ds (%s)"
+					% [
+						unit.name,
+						unit.player.get_index(),
+						SITE_STALL_S,
+						label.text.replace("\n", " ") if label != null else "no label"
+					]
+				),
 				unit.player == _human,
 				"site-" + str(unit.player.get_index()) + unit.scene_file_path.get_file()
 			)
@@ -644,7 +701,9 @@ func _check_sites():
 func _check_hud():
 	var viewport_rect = get_viewport().get_visible_rect()
 	var panels = []
-	for name in ["CityHud", "DiplomacyHud", "ResourcesBar", "Minimap", "UnitMenus", "AutoExpandPanel"]:
+	for name in [
+		"CityHud", "DiplomacyHud", "ResourcesBar", "Minimap", "UnitMenus", "AutoExpandPanel"
+	]:
 		var node = _match.find_child(name, true, false)
 		if node == null:
 			continue
@@ -658,7 +717,9 @@ func _check_hud():
 			continue
 		var rect = control.get_global_rect()
 		if rect.size.x > 2 and not viewport_rect.grow(2).encloses(rect):
-			_finding("hud", "%s sticks out of the screen: %s" % [name, rect], false, "hud-out-" + name)
+			_finding(
+				"hud", "%s sticks out of the screen: %s" % [name, rect], false, "hud-out-" + name
+			)
 		panels.append([name, rect])
 	for i in range(panels.size()):
 		for j in range(i + 1, panels.size()):
@@ -666,7 +727,10 @@ func _check_hud():
 			if overlap.get_area() > 400:
 				_finding(
 					"hud",
-					"%s overlaps %s (%dx%d px)" % [panels[i][0], panels[j][0], overlap.size.x, overlap.size.y],
+					(
+						"%s overlaps %s (%dx%d px)"
+						% [panels[i][0], panels[j][0], overlap.size.x, overlap.size.y]
+					),
 					false,
 					"hud-overlap-" + panels[i][0] + panels[j][0]
 				)
@@ -677,7 +741,9 @@ func _log_economy():
 		return
 	var line = {"t": int(_elapsed_s), "fps": Engine.get_frames_per_second(), "players": []}
 	for player in get_tree().get_nodes_in_group("players"):
-		var units = get_tree().get_nodes_in_group("units").filter(func(unit): return unit.player == player)
+		var units = get_tree().get_nodes_in_group("units").filter(
+			func(unit): return unit.player == player
+		)
 		line["players"].append(
 			{
 				"p": player.get_index(),
@@ -688,21 +754,38 @@ func _log_economy():
 				"pop": snapped(player.city.population, 0.1) if player.city != null else 0,
 				"units": units.filter(func(unit): return not unit is Structure).size(),
 				"structures": units.filter(func(unit): return unit is Structure).size(),
-				"extractors": units.filter(func(unit): return unit is Extractor and unit.is_constructed()).size(),
+				"extractors":
+				units.filter(func(unit): return unit is Extractor and unit.is_constructed()).size(),
 			}
 		)
 	_timeline.append(line)
 	_say(
-		"t=%d fps=%.1f %s"
-		% [
-			line["t"],
-			line["fps"],
-			" | ".join(
-				line["players"].map(
-					func(p): return "P%d %s T%d sci=%s pop=%s u=%d s=%d x=%d %s" % [p["p"], p["ai"], p["tier"], p["science"], p["pop"], p["units"], p["structures"], p["extractors"], p["stock"]]
+		(
+			"t=%d fps=%.1f %s"
+			% [
+				line["t"],
+				line["fps"],
+				" | ".join(
+					line["players"].map(
+						func(p):
+							return (
+								"P%d %s T%d sci=%s pop=%s u=%d s=%d x=%d %s"
+								% [
+									p["p"],
+									p["ai"],
+									p["tier"],
+									p["science"],
+									p["pop"],
+									p["units"],
+									p["structures"],
+									p["extractors"],
+									p["stock"]
+								]
+							)
+					)
 				)
-			)
-		]
+			]
+		)
 	)
 
 
@@ -739,25 +822,55 @@ func _click_control(control, what):
 		_say(what + " is disabled")
 		return false
 	if not get_viewport().get_visible_rect().encloses(control.get_global_rect()):
-		_finding("hud", "%s is (partly) off screen at %s" % [what, control.get_global_rect()], true, "offscreen-" + what)
+		_finding(
+			"hud",
+			"%s is (partly) off screen at %s" % [what, control.get_global_rect()],
+			true,
+			"offscreen-" + what
+		)
+	var scroll = control.get_parent()
+	while scroll != null and not scroll is ScrollContainer:
+		scroll = scroll.get_parent()
+	if scroll != null:  # scroll to it first, as a player would
+		scroll.ensure_control_visible(control)
+		await _frames(2)
 	var fired = [false]
 	var on_press = func(): fired[0] = true
 	var signal_name = "pressed" if control.has_signal("pressed") else ""
 	if signal_name != "":
 		control.connect(signal_name, on_press, CONNECT_ONE_SHOT)
+	await _frames(3)  # let freshly shown panels finish their layout
 	var center = control.get_global_rect().get_center()
 	await _mouse_move(center)
 	await _frames(2)
+	if not control.get_global_rect().has_point(center):
+		center = control.get_global_rect().get_center()
+		await _mouse_move(center)
+		await _frames(2)
 	await _mouse_button(center, MOUSE_BUTTON_LEFT, true)
 	await _mouse_button(center, MOUSE_BUTTON_LEFT, false)
 	await _frames(2)
 	if signal_name != "" and not fired[0]:
 		control.disconnect(signal_name, on_press)
-		_stats["clicks_missed"] += 1
 		var hovered = get_viewport().gui_get_hovered_control()
+		if (
+			hovered is BaseButton
+			and hovered != control
+			and hovered.tooltip_text != ""
+			and hovered.tooltip_text == control.tooltip_text
+		):
+			# an identical button of another menu instance sits on top and got the click
+			_finding(
+				"hud", "two copies of the %s menu button are stacked" % what, false, "dup-" + what
+			)
+			return true
+		_stats["clicks_missed"] += 1
 		_finding(
 			"hud",
-			"clicking %s did nothing (mouse over %s)" % [what, hovered.name if hovered != null else "nothing"],
+			(
+				"clicking %s did nothing (mouse over %s)"
+				% [what, hovered.name if hovered != null else "nothing"]
+			),
 			true,
 			"click-" + what
 		)
@@ -788,7 +901,10 @@ func _select(units):
 			var got = get_tree().get_nodes_in_group("selected_units").map(func(u): return u.name)
 			_finding(
 				"select",
-				"clicking %s did not select it (selected instead: %s)" % [unit.scene_file_path.get_file(), got],
+				(
+					"clicking %s did not select it (selected instead: %s)"
+					% [unit.scene_file_path.get_file(), got]
+				),
 				false,
 				"select-" + unit.scene_file_path.get_file()
 			)
@@ -911,7 +1027,14 @@ func _closest_free_deposit(kind, from):
 		if deposit.kind != kind or not deposit.is_inside_tree():
 			continue
 		var taken = get_tree().get_nodes_in_group("units").any(
-			func(unit): return unit is Extractor and unit.global_position.distance_to(deposit.global_position) < deposit.radius + unit.radius + 1.5
+			func(unit):
+				return (
+					unit is Extractor
+					and (
+						unit.global_position.distance_to(deposit.global_position)
+						< deposit.radius + unit.radius + 1.5
+					)
+				)
 		)
 		if taken:
 			continue
@@ -927,14 +1050,16 @@ func _deposit_spot(kind, from):
 		return null
 	var direction = (from - deposit.global_position) * Vector3(1, 0, 1)
 	direction = direction.normalized() if direction.length() > 0.1 else Vector3(1, 0, 0)
-	return deposit.global_position + direction * (deposit.radius + 1.5)
+	return deposit.global_position + direction * (deposit.radius + 1.7)  # extractor radius 0.9, gap 0.8
 
 
 func _free_spot_near(structure, distance):
 	if structure == null:
 		return null
 	var center = structure.global_position
-	var navmap = _match.navigation.get_navigation_map_rid_by_domain(Constants.Match.Navigation.Domain.TERRAIN)
+	var navmap = _match.navigation.get_navigation_map_rid_by_domain(
+		Constants.Match.Navigation.Domain.TERRAIN
+	)
 	var obstacles = (
 		get_tree().get_nodes_in_group("units")
 		+ get_tree().get_nodes_in_group("resource_units")
@@ -945,7 +1070,9 @@ func _free_spot_near(structure, distance):
 			var angle = step * TAU / 12.0 + ring * 0.3
 			var spot = center + Vector3(cos(angle), 0, sin(angle)) * (distance + ring * 4.0)
 			if (
-				Utils.Match.Unit.Placement.validate_agent_placement_position(spot, 2.0, obstacles, navmap)
+				Utils.Match.Unit.Placement.validate_agent_placement_position(
+					spot, 2.0, obstacles, navmap
+				)
 				== Utils.Match.Unit.Placement.VALID
 			):
 				return spot
@@ -1028,8 +1155,16 @@ func _finish():
 	var lines = ["result: %s after %d s" % [_result, int(_elapsed_s)]]
 	for finding in _findings:
 		lines.append(
-			"%s %s at %ds (x%d): %s"
-			% ["BUG" if finding["bug"] else "note", finding["kind"], finding["t"], finding["count"], finding["text"]]
+			(
+				"%s %s at %ds (x%d): %s"
+				% [
+					"BUG" if finding["bug"] else "note",
+					finding["kind"],
+					finding["t"],
+					finding["count"],
+					finding["text"]
+				]
+			)
 		)
 	for text in _logger.errors:
 		lines.append("ERROR x%d: %s" % [_logger.errors[text], text])
