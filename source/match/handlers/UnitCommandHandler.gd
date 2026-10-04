@@ -15,6 +15,19 @@ signal mode_changed(mode)
 const UnitCommands = preload("res://source/match/players/human/UnitCommands.gd")
 const Stances = preload("res://source/match/units/actions/Stances.gd")
 
+# the unit voice (UnitVoicesController) that answers each command; stances get none
+const VOICE_OF_COMMAND = {
+	"move": "move",
+	"line": "move",
+	"fight": "attack",
+	"fight_line": "attack",
+	"patrol": "move",
+	"patrol_line": "move",
+	"patrol_base": "move",
+	"guard": "move",
+	"retreat": "retreat",
+}
+
 const DRAG_START_PX = 12.0
 const PATH_SAMPLE_M = 0.6
 const GUARD_PICK_M = 2.5
@@ -284,6 +297,10 @@ func _flash(text):
 
 func _issued(command):
 	MatchSignals.unit_command_issued.emit(command)
+	var voice = VOICE_OF_COMMAND.get(command)
+	var units = UnitCommands.movable(selected_units())
+	if voice != null and not units.is_empty():
+		MatchSignals.units_ordered.emit(units, voice)
 
 
 # --- drawing ----------------------------------------------------------------------------
