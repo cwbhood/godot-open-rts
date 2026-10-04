@@ -1,5 +1,7 @@
 # Water
 
+![Twin Isles](../images/water/twin-isles-overview.jpg)
+
 Maps can have water that only some units cross: a sea with islands, lakes, channels and
 shallow fords. Twin Isles (`data/maps/twin_isles.json`) is the example: each faction
 starts on its own island with its basic deposits, and the rich deposits sit on a centre
