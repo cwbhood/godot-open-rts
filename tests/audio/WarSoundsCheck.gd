@@ -32,6 +32,11 @@ func _ready():
 			army.append(unit)
 		armies.append(army)
 	await _frames(5)
+	# the factions start neutral (diplomacy): only an AI declaring war would start the battle,
+	# at a moment that varies from run to run, so the check declares it itself
+	var diplomacy = match_node.find_child("Diplomacy", true, false)
+	if diplomacy != null:
+		diplomacy.declare_war(players[0], players[1])
 	for army in armies:
 		for unit in army:
 			unit.action = Moving.new(front)  # drive in: engines, then auto-attack on arrival
@@ -43,11 +48,19 @@ func _ready():
 	var war_sounds = match_node.find_child("WarSounds", true, false)
 	var soundscape = match_node.find_child("Soundscape", true, false)
 	var loudest_tank_engine = 0.0
-	for i in range(400):
+	# counted in game time, not frames: how many frames the battle takes depends on how fast
+	# the machine renders, and the factions only open fire once they are at war
+	var started_ms = Time.get_ticks_msec()
+	var game_s = 0.0
+	var next_log_s = 10.0
+	while game_s < 150.0 and not _heard_everything(war_sounds.played_counts):
 		await get_tree().process_frame
+		game_s += get_process_delta_time()
 		loudest_tank_engine = max(loudest_tank_engine, soundscape._targets["tank_engine_loop"])
-		if i % 50 == 49:
-			print("frame ", i + 1, " ", war_sounds.played_counts)
+		if game_s >= next_log_s:
+			next_log_s += 10.0
+			print("game time %d s " % game_s, war_sounds.played_counts)
+	print("battle took %.0f s of game time, %d ms real" % [game_s, Time.get_ticks_msec() - started_ms])
 	print("played: ", war_sounds.played_counts, " tank engine peak: ", loudest_tank_engine)
 	var failures = 0
 	for kind in ["cannon", "rifle", "rocket", "impact"]:
@@ -70,3 +83,10 @@ func _ready():
 func _frames(count):
 	for i in range(count):
 		await get_tree().process_frame
+
+
+func _heard_everything(counts):
+	for kind in ["cannon", "rifle", "rocket", "impact"]:
+		if counts.get(kind, 0) == 0:
+			return false
+	return counts.has("explosion_small") or counts.has("explosion_large")

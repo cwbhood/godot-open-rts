@@ -507,9 +507,11 @@ func _watch_for_attacks():
 	if Diplomacy.state_between(_human, _rival) != Diplomacy.State.NEUTRAL:
 		return
 	for unit in get_tree().get_nodes_in_group("units"):
-		if unit.player != _human or unit.action == null:
+		if unit.player != _human or unit.action == null or not is_instance_valid(unit.action):
 			continue
 		var sub = unit.action.get("_sub_action")
+		if sub != null and not is_instance_valid(sub):
+			sub = null
 		if (
 			unit.action is AutoAttacking
 			or unit.action is AttackingWhileInRange
