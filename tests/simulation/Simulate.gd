@@ -61,6 +61,8 @@ func _ready():
 		if argument.begins_with("--") and "=" in argument:
 			var parts = argument.substr(2).split("=", true, 1)
 			_args[parts[0]] = parts[1]
+	if _args.has("summary"):  # same as --out, which the crash reporter also reads as a folder
+		_args["out"] = _args["summary"]
 	Engine.time_scale = float(_args["time-scale"])
 	print(
 		(
@@ -219,7 +221,7 @@ func _player_sample(player):
 		"difficulty": player.get("difficulty_id"),
 		"kills": _kills.get(player.get_index(), 0),
 		"losses": _losses.get(player.get_index(), 0),
-		"army": _army_size(units),
+		"army": units.filter(_is_military).size(),
 		"structures":
 		units.filter(func(unit): return unit is Structure and unit.is_constructed()).size(),
 		"stock": player.get_stock(),
@@ -297,10 +299,18 @@ func _finish():
 		"units_by_kind": _units_by_kind(),
 	}
 	var file = FileAccess.open(_args["out"], FileAccess.WRITE)
+	if file == null:  # still quit, a batch run waits for this process to end
+		printerr("SIM cannot write ", _args["out"])
+		get_tree().quit(1)
+		return
 	file.store_string(JSON.stringify(summary, "  "))
 	file.close()
 	print("SIM done, summary written to ", ProjectSettings.globalize_path(_args["out"]))
 	get_tree().quit()
+
+
+func _is_military(unit):
+	return unit.get("attack_damage") != null and unit.attack_damage > 0 and not unit is Structure
 
 
 func _on_node_added(node):
@@ -320,12 +330,3 @@ func _on_unit_exiting(unit):
 
 func _player_index(player):
 	return _players().find(player)
-
-
-func _army_size(units):
-	# a plain loop: Godot cannot parse the multi-line lambda gdformat makes of a filter here
-	var count = 0
-	for unit in units:
-		if unit.get("attack_damage") != null and unit.attack_damage > 0 and not unit is Structure:
-			count += 1
-	return count

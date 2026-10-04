@@ -20,6 +20,7 @@ import concurrent.futures
 import csv
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -34,6 +35,8 @@ def play(args, a, b, run):
     name = "%s_%s_vs_%s_%s_%d" % (args.style, a, args.style, b, run)
     out = os.path.join(args.out, name + ".json")
     log = os.path.join(args.out, name + ".log")
+    if os.path.isdir(out):
+        shutil.rmtree(out)  # left by older runs that passed --out, see Simulate.gd
     if not os.path.exists(out) or args.force:
         command = [
             "xvfb-run", "-a", "-s", "-screen 0 640x360x24",
@@ -41,7 +44,7 @@ def play(args, a, b, run):
             "--path", ROOT, "res://tests/simulation/Simulate.tscn", "--",
             "--map=" + args.map, "--ai=%s,%s" % (args.style, args.style),
             "--difficulty=%s,%s" % (a, b), "--seconds=%d" % args.seconds,
-            "--time-scale=%s" % args.time_scale, "--log-every=120", "--out=" + out,
+            "--time-scale=%s" % args.time_scale, "--log-every=120", "--summary=" + out,
         ]
         with open(log, "w") as log_file:
             subprocess.run(command, stdout=log_file, stderr=subprocess.STDOUT,
