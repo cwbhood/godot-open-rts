@@ -12,7 +12,7 @@ const KEEP_CHOICES = [0, 10, 25, 50, 100]
 const ARMY_CHOICES = [0, 4, 8, 12, 20]
 const ALERT_COLOR = Color(1.0, 0.75, 0.4)
 const ALERT_SHOWN_S = 30.0
-const WIDTH = 280
+const WIDTH = 300
 
 var _helper = null
 var _title = Label.new()

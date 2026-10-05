@@ -4,6 +4,7 @@ const Unit = preload("res://source/match/units/Unit.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
 const SupplyRoutesOverlay = preload("res://source/match/hud/SupplyRoutesOverlay.gd")
 const Hauler = preload("res://source/match/units/Hauler.gd")
+const MinimapTerrain = preload("res://source/match/hud/MinimapTerrain.gd")
 
 const GROUND_LEVEL_PLANE = Plane(Vector3.UP, 0)
 const MINIMAP_PIXELS_PER_WORLD_METER = 2
@@ -29,10 +30,26 @@ func _ready():
 	_routes_overlay.pixels_per_meter = MINIMAP_PIXELS_PER_WORLD_METER
 	_viewport_background.add_sibling(_routes_overlay)
 	await _match.ready  # make sure Match is ready as it may change map on setup
-	find_child("MinimapViewport").size = (
-		_match.find_child("Map").size * MINIMAP_PIXELS_PER_WORLD_METER
-	)
+	var map = _match.find_child("Map")
+	find_child("MinimapViewport").size = map.size * MINIMAP_PIXELS_PER_WORLD_METER
+	_paint_terrain(map)
 	_texture_rect.gui_input.connect(_on_gui_input)
+
+
+func _paint_terrain(map):
+	"""the map's ground in its own colours instead of a flat grey"""
+	var longest = max(map.size.x, map.size.y)
+	var texture = MinimapTerrain.build(map, min(1.0, 140.0 / max(longest, 1.0)))
+	if texture == null:
+		return
+	var terrain = TextureRect.new()
+	terrain.name = "Terrain"
+	terrain.texture = texture
+	terrain.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	terrain.stretch_mode = TextureRect.STRETCH_SCALE
+	terrain.size = map.size * MINIMAP_PIXELS_PER_WORLD_METER
+	terrain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_viewport_background.add_sibling(terrain)
 
 
 func _physics_process(_delta):
@@ -73,7 +90,7 @@ func _unit_is_mapped(unit):
 
 func _map_unit(unit):
 	var node_representing_unit = ColorRect.new()
-	node_representing_unit.size = Vector2(3, 3)
+	node_representing_unit.size = Vector2(4, 4)
 	if not unit is Unit:
 		node_representing_unit.rotation_degrees = 45
 	_routes_overlay.add_sibling(node_representing_unit)

@@ -29,7 +29,7 @@ const SETTINGS_PATH = "user://guide.cfg"
 const REFRESH_INTERVAL_S = 0.5
 const HINT_DURATION_S = 12.0
 const CAP_ALERT_INTERVAL_S = 20.0
-const PANEL_WIDTH = 500
+const PANEL_WIDTH = 300  # the width of the left column (HelperPanel, AutoExpandPanel)
 const DONE_COLOR = Color("#8fbf5a")
 const GAP = 6.0
 # the panel a tutorial step is about opens when the step starts (all start folded)
@@ -137,6 +137,11 @@ func _build_tutorial():
 	margin.add_child(box)
 	var header = HudStyle.header("tutorial", _tutorial_title, null)
 	_tutorial_title.add_theme_font_size_override("font_size", 17)
+	# the column is narrow: long step titles wrap instead of being cut off
+	_tutorial_title.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_tutorial_title.clip_text = false
+	_tutorial_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tutorial_title.custom_minimum_size = Vector2(PANEL_WIDTH - 90, 0)
 	box.add_child(header)
 	var help_button = Button.new()
 	help_button.text = tr("GUIDE_HELP_BUTTON")
@@ -144,7 +149,6 @@ func _build_tutorial():
 	help_button.focus_mode = Control.FOCUS_NONE
 	help_button.add_theme_font_size_override("font_size", 13)
 	help_button.pressed.connect(func(): toggle_help())
-	header.add_child(help_button)
 	HudStyle.style_fold_button(_fold_button)
 	_fold_button.pressed.connect(func(): _set_folded(_tutorial_details.visible))
 	header.add_child(_fold_button)
@@ -169,6 +173,7 @@ func _build_tutorial():
 	skip.add_theme_font_size_override("font_size", 13)
 	skip.pressed.connect(_skip_step)
 	buttons.add_child(skip)
+	buttons.add_child(help_button)
 	_set_folded(_load_setting("tutorial_folded", false))
 
 
@@ -222,9 +227,9 @@ func _process(delta):
 
 func _layout():
 	"""positions are set by hand: the HUD layer gives this control no size to anchor to.
-	The top strip runs along the top; under it the helper and auto-expand panels make a
-	column on the left, the city panel one on the right, and the diplomacy bar, the
-	tutorial and hints share the middle."""
+	The top strip runs along the top; under it the helper, auto-expand, tutorial and hint
+	panels make a column on the left, the city panel one on the right, and the diplomacy
+	bar sits alone at the top centre."""
 	var screen = get_viewport_rect().size
 	for panel in [_tutorial, _hint_panel]:
 		if panel.size.y > panel.get_combined_minimum_size().y + 1.0:
@@ -233,7 +238,6 @@ func _layout():
 	var resources = get_parent().get_node_or_null("MarginContainer2")
 	if resources != null and resources.is_visible_in_tree():
 		top_left = resources.global_position.y + resources.size.y + GAP
-	var left_edge = 4.0
 	var below_helper = top_left
 	if helper_panel != null:
 		if helper_panel.size.y > helper_panel.get_combined_minimum_size().y + 1.0:
@@ -241,7 +245,6 @@ func _layout():
 		helper_panel.position = Vector2(GAP, top_left)
 		if helper_panel.visible:
 			below_helper = helper_panel.position.y + helper_panel.size.y + GAP
-			left_edge = max(left_edge, helper_panel.position.x + helper_panel.size.x + GAP)
 	var minimap_top = screen.y - 225
 	if auto_expand_panel != null:
 		if auto_expand_panel.size.y > auto_expand_panel.get_combined_minimum_size().y + 1.0:
@@ -250,23 +253,14 @@ func _layout():
 			GAP,
 			clamp(below_helper, top_left, max(top_left, minimap_top - auto_expand_panel.size.y))
 		)
-		if auto_expand_panel.visible:
-			left_edge = max(
-				left_edge, auto_expand_panel.position.x + auto_expand_panel.size.x + GAP
-			)
-	# the diplomacy bar sits at the top centre too, so the tutorial goes right under it
-	var top = top_left
-	var diplomacy_hud = get_parent().get_node_or_null("DiplomacyHud")
-	if diplomacy_hud != null and diplomacy_hud.is_visible_in_tree():
-		top = diplomacy_hud.position.y + diplomacy_hud.size.y + GAP
-	# centred, but kept between the side columns (long translations make these wide)
-	var city = get_parent().get_node_or_null("CityHud")
-	var right_edge = screen.x - 4.0
-	if city != null and city.is_visible_in_tree():
-		right_edge = city.get_global_rect().position.x - GAP
-	_tutorial.position = Vector2(_centred_x(_tutorial, left_edge, right_edge), top)
+	# the tutorial and hints continue the left column, so the middle of the screen stays on
+	# the battlefield; the diplomacy bar keeps the top centre for itself
+	var top = below_helper
+	if auto_expand_panel != null and auto_expand_panel.visible:
+		top = auto_expand_panel.position.y + auto_expand_panel.size.y + GAP
+	_tutorial.position = Vector2(GAP, top)
 	var hint_top = _tutorial.position.y + _tutorial.size.y + GAP if _tutorial.visible else top
-	_hint_panel.position = Vector2(_centred_x(_hint_panel, left_edge, right_edge), hint_top)
+	_hint_panel.position = Vector2(GAP, hint_top)
 	if auto_expand_bar == null:
 		return
 	var unit_menus = get_parent().find_child("UnitMenus", true, false)
@@ -276,15 +270,6 @@ func _layout():
 	auto_expand_bar.position = Vector2(
 		right - auto_expand_bar.size.x, screen.y - 5 - auto_expand_bar.size.y
 	)
-
-
-func _centred_x(panel, left_edge, right_edge):
-	"""centred on the screen when it fits there, else in the room between the columns"""
-	var screen_width = get_viewport_rect().size.x
-	var x = (screen_width - panel.size.x) / 2.0
-	if x < left_edge or x + panel.size.x > right_edge:
-		x = left_edge + (right_edge - left_edge - panel.size.x) / 2.0
-	return round(max(4.0, x))
 
 
 func toggle_help(topic = null, force_show = false):

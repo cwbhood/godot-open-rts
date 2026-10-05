@@ -27,6 +27,7 @@ func _ready():
 	_setup_sandbox_check_box()
 	_setup_slot_options()
 	_rules_options.setup(find_child("VBoxContainer2"))
+	_style_start_button(find_child("StartButton"))
 	var option_nodes = find_child("GridContainer").find_children("OptionButton*")
 	for option_node_id in range(option_nodes.size()):
 		option_nodes[option_node_id].item_selected.connect(_on_player_selected.bind(option_node_id))
@@ -261,3 +262,18 @@ func _on_map_list_item_selected(index):
 		[map["players"], map["size"].x, map["size"].y]
 	)
 	_align_player_controls_visibility_to_map(map)
+
+
+func _style_start_button(button):
+	"""the one thing to press on this screen stands out in the brand yellow"""
+	var normal = StyleBoxFlat.new()
+	normal.bg_color = Color("f2a93b")
+	normal.set_corner_radius_all(8)
+	var hover = normal.duplicate()
+	hover.bg_color = Color("f2a93b").lightened(0.15)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("focus", normal)
+	for state in ["hover", "pressed", "hover_pressed"]:
+		button.add_theme_stylebox_override(state, hover)
+	for color_name in ["font_color", "font_focus_color", "font_hover_color", "font_pressed_color"]:
+		button.add_theme_color_override(color_name, Color("1a1206"))

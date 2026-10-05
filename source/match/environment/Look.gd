@@ -61,6 +61,11 @@ static func load_definition(id):
 	return parsed if parsed is Dictionary else null
 
 
+static func display_name(id):
+	var loaded = load_definition(id)
+	return loaded.get("name", id.capitalize()) if loaded != null else id.capitalize()
+
+
 static func picked_look():
 	"""--look=<id> beats the Options choice, which beats DEFAULT_LOOK"""
 	for arg in OS.get_cmdline_user_args():

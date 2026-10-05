@@ -6,6 +6,8 @@ const SaveLoadPanel = preload("res://source/main-menu/SaveLoadPanel.gd")
 const EMBLEM = preload("res://assets/logos/ironbound_emblem.svg")
 const TITLE_FONT = preload("res://assets/ui/fonts/ironbound_title.tres")
 const BODY_FONT = preload("res://assets/ui/fonts/barlow-600.woff2")
+const MENU_LEFT = 72
+const ACCENT = Color("f2a93b")
 
 
 func _ready():
@@ -33,6 +35,7 @@ func _ready():
 		continue_button.tooltip_text = saves[0]["name"] + "  " + saves[0]["summary"]
 		continue_button.pressed.connect(_continue.bind(saves[0]["path"]))
 		play_button.add_sibling(continue_button)
+	_lay_out_menu()
 
 
 func _continue(path):
@@ -68,12 +71,19 @@ func _on_quit_button_pressed():
 func _add_title():
 	var shade = TextureRect.new()
 	var gradient = Gradient.new()
-	gradient.set_color(0, Color(0.08, 0.067, 0.05, 0.85))
-	gradient.set_color(1, Color(0.08, 0.067, 0.05, 0.2))
+	# dark behind the menu column on the left, the battlefield clear on the right
+	gradient.offsets = PackedFloat32Array([0.0, 0.38, 0.75])
+	gradient.colors = PackedColorArray(
+		[
+			Color(0.08, 0.067, 0.05, 0.92),
+			Color(0.08, 0.067, 0.05, 0.6),
+			Color(0.08, 0.067, 0.05, 0.0),
+		]
+	)
 	var texture = GradientTexture2D.new()
 	texture.gradient = gradient
 	texture.fill_from = Vector2(0, 0)
-	texture.fill_to = Vector2(0, 1)
+	texture.fill_to = Vector2(1, 0)
 	shade.texture = texture
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -82,18 +92,18 @@ func _add_title():
 
 	var title = HBoxContainer.new()
 	title.name = "Title"
-	title.alignment = BoxContainer.ALIGNMENT_CENTER
-	title.add_theme_constant_override("separation", 22)
-	title.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	title.offset_left = -400
-	title.offset_right = 400
-	title.offset_top = 60
-	title.offset_bottom = 200
+	title.alignment = BoxContainer.ALIGNMENT_BEGIN
+	title.add_theme_constant_override("separation", 18)
+	title.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	title.offset_left = MENU_LEFT
+	title.offset_right = MENU_LEFT + 720
+	title.offset_top = 56
+	title.offset_bottom = 190
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(title)
 	var emblem = TextureRect.new()
 	emblem.texture = EMBLEM
-	emblem.custom_minimum_size = Vector2(104, 104)
+	emblem.custom_minimum_size = Vector2(88, 88)
 	emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	emblem.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -102,7 +112,7 @@ func _add_title():
 	words.add_theme_constant_override("separation", -12)
 	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	title.add_child(words)
-	words.add_child(_label("IRONBOUND", TITLE_FONT, 112, Color("efe4cf")))
+	words.add_child(_label("IRONBOUND", TITLE_FONT, 96, Color("efe4cf")))
 	words.add_child(_label(tr("IRONBOUND_TAGLINE"), BODY_FONT, 24, Color("f2a93b")))
 
 	var version = _label(
@@ -119,6 +129,50 @@ func _add_title():
 	version.offset_right = 400
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	add_child(version)
+
+
+func _lay_out_menu():
+	"""a column of large, flat buttons on the left over the backdrop; Play stands out"""
+	var background = find_child("Background", false)
+	background.self_modulate = Color.WHITE
+	background.flip_h = true  # the shot's base and oases end up right of the menu
+	var panel = find_child("PanelContainer", false)
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT)
+	panel.offset_left = MENU_LEFT - 20
+	panel.offset_top = -150
+	panel.grow_vertical = Control.GROW_DIRECTION_END
+	var column = panel.find_child("VBoxContainer")
+	column.custom_minimum_size = Vector2(340, 0)
+	column.alignment = BoxContainer.ALIGNMENT_BEGIN
+	column.add_theme_constant_override("separation", 4)
+	for button in column.get_children():
+		if button is Button:
+			_style_menu_button(button, button.name == "Button")
+
+
+func _style_menu_button(button, primary):
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.custom_minimum_size = Vector2(0, 50 if primary else 44)
+	button.add_theme_font_size_override("font_size", 26 if primary else 22)
+	var normal = StyleBoxFlat.new()
+	normal.bg_color = ACCENT if primary else Color(0, 0, 0, 0)
+	normal.set_corner_radius_all(8)
+	normal.content_margin_left = 20
+	normal.content_margin_right = 20
+	var hover = normal.duplicate()
+	hover.bg_color = ACCENT.lightened(0.15) if primary else Color(1, 1, 1, 0.08)
+	hover.border_color = ACCENT
+	hover.border_width_left = 0 if primary else 4
+	for state in ["normal", "focus"]:
+		button.add_theme_stylebox_override(state, normal)
+	for state in ["hover", "pressed", "hover_pressed"]:
+		button.add_theme_stylebox_override(state, hover)
+	var ink = Color("1a1206") if primary else Color("efe4cf")
+	for color_name in ["font_color", "font_focus_color", "font_hover_color", "font_pressed_color"]:
+		button.add_theme_color_override(color_name, ink)
+	if not primary:
+		button.add_theme_color_override("font_hover_color", ACCENT)
 
 
 func _label(text, font, font_size, color):

@@ -49,6 +49,9 @@ func _ready():
 		var depots = player.get_node("Logistics").get_depots()
 		if not depots.is_empty():
 			target = depots[0].global_position
+	if target != null and _args.has("offset"):  # e.g. --offset=12,0,10 from the player's depot
+		var xyz = _args["offset"].split(",")
+		target += Vector3(float(xyz[0]), float(xyz[1]), float(xyz[2]))
 	for look_id in _args.get("looks", ",".join(look.available_looks())).split(","):
 		look.apply(look_id)
 		for size_text in _args.get("sizes", "15").split(","):
