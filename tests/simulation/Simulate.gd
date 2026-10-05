@@ -14,6 +14,8 @@ extends Node
 #   player 1 from --raid-start seconds on, so the two runs show what raiding costs.
 #
 # --difficulty=easy,normal gives each AI a difficulty from data/difficulties/ (default normal).
+# --factions=foundry,syndicate gives each AI a faction from data/factions/ (default none:
+# every unit allowed, the units of the game before factions).
 # The summary records who was still standing at the end, military units killed and lost
 # per player and an army/economy score, so tests/simulation/difficulty_ladder.py can
 # compare difficulties with the same play style.
@@ -40,6 +42,8 @@ var _args = {
 	"raiders": "3",
 	"out": "user://simulation.json",
 	"difficulty": "",
+	"factions": "",
+	"stop-on-win": "0",  # 1: end as soon as only one player has units left
 }
 var _match = null
 var _elapsed_s = 0.0
@@ -80,6 +84,9 @@ func _ready():
 		var difficulties = _args["difficulty"].split(",", false)
 		if index < difficulties.size():
 			player_settings.ai_difficulty = difficulties[index]
+		var factions = _args["factions"].split(",", false)
+		if index < factions.size():
+			player_settings.faction = factions[index]
 		settings.players.append(player_settings)
 	settings.visibility = settings.Visibility.ALL_PLAYERS
 	settings.visible_player = 0
@@ -134,9 +141,22 @@ func _physics_process(delta):
 		_next_log_s += float(_args["log-every"])
 		_log()
 		print("SIM real time %.0fs" % (Time.get_ticks_msec() / 1000.0))
-	if _elapsed_s >= float(_args["seconds"]):
+	if _elapsed_s >= float(_args["seconds"]) or (_args["stop-on-win"] == "1" and _decided()):
 		set_physics_process(false)
 		_finish()
+
+
+func _decided():
+	"""only one player has units left (checked once a second)"""
+	if int(_elapsed_s) == int(_elapsed_s - get_physics_process_delta_time()):
+		return false
+	var standing = _players().filter(
+		func(player):
+			return get_tree().get_nodes_in_group("units").any(
+				func(unit): return unit.player == player
+			)
+	)
+	return standing.size() <= 1
 
 
 func _units_by_kind():
@@ -218,6 +238,7 @@ func _player_sample(player):
 	return {
 		"player": player.get_index(),
 		"personality": player.get("personality_id"),
+		"faction": player.get("faction"),
 		"difficulty": player.get("difficulty_id"),
 		"kills": _kills.get(player.get_index(), 0),
 		"losses": _losses.get(player.get_index(), 0),
@@ -297,6 +318,7 @@ func _finish():
 		"caravans_raided": market.raided_total if market != null else 0,
 		"agreements_active": market.agreements.size() if market != null else 0,
 		"units_by_kind": _units_by_kind(),
+		"ended_at_s": int(_elapsed_s),
 	}
 	var file = FileAccess.open(_args["out"], FileAccess.WRITE)
 	if file == null:  # still quit, a batch run waits for this process to end

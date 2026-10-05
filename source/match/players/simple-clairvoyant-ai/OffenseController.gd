@@ -6,16 +6,10 @@ const Worker = preload("res://source/match/units/Worker.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const VehicleFactory = preload("res://source/match/units/VehicleFactory.gd")
 const VehicleFactoryScene = preload("res://source/match/units/VehicleFactory.tscn")
-const Tank = preload("res://source/match/units/Tank.gd")
-const TankScene = preload("res://source/match/units/Tank.tscn")
-const HeavyTankScene = preload("res://source/match/units/HeavyTank.tscn")
-const BattleTankScene = preload("res://source/match/units/BattleTank.tscn")
-const GunshipScene = preload("res://source/match/units/Gunship.tscn")
 const AircraftFactory = preload("res://source/match/units/AircraftFactory.gd")
 const AircraftFactoryScene = preload("res://source/match/units/AircraftFactory.tscn")
-const Helicopter = preload("res://source/match/units/Helicopter.gd")
-const HelicopterScene = preload("res://source/match/units/Helicopter.tscn")
 const GameData = preload("res://source/data-model/GameData.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
 const WaterRules = preload("res://source/match/WaterRules.gd")
 const AutoAttackingBattlegroup = preload(
 	"res://source/match/players/simple-clairvoyant-ai/AutoAttackingBattlegroup.gd"
@@ -24,27 +18,16 @@ const AutoAttackingBattlegroup = preload(
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
 const NO_ROOM_RETRY_S = 30.0  # after finding no free spot, wait before searching again
 const CROSSING_CHECK_INTERVAL_S = 20.0
-# vehicles that cannot cross deep water; on maps where the enemy is only reachable over
-# water, the amphibious vehicle is built instead (see _crossing_needed)
-const LAND_VEHICLE_SCENES = [
-	"res://source/match/units/Tank.tscn",
-	"res://source/match/units/HeavyTank.tscn",
-	"res://source/match/units/BattleTank.tscn",
-]
+# the units come from the faction's roles (see Factions.gd): the main battle unit of each
+# tier from the vehicle factory, the aircraft of tier 2 and 3, and now and then a support
+# unit; better units replace the basic ones as the city reaches higher tiers
+const MAIN_ROLES = ["main_t1", "main_t2", "main_t3"]
+const AIR_ROLES = ["air_t2", "air_t3"]
+const SUPPORT_ROLE = "support_t2"
+const SUPPORT_EVERY = 4  # every this many vehicles one is the support unit, when there is one
+# on maps where the enemy is only reachable over water, the amphibious vehicle is built
+# instead of the main battle unit (see _crossing_needed)
 const AMPHIBIOUS_VEHICLE_ID = "amphibious_apc"
-# better units replace the basic ones as the city reaches higher tiers
-const UPGRADES = {
-	"res://source/match/units/Tank.tscn": "res://source/match/units/HeavyTank.tscn",
-	"res://source/match/units/HeavyTank.tscn": "res://source/match/units/BattleTank.tscn",
-	"res://source/match/units/Helicopter.tscn": "res://source/match/units/Gunship.tscn",
-}
-const BATTLE_UNIT_SCENES = [
-	"res://source/match/units/Tank.tscn",
-	"res://source/match/units/HeavyTank.tscn",
-	"res://source/match/units/BattleTank.tscn",
-	"res://source/match/units/Helicopter.tscn",
-	"res://source/match/units/Gunship.tscn",
-]
 static var amphibious_vehicle_scene_path = (
 	GameData.unit_by_id(AMPHIBIOUS_VEHICLE_ID).get("scene", "")
 	if GameData.unit_by_id(AMPHIBIOUS_VEHICLE_ID) != null
@@ -64,6 +47,11 @@ var _no_room = false  # no free spot was found lately
 var _retreated = []  # damaged units that pulled back, they join the next battlegroup
 var _crossing_needed = false
 var _crossing_checked_at_s = -INF
+var _upgrades = {}  # scene path -> scene path of the unit replacing it at a higher tier
+var _land_vehicle_scenes = []  # main battle units that cannot cross deep water
+var _battle_unit_scenes = []
+var _support_scene = null
+var _vehicles_ordered = 0
 
 @onready var _ai = get_parent()
 
@@ -80,22 +68,44 @@ func setup(player):
 		if _ai.secondary_offensive_structure == _ai.OffensiveStructure.VEHICLE_FACTORY
 		else AircraftFactoryScene
 	)
-	_primary_unit_scene = (
-		TankScene
-		if _ai.primary_offensive_structure == _ai.OffensiveStructure.VEHICLE_FACTORY
-		else HelicopterScene
-	)
-	_secondary_unit_scene = (
-		TankScene
-		if _ai.secondary_offensive_structure == _ai.OffensiveStructure.VEHICLE_FACTORY
-		else HelicopterScene
-	)
+	_setup_roles()
+	_primary_unit_scene = _first_unit_scene(_ai.primary_offensive_structure)
+	_secondary_unit_scene = _first_unit_scene(_ai.secondary_offensive_structure)
 	MatchSignals.tier_reached.connect(_on_tier_reached)
 	_setup_refresh_timer()
 	_try_creating_new_battlegroup()
 	_attach_current_battle_units()
 	MatchSignals.unit_spawned.connect(_on_unit_spawned)
 	_enforce_primary_structure_existence()
+
+
+func _setup_roles():
+	var faction = Factions.of(_player)
+	var main = MAIN_ROLES.map(func(role): return Factions.role_scene(faction, role))
+	var air = AIR_ROLES.map(func(role): return Factions.role_scene(faction, role))
+	main = main.filter(func(path): return path != null)
+	air = air.filter(func(path): return path != null)
+	for chain in [main, air]:
+		for index in range(chain.size() - 1):
+			if chain[index] != chain[index + 1]:
+				_upgrades[chain[index]] = chain[index + 1]
+	_land_vehicle_scenes = main.duplicate()
+	_support_scene = Factions.role_scene(faction, SUPPORT_ROLE)
+	for path in main + air + ([_support_scene] if _support_scene != null else []):
+		if not path in _battle_unit_scenes:
+			_battle_unit_scenes.append(path)
+
+
+func _first_unit_scene(structure):
+	"""the faction's tier 1 battle unit for the vehicle factory, its first aircraft for the
+	aircraft factory (the vehicle when it has none)"""
+	var faction = Factions.of(_player)
+	var roles = AIR_ROLES if structure == _ai.OffensiveStructure.AIRCRAFT_FACTORY else []
+	for role in roles + MAIN_ROLES:
+		var path = Factions.role_scene(faction, role)
+		if path != null:
+			return load(path)
+	return load(GameData.unit_by_id(Factions.DEFAULT_ROLES["main_t1"])["scene"])
 
 
 func provision(resources, metadata):
@@ -271,10 +281,11 @@ func _enforce_units_production(structure, unit_scene, type):
 	if structure == null or not structure.is_constructed() or not _is_units_production_allowed():
 		return
 	unit_scene = _adapted_to_water(unit_scene)
-	if not _player.meets_tier_requirement(unit_scene.resource_path):
+	if not _player.can_produce(unit_scene.resource_path):
 		return
 	var number_of_pending_units = structure.production_queue.size()
 	if number_of_pending_units + _number_of_pending_unit_resource_requests.get(type, 0) == 0:
+		unit_scene = _with_support(unit_scene, type)
 		_number_of_pending_unit_resource_requests[type] = (
 			_number_of_pending_unit_resource_requests.get(type, 0) + 1
 		)
@@ -284,19 +295,42 @@ func _enforce_units_production(structure, unit_scene, type):
 
 
 func _is_battle_unit(unit):
-	return unit._scene_path() in _battle_unit_scene_paths()
+	if not unit._scene_path() in _battle_unit_scene_paths():
+		return false
+	# the faction's raider may also be its main battle unit: raiding parties keep theirs
+	var raiding = _ai.get_node_or_null("RaidingController")
+	return raiding == null or not raiding.claims(unit)
 
 
 func _battle_unit_scene_paths():
-	if amphibious_vehicle_scene_path == "":
-		return BATTLE_UNIT_SCENES
-	return BATTLE_UNIT_SCENES + [amphibious_vehicle_scene_path]
+	if amphibious_vehicle_scene_path == "" or not _player.in_roster(amphibious_vehicle_scene_path):
+		return _battle_unit_scenes
+	return _battle_unit_scenes + [amphibious_vehicle_scene_path]
 
 
 func _adapted_to_water(unit_scene):
 	"""the amphibious vehicle in place of a land one when no enemy can be reached by land"""
-	if unit_scene.resource_path in LAND_VEHICLE_SCENES and _is_crossing_needed():
+	if (
+		unit_scene.resource_path in _land_vehicle_scenes
+		and _player.in_roster(amphibious_vehicle_scene_path)
+		and _is_crossing_needed()
+	):
 		return load(amphibious_vehicle_scene_path)
+	return unit_scene
+
+
+func _with_support(unit_scene, type):
+	"""every SUPPORT_EVERY-th vehicle of the primary line is the support unit (artillery)"""
+	if (
+		type != "primary_unit"
+		or _support_scene == null
+		or not unit_scene.resource_path in _land_vehicle_scenes
+		or not _player.can_produce(_support_scene)
+	):
+		return unit_scene
+	_vehicles_ordered += 1
+	if _vehicles_ordered % SUPPORT_EVERY == 0:
+		return load(_support_scene)
 	return unit_scene
 
 
@@ -442,10 +476,10 @@ func _on_tier_reached(player, _tier):
 	if player != _player or not _ai.tech_upgrades:
 		return  # easier AIs keep building their first units
 	for _i in range(2):
-		var primary_upgrade = UPGRADES.get(_primary_unit_scene.resource_path)
+		var primary_upgrade = _upgrades.get(_primary_unit_scene.resource_path)
 		if primary_upgrade != null and _player.meets_tier_requirement(primary_upgrade):
 			_primary_unit_scene = load(primary_upgrade)
-		var secondary_upgrade = UPGRADES.get(_secondary_unit_scene.resource_path)
+		var secondary_upgrade = _upgrades.get(_secondary_unit_scene.resource_path)
 		if (
 			secondary_upgrade != null
 			and _player.meets_tier_requirement(secondary_upgrade)
