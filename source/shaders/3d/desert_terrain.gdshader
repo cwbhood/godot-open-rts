@@ -7,8 +7,8 @@ shader_type spatial;
 // noise textures from showing a repeating pattern at any zoom.
 
 uniform vec3 sand_pale : source_color = vec3(0.86, 0.74, 0.57);
-uniform vec3 sand_light : source_color = vec3(0.83, 0.66, 0.47);
-uniform vec3 sand_dark : source_color = vec3(0.78, 0.59, 0.42);
+uniform vec3 sand_light : source_color = vec3(0.85, 0.66, 0.44);
+uniform vec3 sand_dark : source_color = vec3(0.79, 0.58, 0.39);
 uniform vec3 sand_red : source_color = vec3(0.76, 0.50, 0.34);
 uniform vec3 hardpan_color : source_color = vec3(0.80, 0.72, 0.60);
 uniform vec3 crack_color : source_color = vec3(0.45, 0.36, 0.28);

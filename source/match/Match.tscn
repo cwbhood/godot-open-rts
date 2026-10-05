@@ -64,7 +64,7 @@ fog_light_color = Color(0.93, 0.8, 0.65, 1)
 fog_density = 0.0
 adjustment_enabled = true
 adjustment_contrast = 1.08
-adjustment_saturation = 1.15
+adjustment_saturation = 1.22
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qw0ps"]
 render_priority = 0
@@ -94,7 +94,7 @@ render_priority = 2
 shader = ExtResource("13_jo8b7")
 shader_parameter/color = Color(0.03, 0.04, 0.08, 1)
 shader_parameter/texture_units_per_world_unit = 2
-shader_parameter/outer_margin_for_fade_out = 2.0
+shader_parameter/outer_margin_for_fade_out = 6.0
 shader_parameter/debug_texture_view = false
 shader_parameter/world_visibility_texture = SubResource("ViewportTexture_7yqgo")
 

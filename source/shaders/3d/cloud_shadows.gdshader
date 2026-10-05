@@ -40,5 +40,5 @@ void fragment()
   float threshold = 1.0 - coverage;
   float shadow = smoothstep(threshold - softness * 0.5, threshold + softness, value) * opacity;
   ALBEDO = shadow_tint;
-  ALPHA = shadow * 0.6;
+  ALPHA = shadow * 0.42;
 }
