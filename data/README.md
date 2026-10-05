@@ -10,6 +10,7 @@ mods add to it or patch it (see [mods](#mods)).
 | `tiers.json` | City tiers and the science each one needs |
 | `roads.json` | Road levels of supply routes and their cost and speed |
 | `caps.json` | Unit cap, match-wide unit cap, match length and end-of-match score |
+| `city_centres.json` | City centre circle, how many a player may have, rebuild countdown and surrender |
 | `logistics.json` | Trucks' job board, extractor buffers, storage, trains, fleet upkeep and recycling |
 | `movement.json` | How ground and air units steer around each other and through crowds |
 | `units/*.json` | One file per unit or structure |
@@ -70,6 +71,27 @@ The city earns science on its own (population, how well it is supplied, power). 
 moves to the next tier once science passes the threshold. The first tier must be at 0.
 `max_population` is the largest the city can grow at that tier: it stops growing and
 building houses there until the next tier. It must not shrink from tier to tier.
+
+## city_centres.json
+
+```json
+{
+  "max_per_player": 2,             // city centres one player may build (sites count)
+  "radius_m": 24,                  // the city circle: buildings and houses inside belong to it
+  "min_spacing_m": 20,             // a player's city centres stand at least this far apart
+  "rebuild_countdown_s": 180,      // after the last city centre falls: rebuild or be defeated
+  "surrender_countdown_s": 15,     // white flag up until the city goes to the attacker
+  "attack_memory_s": 10,           // a hit this recent counts as "under attack"
+  "ai_second_centre_tier": 2,      // the AI builds a second city centre from this tier
+  "ai_second_centre_after_s": 600  // ... and not before this much match time
+}
+```
+
+Rebuilding inside the old circle keeps what still stands there; the player's buildings and
+houses outside every circle are abandoned. A city centre attacked with no friendly turret
+or fighting unit inside its circle raises a white flag, takes no more damage, and after the
+countdown goes to the attacker with the most firepower there, with the buildings and
+houses in its circle. See source/match/city/CityCentres.gd.
 
 ## caps.json
 

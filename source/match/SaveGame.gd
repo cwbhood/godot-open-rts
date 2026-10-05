@@ -4,7 +4,7 @@ extends RefCounted
 # settings and a snapshot of the match: every unit and structure (where it stands, its
 # health, construction, cargo, stored goods and production queue), the resource deposits
 # still left, each player's stock and city, the treaties and trade agreements, the match
-# clock and the camera.
+# clock, the city centre countdowns and white flags (CityCentres.gd) and the camera.
 #
 # Loading builds the match from the saved settings (Loading.gd with `saved_game`), spawns the
 # saved units instead of the starter city (Match._setup_player_units calls spawn_units) and
@@ -187,6 +187,9 @@ static func capture(a_match):
 	var market = a_match.get_node_or_null("Market")
 	if market != null:
 		data["market"] = _capture_market(market, players)
+	var city_centres = a_match.get_node_or_null("CityCentres")
+	if city_centres != null:
+		data["city_centres"] = city_centres.capture(players, unit_ids)
 	var guide = a_match.find_child("Guide", true, false)
 	if guide != null:
 		data["guide"] = {
@@ -540,6 +543,9 @@ static func restore_after_start(a_match, data):
 			)
 	_restore_orders(spawned, data)
 	_restore_civil_defense(players, spawned, data)
+	var city_centres = a_match.get_node_or_null("CityCentres")
+	if city_centres != null and "city_centres" in data:
+		city_centres.restore(data["city_centres"], players, spawned)
 	var market = a_match.get_node_or_null("Market")
 	if market != null and not data.get("market", {}).is_empty():
 		_restore_market(market, data["market"], players)

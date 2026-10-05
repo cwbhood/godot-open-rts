@@ -406,5 +406,7 @@ func _trail_point(distance_back):
 
 
 static func _name_of(unit):
+	if not is_instance_valid(unit):
+		return ""  # the stop was destroyed this frame; the route is rebuilt on arrival
 	var entry = GameData.unit_by_scene(unit._scene_path())
 	return TranslationServer.translate(entry["name"]) if entry != null else str(unit.name)

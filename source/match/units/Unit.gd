@@ -67,6 +67,8 @@ func _ready():
 
 
 func take_damage(damage, attacker):
+	if has_meta("surrendering"):
+		return  # a city centre under the white flag (see CityCentres.gd)
 	if attacker != null and is_instance_valid(attacker) and "player" in attacker:
 		if not Diplomacy.register_hit(attacker.player, player):
 			return  # a pact or an alliance protects us from them
