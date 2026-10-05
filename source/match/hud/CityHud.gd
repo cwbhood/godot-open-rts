@@ -8,6 +8,7 @@ const Human = preload("res://source/match/players/human/Human.gd")
 const Trade = preload("res://source/match/city/Trade.gd")
 const CivilDefense = preload("res://source/match/city/CivilDefense.gd")
 const HudStyle = preload("res://source/match/hud/HudStyle.gd")
+const FactionRules = preload("res://source/data-model/Factions.gd")
 
 const MAX_TRADE_AMOUNT = 40
 const WIDTH = 300
@@ -419,7 +420,8 @@ func _refresh_partners():
 	)
 	_partner_option.clear()
 	for i in range(_partners.size()):
-		_partner_option.add_item(tr("TRADE_FACTION").format([i + 1]))
+		var label = FactionRules.label_for(_partners[i])
+		_partner_option.add_item(label if label != "" else tr("TRADE_FACTION").format([i + 1]))
 		_partner_option.set_item_icon(i, _make_color_icon(_partners[i].color))
 	_propose_button.disabled = _partners.is_empty()
 
