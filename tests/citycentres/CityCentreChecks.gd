@@ -91,8 +91,10 @@ func _check_limit_and_spacing():
 	handler._start_structure_placement(CommandCenterScene)
 	handler._active_blueprint_node.global_position = home.global_position + Vector3(8, 0, 0)
 	_expect(
-		handler._calculate_blueprint_position_validity()
-		== handler.BlueprintPositionValidity.TOO_CLOSE_TO_CITY_CENTRE,
+		(
+			handler._calculate_blueprint_position_validity()
+			== handler.BlueprintPositionValidity.TOO_CLOSE_TO_CITY_CENTRE
+		),
 		"the blueprint says it is too close"
 	)
 	var second_spot = _free_spot_near(home.global_position + _away_from_rival(home) * 26.0)
@@ -111,8 +113,10 @@ func _check_limit_and_spacing():
 	handler._start_structure_placement(CommandCenterScene)
 	handler._active_blueprint_node.global_position = home.global_position  # inside the map
 	_expect(
-		handler._calculate_blueprint_position_validity()
-		== handler.BlueprintPositionValidity.CITY_CENTRE_LIMIT,
+		(
+			handler._calculate_blueprint_position_validity()
+			== handler.BlueprintPositionValidity.CITY_CENTRE_LIMIT
+		),
 		"a third blueprint is refused"
 	)
 	handler._cancel_structure_placement()
@@ -139,9 +143,8 @@ func _check_ai_rebuilds():
 	var new_site = _centres.centres_of(_rival, true)[0]
 	_expect(
 		new_site.global_position_yless.distance_to(site) <= _centres.radius(),
-		(
-			"... inside the old circle, so it keeps its city ({0} m from the old one)"
-			. format([snapped(new_site.global_position_yless.distance_to(site), 0.1)])
+		"... inside the old circle, so it keeps its city ({0} m from the old one)".format(
+			[snapped(new_site.global_position_yless.distance_to(site), 0.1)]
 		)
 	)
 	_finish(new_site)
@@ -179,7 +182,9 @@ func _check_surrender_and_capture():
 	_expect(centre.hp == hp, "a city under the white flag takes no damage")
 	_focus(centre.global_position)
 	await _shot("3-white-flag")
-	var defender = _spawn(TankScene, _free_spot_near(centre.global_position + Vector3(0, 0, -5)), _rival)
+	var defender = _spawn(
+		TankScene, _free_spot_near(centre.global_position + Vector3(0, 0, -5)), _rival
+	)
 	var lowered = await _wait_for(func(): return not _centres.is_surrendering(centre), 60)
 	_expect(lowered, "a defender reaching the circle lowers the flag")
 	_expect(not centre.has_meta("surrendering"), "... and the city can be hit again")
@@ -187,9 +192,7 @@ func _check_surrender_and_capture():
 	await _frames(5)
 	centre.take_damage(1, tanks[0])
 	await _wait_for(func(): return _centres.is_surrendering(centre), 60)
-	var captured = await _wait_for(
-		func(): return not _signals["city_captured"].is_empty(), 60 * 12
-	)
+	var captured = await _wait_for(func(): return not _signals["city_captured"].is_empty(), 60 * 12)
 	_expect(captured, "after the countdown the city surrenders")
 	if not captured:
 		return
@@ -214,14 +217,12 @@ func _check_surrender_and_capture():
 	_expect(left_inside.is_empty(), "every building in its circle changed hands")
 	_expect(
 		_rival.city._buildings.size() < houses_before,
-		(
-			"the houses went with it ({0} -> {1} for the AI)"
-			. format([houses_before, _rival.city._buildings.size()])
+		"the houses went with it ({0} -> {1} for the AI)".format(
+			[houses_before, _rival.city._buildings.size()]
 		)
 	)
 	_expect(
-		_centres.centres_of(_human).size() == 3,
-		"capturing may take a player past two city centres"
+		_centres.centres_of(_human).size() == 3, "capturing may take a player past two city centres"
 	)
 	_expect(
 		await _wait_for(func(): return _centres.rebuild_time_left(_rival) > 0.0, 60),
@@ -240,13 +241,13 @@ func _check_rebuild_elsewhere_abandons():
 	_expect(ended, "the AI's new city centre far away ends its countdown")
 	await _frames(5)
 	var outside = _structures_of(_rival).filter(
-		func(unit): return unit != centre and _centres.centre_covering(_rival, unit.global_position) == null
+		func(unit):
+			return unit != centre and _centres.centre_covering(_rival, unit.global_position) == null
 	)
 	_expect(
 		outside.is_empty(),
-		(
-			"buildings outside the new circle are abandoned ({0} before, {1} now)"
-			. format([before, _structures_of(_rival).size()])
+		"buildings outside the new circle are abandoned ({0} before, {1} now)".format(
+			[before, _structures_of(_rival).size()]
 		)
 	)
 	var houses_outside = _rival.city._buildings.filter(
@@ -296,7 +297,11 @@ func _check_defeat():
 	)
 	var end_handler = _match.find_child("MatchEndHandler", true, false)
 	_expect(
-		end_handler != null and end_handler.visible and end_handler.find_child("Defeat", true, false).visible,
+		(
+			end_handler != null
+			and end_handler.visible
+			and end_handler.find_child("Defeat", true, false).visible
+		),
 		"the match ends in defeat"
 	)
 	await _shot("6-defeat")
@@ -351,13 +356,25 @@ func _away_from_rival(home):
 
 func _far_corner_for(player):
 	var size = _match.map.size
-	var centre = _centres.lost_sites(player)[0] if not _centres.lost_sites(player).is_empty() else Vector3.ZERO
+	var centre = (
+		_centres.lost_sites(player)[0]
+		if not _centres.lost_sites(player).is_empty()
+		else Vector3.ZERO
+	)
 	var best = null
-	for corner in [Vector3(8, 0, 8), Vector3(size.x - 8, 0, 8), Vector3(8, 0, size.y - 8), Vector3(size.x - 8, 0, size.y - 8)]:
+	for corner in [
+		Vector3(8, 0, 8),
+		Vector3(size.x - 8, 0, 8),
+		Vector3(8, 0, size.y - 8),
+		Vector3(size.x - 8, 0, size.y - 8)
+	]:
 		var far_from_humans = _centres.centres_of(_human).all(
 			func(c): return c.global_position_yless.distance_to(corner) > _centres.radius() * 2.0
 		)
-		if far_from_humans and (best == null or corner.distance_to(centre) > best.distance_to(centre)):
+		if (
+			far_from_humans
+			and (best == null or corner.distance_to(centre) > best.distance_to(centre))
+		):
 			best = corner
 	return best if best != null else Vector3(size.x * 0.5, 0, size.y * 0.5)
 
@@ -366,7 +383,9 @@ func _free_spot_near(position):
 	var spot = Utils.Match.Unit.Placement.find_valid_position_radially(
 		position * Vector3(1, 0, 1),
 		2.5,
-		_match.navigation.get_navigation_map_rid_by_domain(Constants.Match.Navigation.Domain.TERRAIN),
+		_match.navigation.get_navigation_map_rid_by_domain(
+			Constants.Match.Navigation.Domain.TERRAIN
+		),
 		get_tree()
 	)
 	return spot if spot != Vector3.INF else position

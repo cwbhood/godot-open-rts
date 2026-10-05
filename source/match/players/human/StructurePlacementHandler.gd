@@ -123,15 +123,9 @@ func _calculate_blueprint_position_validity():
 	var scene_path = _pending_structure_prototype.resource_path
 	if not _player.meets_tier_requirement(scene_path):
 		return BlueprintPositionValidity.TIER_TOO_LOW
-	if _player.at_city_centre_limit(scene_path):
-		return BlueprintPositionValidity.CITY_CENTRE_LIMIT
-	var city_centres = get_tree().get_first_node_in_group("city_centres")
-	if (
-		city_centres != null
-		and scene_path.ends_with("CommandCenter.tscn")
-		and city_centres.too_close_to_own_centre(_player, _active_blueprint_node.global_position)
-	):
-		return BlueprintPositionValidity.TOO_CLOSE_TO_CITY_CENTRE
+	var city_centre_validity = _city_centre_validity(scene_path)
+	if city_centre_validity != BlueprintPositionValidity.VALID:
+		return city_centre_validity
 	if not _player_has_enough_resources():
 		return BlueprintPositionValidity.NOT_ENOUGH_RESOURCES
 	if (
@@ -183,6 +177,21 @@ func _calculate_blueprint_position_validity():
 	return water_validity if water_validity != BlueprintPositionValidity.VALID else validity
 
 
+func _city_centre_validity(scene_path):
+	"""a player may have two city centres, apart from each other (see CityCentres.gd)"""
+	var validity = BlueprintPositionValidity.VALID
+	var city_centres = get_tree().get_first_node_in_group("city_centres")
+	if _player.at_city_centre_limit(scene_path):
+		validity = BlueprintPositionValidity.CITY_CENTRE_LIMIT
+	elif (
+		city_centres != null
+		and scene_path.ends_with("CommandCenter.tscn")
+		and city_centres.too_close_to_own_centre(_player, _active_blueprint_node.global_position)
+	):
+		validity = BlueprintPositionValidity.TOO_CLOSE_TO_CITY_CENTRE
+	return validity
+
+
 func _player_has_enough_resources():
 	var construction_cost = Constants.Match.Units.CONSTRUCTION_COSTS[
 		_pending_structure_prototype.resource_path
@@ -226,7 +235,10 @@ func _logistics_hint():
 			if unit.player != _player or not unit is Structure:
 				continue
 			total += 1
-			if unit.global_position_yless.distance_to(position * Vector3(1, 0, 1)) <= city_centres.radius():
+			if (
+				unit.global_position_yless.distance_to(position * Vector3(1, 0, 1))
+				<= city_centres.radius()
+			):
 				kept += 1
 		hints.append(tr("BLUEPRINT_CITY_CENTRE_KEEPS").format([kept, total]))
 	return "\n".join(hints)

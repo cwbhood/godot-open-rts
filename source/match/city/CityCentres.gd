@@ -129,7 +129,10 @@ func can_place_more(player):
 func too_close_to_own_centre(player, position):
 	var position_yless = position * Vector3(1, 0, 1)
 	for centre in centres_of(player, true):
-		if centre.global_position_yless.distance_to(position_yless) < float(config["min_spacing_m"]):
+		if (
+			centre.global_position_yless.distance_to(position_yless)
+			< float(config["min_spacing_m"])
+		):
 			return true
 	return false
 
@@ -505,7 +508,9 @@ func _draw_rings():
 		if blueprint != null:
 			var position = blueprint[0].global_position * Vector3(1, 0, 1)
 			var ok = can_place_more(human) and not too_close_to_own_centre(human, position)
-			rings.append([position, radius(), BLUEPRINT_OK_COLOR if ok else BLUEPRINT_BAD_COLOR, false])
+			rings.append(
+				[position, radius(), BLUEPRINT_OK_COLOR if ok else BLUEPRINT_BAD_COLOR, false]
+			)
 	for unit in get_tree().get_nodes_in_group("selected_units"):
 		if unit is CommandCenter and unit.player != human and unit.is_constructed():
 			rings.append(
@@ -658,7 +663,9 @@ func capture(players, unit_ids):
 		)
 	for centre in surrenders:
 		if centre in unit_ids:
-			out["surrenders"].append({"unit": unit_ids[centre], "left_s": surrenders[centre]["left_s"]})
+			out["surrenders"].append(
+				{"unit": unit_ids[centre], "left_s": surrenders[centre]["left_s"]}
+			)
 	for player in defeated:
 		out["defeated"].append(players.find(player))
 	for player in _had_centre:

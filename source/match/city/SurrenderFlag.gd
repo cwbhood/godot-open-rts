@@ -44,7 +44,10 @@ func _ready():
 	hem_material.albedo_color = Color("2a2520")
 	for edge in [
 		[Vector3(0, CLOTH_SIZE.y * 0.5, 0), Vector3(CLOTH_SIZE.x + BORDER_M * 2.0, BORDER_M, 0.03)],
-		[Vector3(0, -CLOTH_SIZE.y * 0.5, 0), Vector3(CLOTH_SIZE.x + BORDER_M * 2.0, BORDER_M, 0.03)],
+		[
+			Vector3(0, -CLOTH_SIZE.y * 0.5, 0),
+			Vector3(CLOTH_SIZE.x + BORDER_M * 2.0, BORDER_M, 0.03)
+		],
 		[Vector3(CLOTH_SIZE.x * 0.5, 0, 0), Vector3(BORDER_M, CLOTH_SIZE.y, 0.03)],
 		[Vector3(-CLOTH_SIZE.x * 0.5, 0, 0), Vector3(BORDER_M, CLOTH_SIZE.y, 0.03)],
 	]:

@@ -110,6 +110,8 @@ func _refresh():
 	var next = _next_airport() if not _ccs.is_empty() and _needs_airport() else null
 	if next == null and extractors >= MIN_EXTRACTORS_FIRST and not _ccs.is_empty():
 		next = _next_storage()
+	if next == null and not _ccs.is_empty():
+		next = _next_second_city_centre()
 	if next == null:
 		next = _next_structure()
 	if next == null:
@@ -134,9 +136,6 @@ func _next_structure():
 		if anchor == null:
 			anchor = _cc_base_position if _cc_base_position != null else worker.global_position
 		return [CommandCenterScene.resource_path, _find_position_near(anchor, CommandCenterScene)]
-	var second_centre = _next_second_city_centre()
-	if second_centre != null:
-		return second_centre
 	var grid = _player.power_grid
 	var plants = _count_scene(PowerPlantScene.resource_path)
 	var extractors = _count_units(Extractor)
