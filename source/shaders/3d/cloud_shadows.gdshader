@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, blend_mul, depth_draw_never, depth_test_disabled, cull_disabled;
+render_mode unshaded, fog_disabled, blend_mix, depth_draw_never, depth_test_disabled, cull_disabled;
 
 // Full-screen pass that darkens whatever is under a cloud, seen along the sun direction.
 // Like the fog of war overlay it rebuilds each pixel's world position from the depth buffer,
@@ -14,7 +14,12 @@ uniform float softness = 0.22;
 uniform float opacity = 0.5;
 uniform float cloud_height = 32.0;
 uniform vec3 sun_direction = vec3(0.3, -0.8, 0.3);
-uniform vec3 shadow_tint : source_color = vec3(0.42, 0.47, 0.6);
+// shade color blended over the ground. A plain alpha blend instead of a multiply: the
+// Compatibility renderer tonemaps unshaded output, so multiplying by 'white' still darkened
+// the whole screen there.
+uniform vec3 shadow_tint : source_color = vec3(0.10, 0.12, 0.2);
+
+#include "res://source/shaders/3d/depth_reconstruction.gdshaderinc"
 
 void vertex()
 {
@@ -24,9 +29,7 @@ void vertex()
 void fragment()
 {
   float depth = textureLod(depth_texture, SCREEN_UV, 0.0).x;
-  vec4 view = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);
-  view.xyz /= view.w;
-  vec3 world = (INV_VIEW_MATRIX * vec4(view.xyz, 1.0)).xyz;
+  vec3 world = depth_to_world(SCREEN_UV, depth, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX);
 
   // walk from the surface towards the sun up to the cloud layer
   vec3 to_sun = -normalize(sun_direction);
@@ -36,5 +39,6 @@ void fragment()
       texture(cloud_texture, uv * 4.3 + vec2(0.37, 0.11)).r * 0.18;
   float threshold = 1.0 - coverage;
   float shadow = smoothstep(threshold - softness * 0.5, threshold + softness, value) * opacity;
-  ALBEDO = mix(vec3(1.0), shadow_tint, shadow);
+  ALBEDO = shadow_tint;
+  ALPHA = shadow * 0.42;
 }
