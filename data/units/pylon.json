@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/Pylon.tscn",
   "name": "PYLON",
   "description": "PYLON_DESCRIPTION",
+  "role": "power",
+  "info": "PYLON_INFO",
   "icon": "res://assets/ui/icons/AntiAirTurret.png",
   "icon_tint": "#ffe066",
   "tier": 1,

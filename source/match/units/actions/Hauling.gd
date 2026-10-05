@@ -40,6 +40,14 @@ func _to_string():
 	return "{0}({1})".format([super(), description])
 
 
+func get_stop_targets():
+	"""the units still to visit, in order (the building card shows where trucks go)"""
+	var targets = []
+	for stop in _stops:
+		targets.append(stop[0])
+	return targets
+
+
 func get_next_stop_target():
 	return _stops.front()[0] if not _stops.is_empty() else null
 

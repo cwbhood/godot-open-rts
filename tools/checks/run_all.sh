@@ -46,6 +46,7 @@ CHECKS=(
   "WaterMovement|res://tests/water/WaterMovement.tscn|"
   "SaveMenuCheck|res://tests/save/SaveMenuCheck.tscn|--no-build-up"
   "ArmyPositions|res://tests/ai/ArmyPositions.tscn|"
+  "BuildingInfoCheck|res://tests/hud/BuildingInfoCheck.tscn|"
 )
 
 run_one() {

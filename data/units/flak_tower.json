@@ -4,6 +4,8 @@
   "factions": ["foundry"],
   "name": "FLAK_TOWER",
   "description": "FLAK_TOWER_DESCRIPTION",
+  "role": "defence",
+  "info": "FLAK_TOWER_INFO",
   "model_scale": 1.2,
   "icon_tint": "#b7c27a",
   "projectile": "cannon_shell",

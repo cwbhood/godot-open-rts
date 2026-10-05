@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/OilDerrick.tscn",
   "name": "OIL_DERRICK",
   "description": "OIL_DERRICK_DESCRIPTION",
+  "role": "resource",
+  "info": "OIL_DERRICK_INFO",
   "icon": "res://assets/ui/icons/ResourceB.png",
   "icon_tint": "#333333",
   "tier": 1,

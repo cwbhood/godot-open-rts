@@ -4,6 +4,8 @@
   "factions": ["syndicate"],
   "name": "TRADING_POST",
   "description": "TRADING_POST_DESCRIPTION",
+  "role": "support",
+  "info": "TRADING_POST_INFO",
   "model": "res://assets/models/ironbound/buildings/market.glb",
   "model_scale": 1.0,
   "icon": "res://assets/ui/icons/CommandCenter.png",

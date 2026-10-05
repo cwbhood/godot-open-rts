@@ -19,7 +19,11 @@ const KNOWN_UNIT_FIELDS = [
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
 	"model_scale", "model_offset", "model_rotation_y_deg", "unit_slots", "movement", "water_speed",
 	"placement", "voice", "classic_model", "classic_model_scale", "classic_model_offset",
-	"classic_model_rotation_y_deg", "factions", "production_bonus", "trade_depot"
+	"classic_model_rotation_y_deg", "factions", "production_bonus", "trade_depot", "role", "info"
+]
+# what the building card (BuildingInfoText.gd) calls a structure, as ROLE_<role> keys
+const BUILDING_ROLES = [
+	"headquarters", "resource", "logistics", "factory", "power", "defence", "support"
 ]
 const KNOWN_FACTION_FIELDS = [
 	"id", "order", "name", "description", "color_hint", "start_units", "hidden_units", "roles",
@@ -267,6 +271,11 @@ func _check_units(entries, resources, tiers_count):
 				_error(where, "{0} '{1}' does not exist".format([field, entry[field]]))
 		_check_translation(where, entry.get("name"))
 		_check_translation(where, entry.get("description"))
+		_check_translation(where, entry.get("info"))
+		if "role" in entry and not entry["role"] in BUILDING_ROLES:
+			_error(where, "role must be one of {0}".format([BUILDING_ROLES]))
+		if entry.get("category") == "structure" and not "info" in entry:
+			_warn(where, "no info: the building card shows only its short description")
 		_check_scene(where, entry)
 
 
