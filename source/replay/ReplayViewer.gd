@@ -304,9 +304,12 @@ func _draw_canvas():
 
 
 func _personality_label(info):
+	var faction = GameData.faction_by_id(str(info.get("faction", "")))
+	var faction_name = tr(faction["name"]) if faction != null else ""
 	if info["human"]:
-		return ""
+		return faction_name
+	var label = tr("AI_PLAYER").format([str(info["personality"])])
 	for personality in GameData.ai_personalities():
 		if personality["id"] == info["personality"]:
-			return tr("AI_PLAYER").format([tr(personality["name"])])
-	return tr("AI_PLAYER").format([str(info["personality"])])
+			label = tr("AI_PLAYER").format([tr(personality["name"])])
+	return label if faction_name == "" else "{0}, {1}".format([faction_name, label])

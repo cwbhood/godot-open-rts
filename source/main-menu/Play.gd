@@ -7,11 +7,12 @@ const StartPicker = preload("res://source/main-menu/StartPicker.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const PlayerSlotOptions = preload("res://source/main-menu/PlayerSlotOptions.gd")
 const MatchRulesOptions = preload("res://source/main-menu/MatchRulesOptions.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
 
 var _map_paths = []
 var _ai_personalities = []  # option index - SIMPLE_CLAIRVOYANT_AI -> personality id
 var _sandbox_check_box = null
-var _slot_options = PlayerSlotOptions.new()  # colour and AI difficulty per slot
+var _slot_options = PlayerSlotOptions.new()  # faction, colour and AI difficulty per slot
 var _rules_options = MatchRulesOptions.new()  # tutorial, AI assist and auto-build allowed
 
 @onready var _start_button = find_child("StartButton")
@@ -52,12 +53,12 @@ func _setup_ai_personalities():
 
 func _setup_slot_options():
 	_slot_options.setup(find_child("GridContainer"))
-	# room for the two extra columns next to each player slot
+	# room for the three extra columns next to each player slot
 	var panel = find_child("PanelContainer")
-	panel.offset_left = -560.0
-	panel.offset_right = 560.0
+	panel.offset_left = -600.0
+	panel.offset_right = 600.0
 	find_child("VBoxContainer2").size_flags_stretch_ratio = 1.4
-	panel.get_node("MarginContainer/VBoxContainer").custom_minimum_size.x = 1080
+	panel.get_node("MarginContainer/VBoxContainer").custom_minimum_size.x = 1160
 
 
 func _setup_sandbox_check_box():
@@ -99,6 +100,15 @@ func _create_match_settings():
 			player_settings.controller = player_controller
 			player_settings.color = _slot_options.color_of(option_node_id)
 			player_settings.ai_difficulty = _slot_options.difficulty_of(option_node_id)
+			# Random is drawn here, so Restart and the replay keep the same faction
+			player_settings.faction = Factions.resolve(
+				_slot_options.faction_of(option_node_id),
+				(
+					player_settings.ai_personality
+					if player_controller == Constants.PlayerType.SIMPLE_CLAIRVOYANT_AI
+					else ""
+				)
+			)
 			player_settings.spawn_index_offset = spawn_index_offset
 			match_settings.players.append(player_settings)
 			spawn_index_offset = 0

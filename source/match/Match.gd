@@ -210,9 +210,11 @@ func _create_players_from_settings():
 		var player = player_scene.instantiate()
 		player.color = player_settings.color
 		if player_settings.get("faction") != null:
-			player.faction = Factions.resolve(
+			# a "random" left in the settings is drawn once and kept for Restart
+			player_settings.faction = Factions.resolve(
 				player_settings.faction, player_settings.get("ai_personality")
 			)
+			player.faction = player_settings.faction
 		if "personality_id" in player and player_settings.get("ai_personality") != null:
 			player.personality_id = player_settings.ai_personality
 		if "difficulty_id" in player and player_settings.get("ai_difficulty") != null:

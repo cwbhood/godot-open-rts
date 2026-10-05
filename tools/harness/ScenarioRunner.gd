@@ -177,6 +177,8 @@ func _match_settings(map_path):
 		for color in colors:
 			if color["id"] == entry.get("color", ""):
 				player_settings.color = color["color"]
+		# "foundry", "syndicate" or "random"; left out the player builds everything
+		player_settings.faction = str(entry.get("faction", ""))
 		if entry.has("start_zone"):
 			player_settings.start_zone = int(entry["start_zone"])
 		if entry.has("start_position"):
