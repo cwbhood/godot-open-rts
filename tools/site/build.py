@@ -460,6 +460,7 @@ PLAY_SECTIONS = [
 <tr><td>Control groups</td><td><kbd>Ctrl</kbd>+number saves, the number recalls</td></tr>
 <tr><td>Rotate a blueprint</td><td><kbd>R</kbd>; right-click cancels it</td></tr>
 <tr><td>Manual</td><td><kbd>F1</kbd></td></tr>
+<tr><td>Quicksave / quickload</td><td><kbd>F5</kbd> / <kbd>F9</kbd>; <kbd>Esc</kbd> opens Save game and Load game</td></tr>
 </tbody></table></div>"""),
     ("tutorial", "Your first match", """
 <p>Choose <em>Guided</em> in the Play menu and the tutorial walks you through these steps:</p>
@@ -605,7 +606,17 @@ FACTIONS = f"""
 
 # ---------------------------------------------------------------- changelog
 CHANGES = [
-    ("Unreleased", "Test builds, 4 October 2026", [
+    ("Unreleased", "Test build, 5 October 2026", [
+        "Save and load: Save game and Load game in the pause menu, F5 quicksave, F9 quickload, an autosave every 5 minutes and Continue on the main menu",
+        "Two factions: the Foundry League (tracked armour, bunkers, the Foundry) and the Sandline Syndicate (fast wheeled raiders, gunships, armed trade caravans)",
+        "Faction voices: Syndicate crews, hired guns and pilots sound like the Syndicate; new boat and train crews",
+        "Ironbound title, splash and icon; a tabbed Options screen and a full pause menu",
+        "New HUD with a resource strip and folding panels; the Play menu fits 720p screens",
+        "Original soundtrack that follows the fighting",
+        "End screen with stats, a score chart and Play again",
+        "Fixed: fog of war rendering black on some graphics cards",
+    ]),
+    ("Test builds", "4 October 2026", [
         "Units steer around each other instead of getting stuck in crowds",
         "New unit models made in Blender, with a New / Classic switch in Options",
         "Play harness: one tool to play and test matches from scripts",
@@ -676,9 +687,9 @@ ROADMAP = f"""
 </div>
 <section aria-label="Roadmap">
   <div class="wrap cards">
-    {road("Now", "tag-built", "First public build", ["Merge the test build features into one release", "Windows, Linux and macOS downloads", "This website"])}
-    {road("Next", "tag-planned", "Two factions", ["Faction plumbing: each unit can belong to a faction", "Split the rosters between Foundry League and Sandline Syndicate", "AI that plays each faction by role", "City twists and balance simulations", "Nine new models: Battle Tank, Rocket Technical, Bunker, Flak Tower and more"])}
-    {road("Next", "tag-planned", "Polish", ["Slimmer, faster unit models", "Music", "More maps, including island maps for four players"])}
+    {road("Now", "tag-built", "First public build", ["Every test build feature in one release", "Save and load, autosave", "Windows, Linux and macOS downloads", "This website"])}
+    {road("Built", "tag-built", "Two factions", ["Each unit can belong to a faction", "Foundry League and Sandline Syndicate rosters", "AI that plays each faction by role", "City twists: Foundry production, Syndicate trade", "Faction voices"])}
+    {road("Next", "tag-planned", "Polish", ["Nine new models: Battle Tank, Rocket Technical, Bunker, Flak Tower and more", "Slimmer, faster unit models", "Faction balance from AI ladders", "More maps, including island maps for four players"])}
     {road("Later", "tag-later", "Play in the browser", ["A web build with Godot's browser renderer", "Online matches hosted by one player, joined with a lobby code", "Free hosting, no game servers to pay for"])}
   </div>
 </section>
