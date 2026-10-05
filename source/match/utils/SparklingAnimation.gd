@@ -4,5 +4,10 @@ extends Node3D
 
 
 func _ready():
-	await get_tree().physics_frame  # wait one frame for transform to propagate
+	# wait one frame for transform to propagate; a signal (not await) so a node
+	# freed meanwhile, e.g. by loading a save, does not resume into nothing
+	get_tree().physics_frame.connect(_start, CONNECT_ONE_SHOT)
+
+
+func _start():
 	_particles.emitting = true
