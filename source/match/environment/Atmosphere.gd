@@ -28,14 +28,14 @@ const CLOUD_ZONE_SPACING = 12.0
 const CLOUD_ZONE_REFRESH_S = 2.0
 const THICK_CLOUD_DENSITY = 0.6
 const CLOUD_PERIOD = 360.0
-const CLOUDS_FADE_IN_CAMERA_SIZES = Vector2(32.0, 55.0)
+const CLOUDS_FADE_IN_CAMERA_SIZES = Vector2(42.0, 85.0)
 const WEATHERS = {
 	&"clear":
 	{
 		"weight": 45.0,
 		"coverage": 0.45,
 		"shadow_opacity": 0.7,
-		"sun_energy": 1.35,
+		"sun_energy": 1.15,
 		"sun_color": Color(1.0, 0.93, 0.82),
 		"ambient_energy": 1.0,
 		"haze": 0.0,
@@ -52,7 +52,7 @@ const WEATHERS = {
 		"weight": 20.0,
 		"coverage": 0.22,
 		"shadow_opacity": 0.45,
-		"sun_energy": 1.2,
+		"sun_energy": 1.05,
 		"sun_color": Color(1.0, 0.88, 0.72),
 		"ambient_energy": 1.1,
 		"haze": 0.25,
@@ -69,7 +69,7 @@ const WEATHERS = {
 		"weight": 15.0,
 		"coverage": 0.72,
 		"shadow_opacity": 0.3,
-		"sun_energy": 0.75,
+		"sun_energy": 0.7,
 		"sun_color": Color(0.9, 0.9, 0.92),
 		"ambient_energy": 1.05,
 		"haze": 0.1,
@@ -103,10 +103,10 @@ const WEATHERS = {
 		"weight": 12.0,
 		"coverage": 0.3,
 		"shadow_opacity": 0.15,
-		"sun_energy": 0.7,
+		"sun_energy": 0.65,
 		"sun_color": Color(1.0, 0.75, 0.5),
 		"ambient_energy": 0.95,
-		"haze": 0.75,
+		"haze": 0.6,
 		"haze_color": Color(0.86, 0.6, 0.38),
 		"rain": 0.0,
 		"dust": 1.0,

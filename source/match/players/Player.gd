@@ -115,7 +115,11 @@ func get_color_material():
 		_color_material = StandardMaterial3D.new()
 		_color_material.vertex_color_use_as_albedo = true
 		_color_material.albedo_color = color
-		_color_material.roughness = 0.55
+		_color_material.roughness = 0.5
+		# a faint glow in the team color keeps it readable in shade, haze and fog of war
+		_color_material.emission_enabled = true
+		_color_material.emission = color
+		_color_material.emission_energy_multiplier = 0.12
 	return _color_material
 
 
