@@ -68,6 +68,31 @@ static func land_reaches(scene_tree, from: Vector3, to: Vector3, reach: float) -
 	)
 
 
+static func map_has_water(scene_tree) -> bool:
+	return _match_with_water(scene_tree) != null
+
+
+static func land_route(scene_tree, from: Vector3, to: Vector3, reach: float):
+	"""the path a truck drives from 'from' to 'to' on the land navigation map (land and
+	shallow fords): a PackedVector3Array, empty when no land route gets within reach of
+	'to' (deep water in the way), or null while the navigation map is not ready yet"""
+	var a_match = scene_tree.get_first_node_in_group("match") if scene_tree != null else null
+	if a_match == null or a_match.navigation == null:
+		return null
+	var rid = a_match.navigation.get_navigation_map_rid_by_domain(
+		Constants.Match.Navigation.Domain.TERRAIN
+	)
+	if not rid.is_valid() or NavigationServer3D.map_get_iteration_id(rid) == 0:
+		return null
+	var path = NavigationServer3D.map_get_path(rid, from, to, true)
+	if path.is_empty():
+		return PackedVector3Array()
+	var end = path[path.size() - 1]
+	if Vector2(end.x, end.z).distance_to(Vector2(to.x, to.z)) > reach:
+		return PackedVector3Array()
+	return path
+
+
 static func path_reaches(map_rid, from: Vector3, to: Vector3, reach: float) -> bool:
 	"""whether a path on the navigation map from 'from' ends within reach of 'to'"""
 	var path = NavigationServer3D.map_get_path(map_rid, from, to, true)
