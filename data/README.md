@@ -192,6 +192,8 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 \
 | `properties` | `hp`, `hp_max`, `sight_range`, `attack_damage`, `attack_interval`, `attack_range`, `attack_domains` (`"terrain"`, `"air"`), `cargo_capacity` |
 | `projectile` | `"cannon_shell"` or `"rocket"` |
 | `extracts` | Structures only: commodities it extracts from a deposit next to it |
+| `role` | Structures: what the building card calls it, one of `headquarters`, `resource`, `logistics`, `factory`, `power`, `defence`, `support` |
+| `info` | Structures: translation key of the longer explanation on the building card (what it is, what it does, how to use it); without it the card shows `description` |
 | `power` | `output_mw`, `demand_mw`, `grid_radius_m`, `burns` (commodity per MW per second) |
 | `blueprint` | Structures only: the ghost shown while placing it |
 | `voice` | Optional: id of the voice set it answers with, overriding `sounds/voices.json` |

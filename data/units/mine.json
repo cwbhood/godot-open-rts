@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/Mine.tscn",
   "name": "MINE",
   "description": "MINE_DESCRIPTION",
+  "role": "resource",
+  "info": "MINE_INFO",
   "icon": "res://assets/ui/icons/ResourceA.png",
   "icon_tint": "#c0714a",
   "tier": 1,

@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/SolarPlant.tscn",
   "name": "SOLAR_PLANT",
   "description": "SOLAR_PLANT_DESCRIPTION",
+  "role": "power",
+  "info": "SOLAR_PLANT_INFO",
   "icon": "res://assets/ui/icons/AircraftFactory.png",
   "icon_tint": "#ffe066",
   "tier": 3,

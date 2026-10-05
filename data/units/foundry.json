@@ -4,6 +4,8 @@
   "factions": ["foundry"],
   "name": "FOUNDRY",
   "description": "FOUNDRY_DESCRIPTION",
+  "role": "support",
+  "info": "FOUNDRY_INFO",
   "model": "res://assets/models/ironbound/buildings/refinery.glb",
   "model_scale": 1.0,
   "icon": "res://assets/ui/icons/VehicleFactory.png",
