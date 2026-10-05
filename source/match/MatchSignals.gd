@@ -48,3 +48,10 @@ signal route_raided(player, position)  # a truck or train of the player was dest
 signal aircraft_crashed(unit)
 signal diplomacy_changed(a, b, state)
 signal treaty_signed(proposer, partner, kind, offered, requested)
+# city centres, see source/match/city/CityCentres.gd
+signal city_centre_countdown_started(player, seconds)  # the player's last city centre fell
+signal city_rebuilt(player, kept, abandoned)  # a new city centre ended the countdown
+signal player_defeated(player)  # the countdown ran out: everything the player had is lost
+signal city_surrender_started(command_center)  # white flag: no defenders while attacked
+signal city_surrender_ended(command_center)  # defenders came back or the attackers left
+signal city_captured(command_center, from_player, to_player)  # the new owner's city centre

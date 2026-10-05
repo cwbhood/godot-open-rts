@@ -30,6 +30,7 @@ CHECKS=(
   "WarSoundsCheck|res://tests/audio/WarSoundsCheck.tscn|"
   "BuildUpCheck|res://tests/buildup/BuildUpCheck.tscn|"
   "CapsChecks|res://tests/caps/CapsChecks.tscn|"
+  "CityCentreChecks|res://tests/citycentres/CityCentreChecks.tscn|"
   "CommandChecks|res://tests/commands/CommandChecks.tscn|"
   "CrashPromptCheck|res://tests/crash/CrashPromptCheck.tscn|"
   "DiplomacyChecks|res://tests/diplomacy/DiplomacyChecks.tscn|"

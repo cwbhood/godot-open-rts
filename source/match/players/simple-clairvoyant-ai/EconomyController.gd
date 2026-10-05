@@ -29,6 +29,7 @@ const Train = preload("res://source/match/units/Train.gd")
 const Storage = preload("res://source/match/units/Storage.gd")
 const VehicleFactory = preload("res://source/match/units/VehicleFactory.gd")
 const Factions = preload("res://source/data-model/Factions.gd")
+const CityCentres = preload("res://source/match/city/CityCentres.gd")
 const FACTION_STRUCTURE_ROLES = ["production_boost", "trade_depot"]
 const EXTRACTOR_PRIORITY = ["iron", "oil", "timber", "copper"]  # ties go to the first
 const REFRESH_INTERVAL_S = 2.0
@@ -109,6 +110,8 @@ func _refresh():
 	var next = _next_airport() if not _ccs.is_empty() and _needs_airport() else null
 	if next == null and extractors >= MIN_EXTRACTORS_FIRST and not _ccs.is_empty():
 		next = _next_storage()
+	if next == null and not _ccs.is_empty():
+		next = _next_second_city_centre()
 	if next == null:
 		next = _next_structure()
 	if next == null:
@@ -126,13 +129,13 @@ func _next_structure():
 		var worker = _first_worker()
 		if worker == null:
 			return null
-		return [
-			CommandCenterScene.resource_path,
-			_find_position_near(
-				_cc_base_position if _cc_base_position != null else worker.global_position,
-				CommandCenterScene
-			)
-		]
+		# after losing the last city centre: rebuild where most of the old city still stands
+		# (CityCentres.gd keeps what is inside the new circle)
+		var city_centres = CityCentres.of(get_tree())
+		var anchor = city_centres.rebuild_anchor(_player) if city_centres != null else null
+		if anchor == null:
+			anchor = _cc_base_position if _cc_base_position != null else worker.global_position
+		return [CommandCenterScene.resource_path, _find_position_near(anchor, CommandCenterScene)]
 	var grid = _player.power_grid
 	var plants = _count_scene(PowerPlantScene.resource_path)
 	var extractors = _count_units(Extractor)
@@ -181,6 +184,46 @@ func _next_structure():
 	if spot == null:
 		return null
 	return [scene_path, spot]
+
+
+func _next_second_city_centre():
+	"""[scene path, position] of a second city centre next to the AI's far extractors, once
+	its city has grown (data/city_centres.json), or null"""
+	var city_centres = CityCentres.of(get_tree())
+	var path = CommandCenterScene.resource_path
+	if (
+		city_centres == null
+		or _ccs.size() != 1
+		or not _ccs[0].is_constructed()
+		or not _player.can_produce(path)
+		or not _player.has_tier(int(city_centres.config["ai_second_centre_tier"]))
+		or city_centres._elapsed_s < float(city_centres.config["ai_second_centre_after_s"])
+		or _count_units(Extractor) < MIN_EXTRACTORS_FIRST + 2
+		or not _ai._has_resources_beyond_trade_reserve(
+			Constants.Match.Units.CONSTRUCTION_COSTS[path]
+		)
+	):
+		return null
+	var home = _ccs[0].global_position_yless
+	var spacing = float(city_centres.config["min_spacing_m"])
+	var farthest = null
+	for unit in get_tree().get_nodes_in_group("units"):
+		if unit.player != _player or not unit is Extractor:
+			continue
+		var distance = unit.global_position_yless.distance_to(home)
+		if (
+			distance > spacing + 4.0
+			and (farthest == null or distance > farthest.global_position_yless.distance_to(home))
+		):
+			farthest = unit
+	if farthest == null:
+		return null
+	# a little towards home from the extractor, so the circle covers both
+	var spot = farthest.global_position_yless.move_toward(home, 6.0)
+	var position = _find_position_near(spot, CommandCenterScene, 3.0)
+	if position == null or city_centres.too_close_to_own_centre(_player, position):
+		return null
+	return [path, position]
 
 
 func _next_faction_structure():
