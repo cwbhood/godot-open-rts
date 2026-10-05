@@ -5,9 +5,9 @@ extends PanelContainer
 
 const Worker = preload("res://source/match/units/Worker.gd")
 const AutoExpand = preload("res://source/match/units/traits/AutoExpand.gd")
+const HudStyle = preload("res://source/match/hud/HudStyle.gd")
 
 const REFRESH_INTERVAL_S = 0.3
-const ON_COLOR = Color(0.55, 1.0, 0.55)
 
 var _toggle = Button.new()
 var _status = Label.new()
@@ -16,22 +16,22 @@ var _since_refresh_s = 0.0
 
 func _ready():
 	name = "AutoExpandBar"
-	var margin = MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 5)
-	add_child(margin)
+	var margin = HudStyle.margin(self, 6, 6)
 	var box = VBoxContainer.new()
 	margin.add_child(box)
 	_toggle.toggle_mode = true
 	_toggle.focus_mode = Control.FOCUS_NONE
-	_toggle.custom_minimum_size = Vector2(0, 44)
-	_toggle.add_theme_font_size_override("font_size", 18)
+	_toggle.custom_minimum_size = Vector2(0, 40)
+	_toggle.add_theme_font_size_override("font_size", 17)
+	_toggle.icon = HudStyle.icon("expand")
+	_toggle.expand_icon = false
 	_toggle.tooltip_text = tr("AUTO_EXPAND_TOOLTIP")
 	_toggle.toggled.connect(_on_toggled)
 	box.add_child(_toggle)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.custom_minimum_size = Vector2(320, 0)
+	_status.custom_minimum_size = Vector2(280, 0)
 	_status.add_theme_font_size_override("font_size", 13)
+	_status.theme_type_variation = "MutedLabel"
 	box.add_child(_status)
 	MatchSignals.unit_selected.connect(func(_unit): _refresh())
 	MatchSignals.unit_deselected.connect(func(_unit): _refresh())
@@ -70,12 +70,6 @@ func _refresh():
 	var enabled = constructors.filter(func(unit): return AutoExpand.is_enabled_on(unit))
 	_toggle.set_pressed_no_signal(enabled.size() == constructors.size())
 	_toggle.text = tr("AUTO_EXPAND_ON" if _toggle.button_pressed else "AUTO_EXPAND_OFF")
-	_toggle.add_theme_color_override(
-		"font_color", ON_COLOR if _toggle.button_pressed else Color.WHITE
-	)
-	_toggle.add_theme_color_override(
-		"font_pressed_color", ON_COLOR if _toggle.button_pressed else Color.WHITE
-	)
 	if enabled.is_empty():
 		_status.text = tr("AUTO_EXPAND_OFF_HINT")
 	else:

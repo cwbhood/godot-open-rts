@@ -1,0 +1,28 @@
+{
+  "id": "foundry",
+  "order": 1,
+  "name": "FACTION_FOUNDRY",
+  "description": "FACTION_FOUNDRY_DESCRIPTION",
+  "color_hint": "#6f7a3c",
+  "start_units": ["drone", "worker", "worker", "hauler", "hauler"],
+  "hidden_units": ["ag_turret", "aa_turret"],
+  "roles": {
+    "main_t1": "tank",
+    "main_t2": "heavy_tank",
+    "main_t3": "battle_tank",
+    "support_t2": "artillery",
+    "air_t2": "helicopter",
+    "air_t3": "helicopter",
+    "raider": "tank",
+    "scout": "drone",
+    "ag_turret": "bunker",
+    "aa_turret": "flak_tower",
+    "militia": "militia",
+    "production_boost": "foundry"
+  },
+  "city": {
+    "production_speed": 1.0,
+    "trade_growth": 1.0
+  },
+  "ai_personalities": ["balanced", "turtle"]
+}

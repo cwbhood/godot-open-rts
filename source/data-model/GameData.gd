@@ -5,7 +5,8 @@
 # See data/README.md for the schema.
 #
 # A unit entry may name a "base" unit instead of a "scene": it then inherits every field
-# of the base (properties are merged key by key) and gets a scene generated at runtime
+# of the base but "factions" (properties, power and cost are merged key by key, a null
+# value drops the base's field) and gets a scene generated at runtime
 # from the base scene, with its own "model" swapped in. This is how new units are added
 # without touching code or the Godot editor (see docs/modding/add-a-unit.md).
 #
@@ -13,6 +14,10 @@
 # and "classic_model_rotation_y_deg"): the art used before the play-ready Blender models.
 # It replaces "model" when the player picks classic unit models in Options, or when the
 # game is started with --unit-models=classic (--unit-models=new forces the new ones).
+#
+# Factions (data/factions/*.json) pick which units a player may build: a unit with a
+# "factions" list belongs to those factions only, a unit without one is shared. See
+# source/data-model/Factions.gd for the rules and the AI roles.
 
 const BASE_DATA_DIR = "res://data"
 const MOD_ROOTS = ["res://mods", "user://mods"]
@@ -25,6 +30,7 @@ const DOMAINS = {"terrain": 1, "air": 0}  # mirrors Constants.Match.Navigation.D
 const MOVEMENT_DOMAINS = {"land": 1, "water": 2, "amphibious": 3}  # navigation domains
 const GENERATED_SCENES_ROOT = "res://data-units/"
 const MODEL_FIELDS = ["model", "model_scale", "model_offset", "model_rotation_y_deg"]
+const NOT_INHERITED = ["factions"]  # a unit built on a faction's unit is shared unless it says
 
 static var _cache = null
 static var _generated_scenes = {}  # scene path -> PackedScene, kept alive for load()
@@ -116,14 +122,57 @@ static func unit_power_field(field):
 	return values
 
 
-static func producible_by(producer_id):
+static func producible_by(producer_id, faction_id = ""):
+	"""units the producer makes; with a faction id, only those of that faction's roster"""
 	return units().filter(
 		func(unit):
 			return (
-				producer_id in unit.get("produced_by", [])
-				or producer_id in unit.get("built_by", [])
+				(
+					producer_id in unit.get("produced_by", [])
+					or producer_id in unit.get("built_by", [])
+				)
+				and faction_allows(faction_id, unit)
 			)
 	)
+
+
+static func factions():
+	"""playable factions from data/factions/, in file order"""
+	return get_data()["factions"]
+
+
+static func faction_by_id(id):
+	for faction in factions():
+		if faction["id"] == id:
+			return faction
+	return null
+
+
+static func faction_allows(faction_id, unit):
+	"""whether a player of the faction may build the unit entry; "" (no faction, as in
+	tests and old scenes) allows everything"""
+	if faction_id == null or faction_id == "" or unit == null:
+		return true
+	var faction = faction_by_id(faction_id)
+	if faction == null:
+		return true
+	if unit["id"] in faction.get("hidden_units", []):
+		return false
+	var owners = unit.get("factions")
+	return not owners is Array or owners.is_empty() or faction_id in owners
+
+
+static func faction_allows_scene(faction_id, scene_path):
+	"""faction_allows by scene path, cached: it is asked every frame by the menus"""
+	if faction_id == null or faction_id == "":
+		return true
+	var cache = get_data()["faction_scene_cache"]
+	if not faction_id in cache:
+		var allowed = {}
+		for unit in units():
+			allowed[unit["scene"]] = faction_allows(faction_id, unit)
+		cache[faction_id] = allowed
+	return cache[faction_id].get(scene_path, true)
 
 
 static func tiers():
@@ -155,13 +204,17 @@ static func voice_set_by_id(id):
 	return null
 
 
-static func voice_set_id_for(unit_entry):
-	"""a unit's own "voice" field wins, then data/sounds/voices.json, then a default"""
+static func voice_set_id_for(unit_entry, faction = ""):
+	"""a unit's own "voice" field wins, then the faction's entry in data/sounds/voices.json
+	(faction_voices), then its unit_voices, then a default"""
 	if unit_entry == null:
 		return null
 	if "voice" in unit_entry:
 		return unit_entry["voice"]
 	var config = voices()
+	var faction_mapped = config.get("faction_voices", {}).get(faction, {}).get(unit_entry["id"])
+	if faction_mapped != null:
+		return faction_mapped
 	var mapped = config.get("unit_voices", {}).get(unit_entry["id"])
 	if mapped != null:
 		return mapped
@@ -344,6 +397,8 @@ static func _load_all():
 		"voices": _parse_dict_file(BASE_DATA_DIR + "/sounds/voices.json"),
 		"voice_sets": _load_dir(BASE_DATA_DIR + "/sounds/voice_sets"),
 		"movement": _load_object_file(BASE_DATA_DIR + "/movement.json").get("movement", {}),
+		"factions": _load_dir(BASE_DATA_DIR + "/factions"),
+		"faction_scene_cache": {},
 	}
 	for mod_dir in _find_mod_data_dirs():
 		_merge(data["resources"], _load_list_file(mod_dir + "/resources.json", "resources"))
@@ -354,6 +409,7 @@ static func _load_all():
 		_merge(data["maps"], _load_dir(mod_dir + "/maps"))
 		_merge(data["ai_personalities"], _load_dir(mod_dir + "/ai"))
 		_merge(data["ai_difficulties"], _load_dir(mod_dir + "/difficulties"))
+		_merge(data["factions"], _load_dir(mod_dir + "/factions"))
 		_merge(
 			data["player_colors"], _load_list_file(mod_dir + "/player_colors.json", "player_colors")
 		)
@@ -374,6 +430,7 @@ static func _load_all():
 	data["tiers"].sort_custom(func(a, b): return a["science"] < b["science"])
 	data["units"].sort_custom(func(a, b): return a["id"] < b["id"])
 	data["ai_difficulties"].sort_custom(func(a, b): return a.get("order", 0) < b.get("order", 0))
+	data["factions"].sort_custom(func(a, b): return a.get("order", 0) < b.get("order", 0))
 	return data
 
 
@@ -407,12 +464,20 @@ static func _resolve_bases(entries):
 		chain.reverse()
 		for link in chain:
 			for key in link:
-				if key == "properties" or key == "power" or key == "cost":
+				if link[key] == null:  # "power": null drops what the base had
+					resolved.erase(key)
+				elif key == "properties" or key == "power" or key == "cost":
 					var merged = resolved.get(key, {}).duplicate(true)
 					merged.merge(link[key], true)
+					for field in link[key]:
+						if link[key][field] == null:
+							merged.erase(field)
 					resolved[key] = merged
 				else:
 					resolved[key] = link[key]
+		for key in NOT_INHERITED:
+			if not key in entry:
+				resolved.erase(key)
 		resolved["base_scene"] = base["scene"]
 		resolved["scene"] = GENERATED_SCENES_ROOT + entry["id"] + ".tscn"
 		entry.clear()
@@ -455,9 +520,16 @@ static func _deep_merge(base, patch):
 
 
 static func _merge_voices(base, mod):
-	"""unit_voices and default_voices are patched key by key, other fields replaced"""
+	"""unit_voices, default_voices and each faction of faction_voices are patched key by key,
+	other fields replaced"""
 	for key in mod:
-		if key in ["unit_voices", "default_voices"] and key in base:
+		if key == "faction_voices" and key in base:
+			for faction in mod[key]:
+				if faction in base[key]:
+					base[key][faction].merge(mod[key][faction], true)
+				else:
+					base[key][faction] = mod[key][faction]
+		elif key in ["unit_voices", "default_voices"] and key in base:
 			base[key].merge(mod[key], true)
 		else:
 			base[key] = mod[key]

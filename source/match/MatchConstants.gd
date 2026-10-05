@@ -191,6 +191,10 @@ class Power:
 	# commodities burnt per MW per second while a plant is loaded
 	# gdlint: ignore=class-variable-name
 	static var BURNS = GameData.unit_power_field("burns")
+	# while powered, the factories on the grid of such a structure (the Foundry) produce
+	# this much faster (0.2 = +20%); several on one grid do not stack
+	# gdlint: ignore=class-variable-name
+	static var PRODUCTION_BONUS = GameData.unit_field("production_bonus", "structure")
 
 
 class City:

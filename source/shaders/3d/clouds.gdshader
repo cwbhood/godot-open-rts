@@ -13,7 +13,8 @@ uniform float softness = 0.18;
 uniform float visibility = 0.0;
 uniform vec3 lit_color : source_color = vec3(1.0, 0.98, 0.95);
 uniform vec3 shade_color : source_color = vec3(0.62, 0.64, 0.72);
-uniform float max_opacity = 0.72;
+// kept translucent: the map must stay readable through the clouds when zoomed out
+uniform float max_opacity = 0.45;
 
 varying vec3 world_position;
 

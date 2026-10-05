@@ -18,7 +18,7 @@ Linux
   Needs a GPU with Vulkan support.
 
 macOS
-  Unzip and move the app (named "Open RTS.app" for now) to Applications.
+  Unzip and move the app (named "Ironbound.app") to Applications.
   The first time, right-click (or Control-click) the app, choose Open,
   then Open again. On macOS 15 or later: try to open it once, then go to
   System Settings > Privacy & Security and click "Open Anyway".

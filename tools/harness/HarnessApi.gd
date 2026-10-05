@@ -29,6 +29,9 @@ const AutoExpand = preload("res://source/match/units/traits/AutoExpand.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const UnitCommandHandler = preload("res://source/match/handlers/UnitCommandHandler.gd")
 const UnitCommands = preload("res://source/match/players/human/UnitCommands.gd")
+const SaveGame = preload("res://source/match/SaveGame.gd")
+
+signal match_replaced(new_match)  # "reload" swapped the match for one loaded from a save
 
 const COMMANDS = [
 	"select",
@@ -61,6 +64,8 @@ const COMMANDS = [
 	"screenshot",
 	"wait",
 	"state",
+	"save",
+	"reload",
 	"end"
 ]
 const VALIDITY_NAMES = [
@@ -878,6 +883,80 @@ func _do_wait(order):
 
 func _do_state(order):
 	return {"ok": true, "state": state(order.get("units", true))}
+
+
+func _do_save(order):
+	var path = SaveGame.save_match(match_node, order.get("name", "harness"))
+	if path == "":
+		return {"ok": false, "error": "could not write the save"}
+	return {"ok": true, "path": path, "units": SaveGame.read(path)["units"].size()}
+
+
+func _do_reload(order):
+	"""saves the match, throws it away and loads the save into a fresh match, the way the
+	pause menu's Save and Load do; ok when every unit, stock and city came back the same"""
+	var save_name = order.get("name", "harness-reload")
+	var before = save_summary()
+	var path = SaveGame.save_match(match_node, save_name)
+	var data = SaveGame.read(path)
+	if not order.get("keep", false):
+		SaveGame.delete(path)  # a test's save stays out of the player's Load game list
+	if data == null:
+		return {"ok": false, "error": "the save could not be read back"}
+	var old_match = match_node
+	var speed = Engine.time_scale
+	old_match.get_parent().remove_child(old_match)
+	old_match.free()
+	await get_tree().process_frame
+	var new_match = load("res://source/match/Match.tscn").instantiate()
+	new_match.settings = SaveGame.settings_from(data)
+	new_match.map = load(data["map"]).instantiate()
+	new_match.saved_state = data
+	get_tree().root.add_child(new_match)
+	get_tree().current_scene = new_match
+	await MatchSignals.match_loaded
+	match_node = new_match
+	var after = save_summary()
+	Engine.time_scale = speed
+	match_replaced.emit(new_match)
+	var differences = []
+	for key in before:
+		if str(before[key]) != str(after.get(key)):
+			differences.append("%s: %s before, %s after" % [key, before[key], after.get(key)])
+	return {
+		"ok": differences.is_empty(),
+		"path": path,
+		"units": data["units"].size(),
+		"error": "; ".join(differences),
+	}
+
+
+func save_summary():
+	"""what a save must bring back: units by kind, stock, city tier and population per player"""
+	var out = {}
+	var all_players = players()
+	for index in range(all_players.size()):
+		var player = all_players[index]
+		var kinds = {}
+		for unit in get_tree().get_nodes_in_group("units"):
+			if unit.player == player and not unit.is_queued_for_deletion():
+				var kind = kind_of(unit)
+				kinds[kind] = kinds.get(kind, 0) + 1
+		var sorted_kinds = kinds.keys()
+		sorted_kinds.sort()
+		out["p%d units" % index] = sorted_kinds.map(
+			func(kind): return "%s=%d" % [kind, kinds[kind]]
+		)
+		var stock = player.get_stock()
+		out["p%d stock" % index] = stock.keys().map(
+			func(key): return "%s=%d" % [key, roundi(stock[key])]
+		)
+		if player.city != null:
+			out["p%d city" % index] = (
+				"tier %d, population %d, %d houses"
+				% [player.city.tier, int(player.city.population), player.city._buildings.size()]
+			)
+	return out
 
 
 func _do_end(order):

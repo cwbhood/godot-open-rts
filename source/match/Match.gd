@@ -19,15 +19,22 @@ const UnitCommandHandler = preload("res://source/match/handlers/UnitCommandHandl
 const Keybinds = preload("res://source/match/Keybinds.gd")
 const MatchLimits = preload("res://source/match/MatchLimits.gd")
 const CityBuildUp = preload("res://source/match/city/CityBuildUp.gd")
+const GraphicsQuality = preload("res://source/options/GraphicsQuality.gd")
+const SaveGame = preload("res://source/match/SaveGame.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
-const Drone = preload("res://source/match/units/Drone.tscn")
-const Worker = preload("res://source/match/units/Worker.tscn")
-const Hauler = preload("res://source/match/units/Hauler.tscn")
+const Factions = preload("res://source/data-model/Factions.gd")
+# where the starter units stand around the command center, in the order of the faction's
+# "start_units"; units past the list are placed in a ring further out
+const START_UNIT_OFFSETS = [
+	Vector3(-2, 0, -2), Vector3(-3, 0, 3), Vector3(3, 0, 3), Vector3(-3, 0, -3), Vector3(3, 0, -3)
+]
 
 @export var settings: Resource = null
 # shows the starter city being built before play starts (set by the Play menu, see CityBuildUp)
 @export var play_city_build_up = false
+# a save from SaveGame.gd: its units replace the starter cities (set by Loading.gd)
+var saved_state = null
 
 var map:
 	set = _set_map,
@@ -70,6 +77,7 @@ func _exit_tree():
 
 func _ready():
 	add_to_group("match")  # the crash reporter reads map, players and match time from here
+	GraphicsQuality.attach(self)  # the options' graphics preset (shadows, AO, glow)
 	if get_node_or_null("WeatherEffects") == null:
 		var weather_effects = WeatherEffects.new()
 		weather_effects.name = "WeatherEffects"
@@ -119,6 +127,8 @@ func _ready():
 	if settings.visibility == settings.Visibility.FULL:
 		fog_of_war.reveal()
 	MatchSignals.match_started.emit()
+	if saved_state != null:
+		SaveGame.restore_after_start.call_deferred(self, saved_state)
 	if city_build_up != null:
 		city_build_up.start()
 
@@ -204,6 +214,12 @@ func _create_players_from_settings():
 		var player_scene = Constants.Match.Player.CONTROLLER_SCENES[player_settings.controller]
 		var player = player_scene.instantiate()
 		player.color = player_settings.color
+		if player_settings.get("faction") != null:
+			# a "random" left in the settings is drawn once and kept for Restart
+			player_settings.faction = Factions.resolve(
+				player_settings.faction, player_settings.get("ai_personality")
+			)
+			player.faction = player_settings.faction
 		if "personality_id" in player and player_settings.get("ai_personality") != null:
 			player.personality_id = player_settings.ai_personality
 		if "difficulty_id" in player and player_settings.get("ai_difficulty") != null:
@@ -218,6 +234,9 @@ func _create_players_from_settings():
 
 
 func _setup_player_units():
+	if saved_state != null:
+		SaveGame.spawn_units(self, saved_state)
+		return
 	for player in _players.get_children():
 		if not player is Player:
 			continue
@@ -246,21 +265,15 @@ func _start_transform(player, player_index):
 func _spawn_player_units(player, spawn_transform):
 	var command_center = CommandCenter.instantiate()
 	_setup_and_spawn_unit(command_center, spawn_transform, player, false)
-	_setup_and_spawn_unit(
-		Drone.instantiate(), spawn_transform.translated(Vector3(-2, 0, -2)), player
-	)
-	_setup_and_spawn_unit(
-		Worker.instantiate(), spawn_transform.translated(Vector3(-3, 0, 3)), player
-	)
-	_setup_and_spawn_unit(
-		Worker.instantiate(), spawn_transform.translated(Vector3(3, 0, 3)), player
-	)
-	_setup_and_spawn_unit(
-		Hauler.instantiate(), spawn_transform.translated(Vector3(-3, 0, -3)), player
-	)
-	_setup_and_spawn_unit(
-		Hauler.instantiate(), spawn_transform.translated(Vector3(3, 0, -3)), player
-	)
+	var unit_ids = Factions.start_units(Factions.of(player))
+	for index in range(unit_ids.size()):
+		var offset = (
+			START_UNIT_OFFSETS[index]
+			if index < START_UNIT_OFFSETS.size()
+			else Vector3(4, 0, 0).rotated(Vector3.UP, index * 0.9)
+		)
+		var unit_scene = load(GameData.unit_by_id(unit_ids[index])["scene"])
+		_setup_and_spawn_unit(unit_scene.instantiate(), spawn_transform.translated(offset), player)
 	MatchSignals.starter_city_spawned.emit(player, command_center)
 
 

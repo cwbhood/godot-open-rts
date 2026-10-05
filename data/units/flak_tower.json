@@ -1,0 +1,22 @@
+{
+  "id": "flak_tower",
+  "base": "aa_turret",
+  "factions": ["foundry"],
+  "name": "FLAK_TOWER",
+  "description": "FLAK_TOWER_DESCRIPTION",
+  "model_scale": 1.2,
+  "icon_tint": "#b7c27a",
+  "projectile": "cannon_shell",
+  "cost": {
+    "iron": 7,
+    "copper": 3
+  },
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 14,
+    "hp_max": 14,
+    "attack_damage": 1,
+    "attack_interval": 0.35,
+    "attack_range": 7.0
+  }
+}

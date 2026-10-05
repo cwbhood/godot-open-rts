@@ -2,7 +2,7 @@
 
 `source/crash/CrashReporter.gd` (an autoload) writes a report to `user://crash_reports/`
 when the game crashes, freezes for 20 s or more, or logs 100 errors within 10 s. On Windows
-that folder is `%APPDATA%\Godot\app_userdata\Open RTS\crash_reports`.
+that folder is `%APPDATA%\Ironbound\crash_reports`.
 
 What a report holds: game version, commit and branch, Godot version, build type, map,
 players and AI personalities, match time, weather, unit count, fps and frame times, memory,

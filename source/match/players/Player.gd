@@ -2,6 +2,9 @@ extends Node3D
 
 signal changed
 
+const RosterData = preload("res://source/data-model/GameData.gd")
+const FactionRules = preload("res://source/data-model/Factions.gd")
+
 @export var timber = 0:
 	set(value):
 		timber = value
@@ -22,6 +25,8 @@ signal changed
 # AI difficulty handicaps and bonuses (data/difficulties/); 1.0 for everybody else
 var gather_rate = 1.0  # share of hauled goods that reaches the stock
 var production_speed = 1.0  # speed of the factories' production queues
+# id of a faction from data/factions/ (see Factions.gd); "" may build everything
+var faction = ""
 
 var city:
 	get:
@@ -102,12 +107,25 @@ func has_airport():
 	)
 
 
+func in_roster(scene_path):
+	"""whether the player's faction may build this unit at all"""
+	return RosterData.faction_allows_scene(faction, scene_path)
+
+
 func can_produce(scene_path):
-	return meets_tier_requirement(scene_path) and not needs_airport_for(scene_path)
+	return (
+		in_roster(scene_path)
+		and meets_tier_requirement(scene_path)
+		and not needs_airport_for(scene_path)
+	)
 
 
 func get_production_multiplier():
-	return (city.production_multiplier if city != null else 1.0) * production_speed
+	return (
+		(city.production_multiplier if city != null else 1.0)
+		* production_speed
+		* FactionRules.city_multiplier(self, "production_speed")
+	)
 
 
 func get_color_material():
@@ -115,7 +133,11 @@ func get_color_material():
 		_color_material = StandardMaterial3D.new()
 		_color_material.vertex_color_use_as_albedo = true
 		_color_material.albedo_color = color
-		_color_material.roughness = 0.55
+		_color_material.roughness = 0.5
+		# a faint glow in the team color keeps it readable in shade, haze and fog of war
+		_color_material.emission_enabled = true
+		_color_material.emission = color
+		_color_material.emission_energy_multiplier = 0.12
 	return _color_material
 
 

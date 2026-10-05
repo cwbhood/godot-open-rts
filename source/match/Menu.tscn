@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://1rby73ckmk7b"]
+[gd_scene load_steps=5 format=3 uid="uid://1rby73ckmk7b"]
 
 [ext_resource type="Script" path="res://source/match/Menu.gd" id="1_f256e"]
 [ext_resource type="Shader" path="res://source/shaders/2d/blurr.gdshader" id="1_mukhw"]
+[ext_resource type="Theme" uid="uid://c2kgsk4ffhbwo" path="res://source/resources/main_menu.theme" id="3_theme"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2eh7x"]
 shader = ExtResource("1_mukhw")
@@ -11,6 +12,7 @@ shader_parameter/overlay = true
 
 [node name="Menu" type="CanvasLayer"]
 process_mode = 3
+layer = 10
 script = ExtResource("1_f256e")
 
 [node name="BlurredBackground" type="ColorRect" parent="."]
@@ -21,38 +23,80 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
+theme = ExtResource("3_theme")
 
-[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="Root/CenterContainer"]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Root/CenterContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 26
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
-custom_minimum_size = Vector2(400, 0)
+[node name="VBoxContainer" type="VBoxContainer" parent="Root/CenterContainer/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="ResumeButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Title" type="Label" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.663, 0.231, 1)
+theme_override_font_sizes/font_size = 40
+text = "PAUSED"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
 text = "Resume"
 
-[node name="ExitButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="OptionsButton" type="Button" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 focus_mode = 0
-text = "Exit"
+text = "Options"
 
-[connection signal="pressed" from="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]
+[node name="RestartButton" type="Button" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Restart match"
+
+[node name="SurrenderButton" type="Button" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Surrender"
+
+[node name="Separator" type="HSeparator" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ExitButton" type="Button" parent="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+focus_mode = 0
+text = "Exit to main menu"
+
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="Root"]
+process_mode = 3
+initial_position = 2
+size = Vector2i(460, 140)
+
+[connection signal="pressed" from="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/OptionsButton" to="." method="_on_options_button_pressed"]
+[connection signal="pressed" from="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SurrenderButton" to="." method="_on_surrender_button_pressed"]
+[connection signal="pressed" from="Root/CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]

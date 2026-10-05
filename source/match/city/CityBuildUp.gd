@@ -85,6 +85,7 @@ func _play(command_centers):
 	_sound = AudioStreamPlayer.new()
 	_sound.stream = load(SOUND_PATH)
 	_sound.volume_db = -4.0
+	_sound.bus = &"Effects"
 	add_child(_sound)
 	_sound.play()
 	_show_hint()

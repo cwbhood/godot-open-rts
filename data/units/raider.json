@@ -1,6 +1,9 @@
 {
   "id": "raider",
   "category": "unit",
+  "factions": [
+    "syndicate"
+  ],
   "scene": "res://source/match/units/Raider.tscn",
   "model": "res://assets/models/ironbound/units/raider.glb",
   "model_scale": 1.0,

@@ -279,3 +279,59 @@ HOVER_SKIMMER,Hover skimmer,Poduszkowiec
 HOVER_SKIMMER_DESCRIPTION,"light hovercraft, as fast on water as on sand; fragile","lekki poduszkowiec, na wodzie tak szybki jak na piasku; kruchy"
 BLUEPRINT_IN_WATER,Cannot build in water,Nie można budować w wodzie
 BLUEPRINT_NEEDS_SHORE,Must be built on the shore next to deep water,Trzeba zbudować na brzegu przy głębokiej wodzie
+MATCH_END_VICTORY,Victory,Zwycięstwo
+MATCH_END_DEFEAT,Defeat,Porażka
+MATCH_END_FINISHED,Match over,Koniec meczu
+MATCH_END_DURATION,Match time {0},Czas meczu {0}
+MATCH_END_SCORE_OVER_TIME,Score over time,Wynik w czasie
+MATCH_END_COL_SCORE,Score,Wynik
+MATCH_END_COL_TIER,Tier,Poziom
+MATCH_END_COL_BUILT,Units built,Wyprodukowane
+MATCH_END_COL_LOST,Units lost,Stracone
+MATCH_END_COL_STRUCTURES,Buildings,Budynki
+MATCH_END_COL_DELIVERED,Goods delivered,Dostarczone
+MATCH_END_COL_TRADES,Trades,Wymiany
+MATCH_END_REMATCH,Play again,Zagraj ponownie
+MATCH_END_MAIN_MENU,Main menu,Menu główne
+HOTKEY,Hotkey: {0},Skrót: {0}
+HUD_EXPAND,Show more,Pokaż więcej
+HUD_COLLAPSE,Fold away,Zwiń
+HUD_MATCH_TIME_TOOLTIP,Time played in this match,Czas gry w tym meczu
+HUD_INCOME_TOOLTIP,Delivered to your depots over the last minute: {0}/min,Dostarczono do magazynów w ostatniej minucie: {0}/min
+HUD_CITY_POPULATION,Citizens,Mieszkańcy
+HUD_CITY_POPULATION_TOOLTIP,Citizens / room in houses. Houses add room; every tier raises the city's maximum.,Mieszkańcy / miejsca w domach. Domy dodają miejsca; każda epoka podnosi limit miasta.
+HUD_CITY_GROWTH,Growth,Wzrost
+HUD_CITY_GROWTH_TOOLTIP,Citizens gained per second,Przyrost mieszkańców na sekundę
+HUD_CITY_NEEDS,Needs,Potrzeby
+HUD_CITY_NEEDS_TOOLTIP,How well the warehouse meets the city's needs (per commodity under Details),Jak magazyn zaspokaja potrzeby miasta (każdy surowiec w Szczegółach)
+HUD_CITY_POWER,Power,Zasilanie
+HUD_CITY_POWER_TOOLTIP,Share of the city's power demand the grid covers,Jaką część zapotrzebowania miasta pokrywa sieć
+HUD_CITY_TRUCKS,Trucks,Ciężarówki
+HUD_CITY_TRUCKS_TOOLTIP,Trucks at work / all trucks (more under Details),Ciężarówki w pracy / wszystkie (więcej w Szczegółach)
+HUD_CITY_DEFENSE,Defense,Obrona
+HUD_CITY_DEFENSE_TOOLTIP,The civil defense: posts and militia guard the city,Obrona cywilna: posterunki i milicja strzegą miasta
+HUD_CITY_DETAILS,Details,Szczegóły
+HUD_CITY_SCIENCE,{0}/{1} to {2},{0}/{1} do {2}
+REPLAYS_EMPTY_TITLE,No replays yet,Brak powtórek
+REPLAYS_PICK_TITLE,Pick a replay,Wybierz powtórkę
+REPLAYS_PICK,"Choose a match on the left to watch it again as a map: units, supply runs, raids and each faction's economy.","Wybierz mecz po lewej, aby obejrzeć go ponownie na mapie: jednostki, dostawy, napady i gospodarkę każdej frakcji."
+REPLAYS_NONE_BODY,"Every match you play is recorded. Finish or leave a match and it shows up here, ready to watch again.","Każdy rozegrany mecz jest nagrywany. Zakończ lub opuść mecz, a pojawi się tutaj, gotowy do ponownego obejrzenia."
+QUEUE_CANCEL_TOOLTIP,Click to cancel: the cost comes back,"Kliknij, aby anulować: koszt wraca"
+FACTION_FOUNDRY,Foundry League,Liga Odlewni
+FACTION_FOUNDRY_DESCRIPTION,"Olive-drab tracked armour and fortified production: tanks, artillery, bunkers, flak towers and the Foundry, which speeds up the factories on its power grid.","Gąsienicowy pancerz i umocniona produkcja: czołgi, artyleria, bunkry, wieże przeciwlotnicze i Odlewnia, która przyspiesza fabryki w swojej sieci."
+FACTION_SYNDICATE,Sandline Syndicate,Syndykat Piaskowej Linii
+FACTION_SYNDICATE_DESCRIPTION,"Fast wheeled raiders and traders: raiders, scout buggies, rocket technicals, gunships, gun nests, SAM sites and trading posts. Trade boosts their city 1.5x and their caravans shoot back.","Szybkie kołowe łupieżce i kupcy: łupieżcy, łaziki zwiadowcze, technikale rakietowe, śmigłowce szturmowe, gniazda karabinów, wyrzutnie i faktorie. Handel wzmacnia ich miasto 1,5x, a karawany odpowiadają ogniem."
+BUNKER,Bunker,Bunkier
+BUNKER_DESCRIPTION,"heavy anti-ground emplacement: tough, hits hard, short reach","ciężkie stanowisko przeciwpancerne: wytrzymałe, mocne, krótki zasięg"
+GUN_NEST,Gun nest,Gniazdo karabinów
+GUN_NEST_DESCRIPTION,cheap fast-firing anti-ground nest with long reach and thin walls,"tanie, szybkostrzelne gniazdo przeciw celom naziemnym, daleki zasięg, cienkie ściany"
+FLAK_TOWER,Flak tower,Wieża flak
+FLAK_TOWER_DESCRIPTION,sturdy anti-air tower that fills the sky with flak,wytrzymała wieża przeciwlotnicza zasypująca niebo ogniem
+SAM_SITE,SAM site,Wyrzutnia rakiet plot.
+SAM_SITE_DESCRIPTION,"long-range anti-air missiles, fragile","przeciwlotnicze rakiety dalekiego zasięgu, delikatna"
+ROCKET_TECHNICAL,Rocket technical,Technikal rakietowy
+ROCKET_TECHNICAL_DESCRIPTION,pickup with a rocket rack: fast and hits hard from range,pikap z wyrzutnią rakiet: szybki i mocno bije z dystansu
+FOUNDRY,Foundry,Odlewnia
+FOUNDRY_DESCRIPTION,"while powered, factories on the same power grid produce 20% faster","gdy ma zasilanie, fabryki w tej samej sieci produkują o 20% szybciej"
+TRADING_POST,Trading post,Faktoria
+TRADING_POST_DESCRIPTION,a second caravan depot: trade caravans leave from and arrive at the closest one,drugi skład karawan: karawany handlowe wyruszają z najbliższego i do niego przyjeżdżają

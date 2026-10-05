@@ -19,8 +19,26 @@ const KNOWN_UNIT_FIELDS = [
 	"properties", "projectile", "fuel_per_s", "flight_endurance_s", "extracts", "power", "speed", "model",
 	"model_scale", "model_offset", "model_rotation_y_deg", "unit_slots", "movement", "water_speed",
 	"placement", "voice", "classic_model", "classic_model_scale", "classic_model_offset",
-	"classic_model_rotation_y_deg"
+	"classic_model_rotation_y_deg", "factions", "production_bonus", "trade_depot"
 ]
+const KNOWN_FACTION_FIELDS = [
+	"id", "order", "name", "description", "color_hint", "start_units", "hidden_units", "roles",
+	"city", "armed_caravans", "ai_personalities"
+]
+# roles the code asks for (see Factions.DEFAULT_ROLES and the AI controllers)
+const FACTION_ROLES = [
+	"main_t1", "main_t2", "main_t3", "support_t2", "air_t2", "air_t3", "raider", "scout",
+	"ag_turret", "aa_turret", "militia", "production_boost", "trade_depot"
+]
+const FACTION_ROLE_CATEGORY = {
+	"ag_turret": "structure", "aa_turret": "structure", "production_boost": "structure",
+	"trade_depot": "structure"
+}
+# field -> [min, max]
+const FACTION_CITY_FIELDS = {"production_speed": [0.5, 2.0], "trade_growth": [0.5, 3.0]}
+const ARMED_CARAVAN_FIELDS = {
+	"attack_damage": [0, 20], "attack_interval": [0.1, 10.0], "attack_range": [1.0, 15.0]
+}
 const CAPS_NUMBERS = [
 	"unit_slots_per_player", "unit_slots_per_match", "default_unit_slots", "time_limit_min",
 	"depletion_countdown_min"
@@ -85,6 +103,7 @@ func _run():
 	_check_resources(data["resources"])
 	_check_tiers(data["tiers"])
 	_check_units(data["units"], resources, data["tiers"].size())
+	_check_factions(data["factions"], data["units"], data["ai_personalities"])
 	_check_maps(data["maps"])
 	_check_ai(data["ai_personalities"], resources)
 	_check_difficulties(data["ai_difficulties"])
@@ -99,11 +118,11 @@ func _run():
 	print(
 		(
 			"validate_data: {0} units, {1} commodities, {2} maps, {3} AI personalities, "
-			+ "{4} difficulties, {5} player colours"
+			+ "{4} difficulties, {5} player colours, {6} factions"
 		).format(
 			[data["units"].size(), resources.size(), data["maps"].size(),
 			data["ai_personalities"].size(), data["ai_difficulties"].size(),
-			data["player_colors"].size()]
+			data["player_colors"].size(), data["factions"].size()]
 		)
 	)
 	print("validate_data: {0} error(s), {1} warning(s)".format([_errors, _warnings]))
@@ -227,6 +246,17 @@ func _check_units(entries, resources, tiers_count):
 			if not kind in resources:
 				_error(where, "extracts unknown commodity '{0}'".format([kind]))
 		_check_properties(where, entry.get("properties", {}))
+		if "production_bonus" in entry and (
+			entry.get("category") != "structure"
+			or not float(entry.get("power", {}).get("demand_mw", 0.0)) > 0.0
+		):
+			_error(where, "production_bonus works for structures with a power demand_mw only")
+		if "production_bonus" in entry and not (
+			float(entry["production_bonus"]) > 0.0 and float(entry["production_bonus"]) <= 2.0
+		):
+			_error(where, "production_bonus must be above 0 and at most 2 (+200%)")
+		if "trade_depot" in entry and entry.get("category") != "structure":
+			_error(where, "trade_depot works for structures only")
 		if "projectile" in entry and not entry["projectile"] in GameData.PROJECTILES:
 			_error(
 				where,
@@ -238,6 +268,104 @@ func _check_units(entries, resources, tiers_count):
 		_check_translation(where, entry.get("name"))
 		_check_translation(where, entry.get("description"))
 		_check_scene(where, entry)
+
+
+func _check_factions(factions, units, personalities):
+	var faction_ids = factions.map(func(faction): return faction["id"])
+	var unit_ids = {}
+	for unit in units:
+		unit_ids[unit["id"]] = unit
+	var personality_ids = personalities.map(func(personality): return personality["id"])
+	for unit in units:
+		if not "factions" in unit:
+			continue
+		var where = "units/{0}.json".format([unit["id"]])
+		if not unit["factions"] is Array or unit["factions"].is_empty():
+			_error(where, "factions must be a list of faction ids, or left out for a shared unit")
+			continue
+		for faction_id in unit["factions"]:
+			if not faction_id in faction_ids:
+				_error(where, "factions names unknown faction '{0}' (known: {1})".format(
+					[faction_id, ", ".join(faction_ids)]
+				))
+	for faction in factions:
+		var where = "factions/{0}.json".format([faction["id"]])
+		for field in faction:
+			if not field in KNOWN_FACTION_FIELDS:
+				_warn(where, "unknown field '{0}' is ignored".format([field]))
+		if faction["id"] in ["", "random"]:
+			_error(where, "'{0}' is reserved, pick another id".format([faction["id"]]))
+		for field in ["name", "description"]:
+			if not field in faction:
+				_error(where, "missing '{0}'".format([field]))
+			_check_translation(where, faction.get(field))
+		if "color_hint" in faction and not Color.html_is_valid(str(faction["color_hint"])):
+			_error(where, "color_hint must look like \"#aabbcc\"")
+		for field in ["start_units", "hidden_units"]:
+			for unit_id in faction.get(field, []):
+				if not unit_id in unit_ids:
+					_error(where, "{0} names unknown unit '{1}'".format([field, unit_id]))
+		for unit_id in faction.get("start_units", []):
+			if unit_id in unit_ids and unit_ids[unit_id].get("category") != "unit":
+				_error(where, "start_units must be units, '{0}' is a structure".format([unit_id]))
+		var roles = faction.get("roles", {})
+		for role in roles:
+			var unit_id = roles[role]
+			if not role in FACTION_ROLES:
+				_warn(where, "role '{0}' is not used by the game".format([role]))
+			if not unit_id in unit_ids:
+				_error(where, "role '{0}' names unknown unit '{1}'".format([role, unit_id]))
+				continue
+			if not GameData.faction_allows(faction["id"], unit_ids[unit_id]):
+				_error(where, "role '{0}' names '{1}', which is not in its roster".format(
+					[role, unit_id]
+				))
+			var category = FACTION_ROLE_CATEGORY.get(role, "unit")
+			if role != "militia" and unit_ids[unit_id].get("category") != category:
+				_error(where, "role '{0}' needs a {1}, '{2}' is not one".format(
+					[role, category, unit_id]
+				))
+		for role in ["main_t1", "ag_turret"]:
+			if not role in roles:
+				_warn(where, "no '{0}' role: the AI falls back to the default unit".format([role]))
+		_check_number_fields(where + " city", faction.get("city", {}), FACTION_CITY_FIELDS)
+		if "armed_caravans" in faction:
+			_check_number_fields(
+				where + " armed_caravans", faction["armed_caravans"], ARMED_CARAVAN_FIELDS
+			)
+		for personality_id in faction.get("ai_personalities", []):
+			if not personality_id in personality_ids:
+				_error(where, "ai_personalities names unknown personality '{0}'".format(
+					[personality_id]
+				))
+		var roster = units.filter(func(unit): return GameData.faction_allows(faction["id"], unit))
+		for producer in ["worker", "vehicle_factory"]:
+			if not roster.any(func(unit): return producer in unit.get("built_by", []) + unit.get("produced_by", [])):
+				_error(where, "its roster has nothing a {0} can make".format([producer]))
+	for unit in units:
+		if not "factions" in unit:
+			continue
+		var builders = unit.get("built_by", []) + unit.get("produced_by", [])
+		for builder in builders:
+			if builder in unit_ids and not unit["factions"].any(
+				func(faction_id): return GameData.faction_allows(faction_id, unit_ids[builder])
+			):
+				_error("units/{0}.json".format([unit["id"]]), "no faction of it has a '{0}' to make it".format([builder]))
+
+
+func _check_number_fields(where, values, ranges):
+	if not values is Dictionary:
+		_error(where, "must be an object")
+		return
+	for key in values:
+		if not key in ranges:
+			_warn(where, "unknown field '{0}' is ignored".format([key]))
+			continue
+		var value = values[key]
+		if not (value is float or value is int) or value < ranges[key][0] or value > ranges[key][1]:
+			_error(where, "'{0}' must be a number from {1} to {2}".format(
+				[key, ranges[key][0], ranges[key][1]]
+			))
 
 
 func _check_properties(where, properties):

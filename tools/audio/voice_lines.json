@@ -427,6 +427,319 @@
           "Trade caravan at your service."
         ]
       }
+    },
+    "syndicate_crew": {
+      "description": "Sandline Syndicate drivers and gunners on a crackling CB radio",
+      "speakers": [
+        "am_fenrir",
+        "bf_isabella",
+        "am_puck"
+      ],
+      "speed": 1.14,
+      "pitch": 0.9,
+      "style": "cb_radio",
+      "lines": {
+        "select": [
+          "Wheels hot.",
+          "Syndicate rig, talk to me.",
+          "Engine's screaming, boss.",
+          "Gun's loaded, what's the job?",
+          "Riding light.",
+          "Sand in the tires, ready to roll."
+        ],
+        "select_repeat": [
+          "You paying by the click, boss?",
+          "Quit poking the rig.",
+          "We get it, you like us."
+        ],
+        "move": [
+          "Kicking up dust.",
+          "Rolling out.",
+          "Pedal down.",
+          "On the dunes.",
+          "Cutting across.",
+          "Moving fast."
+        ],
+        "attack": [
+          "Light 'em up!",
+          "Hit and run!",
+          "Rockets away!",
+          "They won't see us coming.",
+          "Take the shot!"
+        ],
+        "retreat": [
+          "Burn rubber, get out!",
+          "Scatter!",
+          "Break off, break off!",
+          "Not worth dying for."
+        ],
+        "build": [
+          "Hauling it there.",
+          "Dropping it off.",
+          "We'll make it work."
+        ],
+        "cannot": [
+          "Rig can't go there.",
+          "No road, no ride.",
+          "Not with these wheels."
+        ],
+        "under_attack": [
+          "Taking fire!",
+          "They're on our tail!",
+          "Rig's getting chewed up!",
+          "Ambush!"
+        ],
+        "ready": [
+          "Syndicate rig, ready to ride.",
+          "Fresh off the line, tank's full.",
+          "New wheels, who's paying?"
+        ]
+      }
+    },
+    "syndicate_infantry": {
+      "description": "Sandline Syndicate militia, hired guns on a cheap handset",
+      "speakers": [
+        "am_michael",
+        "af_jessica",
+        "am_eric"
+      ],
+      "speed": 1.15,
+      "pitch": 0.93,
+      "style": "cb_radio_dry",
+      "lines": {
+        "select": [
+          "Hired guns here.",
+          "Yeah, what's the pay?",
+          "Syndicate squad.",
+          "Ready for work.",
+          "Listening, boss."
+        ],
+        "select_repeat": [
+          "Contract says breaks every hour.",
+          "Still waiting on that payday.",
+          "Yeah, yeah, we hear you."
+        ],
+        "move": [
+          "On foot, on our way.",
+          "Moving.",
+          "Through the sand.",
+          "Got it, going.",
+          "Hoofing it."
+        ],
+        "attack": [
+          "Get paid, get 'em!",
+          "Open up!",
+          "Light them up!",
+          "For the cut!"
+        ],
+        "retreat": [
+          "Not for this wage!",
+          "Pull back!",
+          "Run for the trucks!"
+        ],
+        "build": [
+          "Fine, we'll dig.",
+          "Grabbing the shovels.",
+          "On it."
+        ],
+        "cannot": [
+          "Can't walk there.",
+          "No way through.",
+          "Not happening."
+        ],
+        "under_attack": [
+          "We're hit!",
+          "Contact, contact!",
+          "They're shooting at us!",
+          "Taking fire here!"
+        ],
+        "ready": [
+          "Fresh crew, signed and ready.",
+          "Squad hired.",
+          "New guns on the payroll."
+        ]
+      }
+    },
+    "syndicate_pilot": {
+      "description": "Sandline Syndicate pilots, cocky over the rotor noise",
+      "speakers": [
+        "af_bella",
+        "am_onyx"
+      ],
+      "speed": 1.14,
+      "pitch": 0.95,
+      "style": "pilot_radio",
+      "lines": {
+        "select": [
+          "Gunship up.",
+          "Sky's ours, boss.",
+          "Rotors spinning.",
+          "Pilot here, make it quick.",
+          "Up top."
+        ],
+        "select_repeat": [
+          "Fuel's not free, you know.",
+          "I'm hovering, not waiting.",
+          "Pick a target already."
+        ],
+        "move": [
+          "Banking over.",
+          "Going low and fast.",
+          "Skimming the dunes.",
+          "Heading out."
+        ],
+        "attack": [
+          "Strafing run!",
+          "Guns hot!",
+          "Coming in from the sun!",
+          "Rockets out!"
+        ],
+        "retreat": [
+          "Pulling up!",
+          "Getting out of here!",
+          "Bugging out!"
+        ],
+        "build": [
+          "Dropping it in.",
+          "Flying it over.",
+          "Airlift, on it."
+        ],
+        "cannot": [
+          "Can't land there.",
+          "No airspace.",
+          "Not reachable."
+        ],
+        "under_attack": [
+          "Flak! Flak!",
+          "Taking hits!",
+          "They've got us locked!"
+        ],
+        "ready": [
+          "Gunship fueled and ready.",
+          "Rotors up, ready to fly.",
+          "Fresh bird on the pad."
+        ]
+      }
+    },
+    "boat_crew": {
+      "description": "Boat and hovercraft crews on a marine radio",
+      "speakers": [
+        "bm_lewis",
+        "am_adam",
+        "bf_emma"
+      ],
+      "speed": 1.08,
+      "style": "marine_radio",
+      "lines": {
+        "select": [
+          "Helm here.",
+          "Boat crew ready.",
+          "Deck's clear.",
+          "On the water.",
+          "Afloat and listening."
+        ],
+        "select_repeat": [
+          "We're getting seasick here.",
+          "Steady as she goes.",
+          "Still bobbing, captain."
+        ],
+        "move": [
+          "Full ahead.",
+          "Setting course.",
+          "Making way.",
+          "Heading out.",
+          "Coming about."
+        ],
+        "attack": [
+          "Gunners, fire!",
+          "Engaging from the water!",
+          "Open fire!",
+          "Broadside!"
+        ],
+        "retreat": [
+          "Hard about!",
+          "Full reverse!",
+          "Back to shore!"
+        ],
+        "build": [
+          "Ferrying it over.",
+          "Landing party going.",
+          "Bringing it across."
+        ],
+        "cannot": [
+          "Can't sail there.",
+          "Too shallow.",
+          "No water route."
+        ],
+        "under_attack": [
+          "We're hit, hull damage!",
+          "Taking water!",
+          "Under fire!"
+        ],
+        "ready": [
+          "Boat launched, crew aboard.",
+          "Ready on the water.",
+          "Hull's sealed, ready to sail."
+        ]
+      }
+    },
+    "rail_crew": {
+      "description": "Freight train driver laying and running track",
+      "speakers": [
+        "bm_george",
+        "am_liam"
+      ],
+      "speed": 1.06,
+      "style": "work_radio",
+      "lines": {
+        "select": [
+          "Train here.",
+          "Driver listening.",
+          "Engine's steaming.",
+          "On the rails."
+        ],
+        "select_repeat": [
+          "Mind the gap.",
+          "Running on time, boss.",
+          "Choo choo, alright?"
+        ],
+        "move": [
+          "Laying track there.",
+          "Rolling down the line.",
+          "Full steam.",
+          "Heading out."
+        ],
+        "attack": [
+          "We're freight, not a warship!",
+          "Ram them? Really?",
+          "No guns on this train."
+        ],
+        "retreat": [
+          "Reverse the engine!",
+          "Back down the line!",
+          "Get us out of here!"
+        ],
+        "build": [
+          "Laying rails.",
+          "Track going down.",
+          "Building the line."
+        ],
+        "cannot": [
+          "Can't lay track there.",
+          "No line goes there.",
+          "Ground's no good."
+        ],
+        "under_attack": [
+          "They're shooting the train!",
+          "Cars under fire!",
+          "Derail warning!"
+        ],
+        "ready": [
+          "Freight train ready.",
+          "Engine coupled, ready to roll.",
+          "All aboard."
+        ]
+      }
     }
   },
   "advisor": {

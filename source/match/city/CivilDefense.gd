@@ -4,13 +4,15 @@ extends Node
 # militia that drives out to fight anything hostile entering the city, then returns home.
 # Both scale with population and are rebuilt from the city warehouse when lost. Posts and
 # militia slow down during blackouts. When attackers outmatch the defense, the city calls
-# for help (MatchSignals.city_threat_changed).
+# for help (MatchSignals.city_threat_changed). Posts and militia are the faction's
+# "ag_turret", "aa_turret" and "militia" roles (see Factions.gd), e.g. Foundry bunkers.
 
 enum ThreatLevel { NONE, CONTAINED, OVERWHELMING }
 
-const AntiGroundTurretScene = preload("res://source/match/units/AntiGroundTurret.tscn")
-const AntiAirTurretScene = preload("res://source/match/units/AntiAirTurret.tscn")
-const MilitiaScene = preload("res://source/match/units/Militia.tscn")
+const DefaultAntiGroundTurretScene = preload("res://source/match/units/AntiGroundTurret.tscn")
+const DefaultAntiAirTurretScene = preload("res://source/match/units/AntiAirTurret.tscn")
+const DefaultMilitiaScene = preload("res://source/match/units/Militia.tscn")
+const Factions = preload("res://source/data-model/Factions.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
 const AutoAttacking = preload("res://source/match/units/actions/AutoAttacking.gd")
 
@@ -22,6 +24,9 @@ var _militia = []
 var _since_last_militia_s = 0.0
 var _since_last_post_s = 0.0
 var _initial_posts_placed = false
+var _ag_post_scene = null
+var _aa_post_scene = null
+var _militia_scene = null
 
 @onready var _city = get_parent()
 @onready var _match = find_parent("Match")
@@ -30,10 +35,18 @@ var _initial_posts_placed = false
 func _ready():
 	if not _match.is_node_ready():
 		await _match.ready
+	_ag_post_scene = _role_scene("ag_turret", DefaultAntiGroundTurretScene)
+	_aa_post_scene = _role_scene("aa_turret", DefaultAntiAirTurretScene)
+	_militia_scene = _role_scene("militia", DefaultMilitiaScene)
 	var timer = Timer.new()
 	timer.timeout.connect(_tick.bind(Constants.Match.CivilDefense.TICK_S))
 	add_child(timer)
 	timer.start(Constants.Match.CivilDefense.TICK_S)
+
+
+func _role_scene(role, default_scene):
+	var path = Factions.role_scene_of(_city.player, role)
+	return load(path) if path != null else default_scene
 
 
 func get_posts():
@@ -71,7 +84,7 @@ func _tick(delta):
 	if not _initial_posts_placed:
 		_initial_posts_placed = true
 		for _i in range(expected_posts()):
-			_spawn_post(core, AntiGroundTurretScene)
+			_spawn_post(core, _ag_post_scene)
 		for _i in range(expected_militia()):
 			_spawn_militia(core)
 	var power_factor = 0.5 + 0.5 * _city.power_ratio
@@ -88,7 +101,7 @@ func _reinforce(core):
 		get_militia().size() < expected_militia()
 		and _since_last_militia_s >= c.MILITIA_REINFORCEMENT_S
 		and _city.take_from_warehouse(
-			Constants.Match.Units.PRODUCTION_COSTS[MilitiaScene.resource_path]
+			Constants.Match.Units.PRODUCTION_COSTS[_militia_scene.resource_path]
 		)
 	):
 		_since_last_militia_s = 0.0
@@ -100,9 +113,7 @@ func _reinforce(core):
 	):
 		_since_last_post_s = 0.0
 		var has_aa_post = get_posts().any(func(post): return post.attack_domains.has(0))
-		var scene = (
-			AntiAirTurretScene if _city.tier >= 3 and not has_aa_post else AntiGroundTurretScene
-		)
+		var scene = _aa_post_scene if _city.tier >= 3 and not has_aa_post else _ag_post_scene
 		_spawn_post(core, scene)
 
 
@@ -178,7 +189,7 @@ func _spawn_post(core, scene):
 
 
 func _spawn_militia(core):
-	var militia = MilitiaScene.instantiate()
+	var militia = _militia_scene.instantiate()
 	var position = _find_spot_around(core, 0.9, 3.0)
 	if position == null:
 		militia.free()

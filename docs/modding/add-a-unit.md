@@ -57,6 +57,10 @@ work separate) and change `id` to match the file name.
   the base.
 - `tier`: city tier needed (1 Frontier, 2 Industrial, 3 Electric).
 - `produced_by`: which structure makes it, e.g. `["vehicle_factory"]`.
+- `factions`: who may build it, e.g. `["syndicate"]` for the Sandline Syndicate only.
+  Leave it out and every faction gets it. A unit does not inherit its base's
+  `factions`, so a unit built on the raider is shared unless you say otherwise. See
+  [factions](../../data/README.md#factionsjson) for faction rosters and AI roles.
 
 ## 4. Give it a model
 

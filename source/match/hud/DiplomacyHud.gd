@@ -5,6 +5,7 @@ extends PanelContainer
 # offer a non-aggression pact or an alliance, for free or for goods, with the AI's asking
 # price and Good/Fair/Bad advice. Incoming treaty offers and status changes show here too.
 
+const FactionRules = preload("res://source/data-model/Factions.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
 const Trade = preload("res://source/match/city/Trade.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
@@ -143,30 +144,34 @@ func _process(delta):
 		_refresh_deal()  # strength changes move the prices
 
 
-# Centred at the top between the resources bar and the city panel; on a narrow screen
-# where it does not fit there, it goes on a second row under the resources bar.
+# Centred under the top strip, between the helper column on the left and the city panel;
+# when it does not fit there it is centred on the screen.
 func _place():
 	var screen = get_viewport_rect().size
-	var left = 4.0
-	var right = screen.x - 4.0
+	var top = 40.0
 	var resources = _match.get_node_or_null("HUD/MarginContainer2")
-	var resources_bottom = 4.0
 	if resources != null and resources.visible:
-		left = resources.get_global_rect().end.x + 6.0
-		resources_bottom = resources.get_global_rect().end.y
+		top = round(resources.get_global_rect().end.y + 6.0)
+	var left = 4.0
+	for name in ["HelperPanel", "AutoExpandPanel"]:
+		var panel = _match.get_node("HUD").find_child(name, true, false)
+		if panel != null and panel.is_visible_in_tree() and panel.position.y < top + size.y:
+			left = max(left, panel.get_global_rect().end.x + 6.0)
+	var right = screen.x - 4.0
 	var city = _match.get_node_or_null("HUD/CityHud")
 	if city != null and city.visible:
 		right = city.get_global_rect().position.x - 6.0
+	var x = (screen.x - size.x) / 2.0
 	if size.x <= right - left:
-		return Vector2(round(clamp((screen.x - size.x) / 2.0, left, right - size.x)), 4.0)
-	return Vector2(4.0, round(resources_bottom + 4.0))
+		x = clamp(x, left, right - size.x)
+	return Vector2(round(max(4.0, x)), top)
 
 
 func _build_layout():
-	custom_minimum_size = Vector2(380, 0)
+	custom_minimum_size = Vector2(320, 0)
 	var margin = MarginContainer.new()
 	for side in ["left", "right"]:
-		margin.add_theme_constant_override("margin_" + side, 6)
+		margin.add_theme_constant_override("margin_" + side, 8)
 	for side in ["top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 4)
 	add_child(margin)
@@ -175,8 +180,10 @@ func _build_layout():
 
 	var title = Label.new()
 	title.text = tr("DIPLOMACY")
-	title.add_theme_font_size_override("font_size", 13)
+	title.theme_type_variation = "HeaderLabel"
+	title.add_theme_font_size_override("font_size", 16)
 	_chips_row.add_child(title)
+	_chips_row.add_theme_constant_override("separation", 6)
 	_chips_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_help_button.text = "?"
 	_help_button.tooltip_text = tr("DIPLOMACY_HELP_TOOLTIP")
@@ -327,7 +334,11 @@ func _diplomacy():
 
 
 func faction_name(player):
-	"""same numbering as the trade panel"""
+	"""the player's faction and colour (e.g. "Sandline Syndicate (Red)"), or the same
+	numbering as the trade panel for players without a faction"""
+	var label = FactionRules.label_for(player)
+	if label != "":
+		return label
 	var index = _factions.find(player)
 	return tr("TRADE_FACTION").format([index + 1]) if index >= 0 else "?"
 

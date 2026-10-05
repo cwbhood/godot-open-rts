@@ -1,49 +1,26 @@
-# Open RTS
+# Ironbound
 
-![Open RTS](./media/screenshots/screenshot_1400x650.png "Open RTS")
+![Ironbound](./site/assets/img/battle.webp "Ironbound")
 
-Open Source real-time strategy game made with Godot 4.
+Ironbound is an open source real-time strategy game made with Godot 4.7. Your city builds
+itself; you run the mines, supply lines, trade, diplomacy and the army.
 
-## Purposes of this project
-
-This game is not going to be a very advanced RTS that would compete with other games of this genre. Instead, it will focus on simplicity and clean design so that it can:
- - showcase Godot 4 capabilities in terms of developing RTS games
- - provide an open-source project template for creating RTS games
- - educate game creators on creating RTS game mechanics
+Website: https://cwbhood.github.io/godot-open-rts/
 
 ## Features
 
- - [x] 1 species
- - [x] 2 resources
- - [x] terrain and air units
- - [x] deathmatch mode (human vs AI or AI vs AI)
- - [x] runtime player switching
- - [x] basic fog of war
- - [x] units disappearing in fog of war
- - [x] minimap
- - [x] swarm movement to position
- - [ ] swarm movement to unit
- - [x] simple UI
- - [ ] polished UI
- - [ ] sounds
- - [ ] music
- - [ ] VFX
+ - a city that grows from deliveries, with three tiers of buildings and units
+ - mines, trucks, trains, storage and a power grid that feed it
+ - trade, non-aggression pacts and alliances with AI rivals
+ - AI opponents at several difficulty levels and an opt-in helper AI
+ - desert and island maps, weather, water and amphibious units, start-zone picking
+ - line, fight, patrol and guard orders, stances and Shift queues
+ - replays, a map editor and moddable data files in `data/`
+ - a tutorial and an in-game manual (F1)
 
-## Godot compatibility
+## Playing from source
 
-This project is compatible with Godot `4.3`.
-
- - support for Godot `4.2` is available on `godot-4.2-support` branch.
- - support for Godot `4.1` is available on `godot-4.1-support` branch.
- - support for Godot `4.0` is available on `godot-4.0-support` branch.
-
-## Screenshots
-
-![Screenshot 1](./media/screenshots/screenshot_2_1920x1080.png "Screenshot 1")
-
-![Screenshot 2](./media/screenshots/screenshot_3_1920x1080.png "Screenshot 2")
-
-![Screenshot 3](./media/screenshots/screenshot_4_1920x1080.png "Screenshot 3")
+Open the folder in Godot 4.7 and press Play, or run `godot --path .`.
 
 ## Testing
 
@@ -53,16 +30,10 @@ scenarios, batches across maps and AIs, stress runs and the scripting API.
 
 ## Contributing
 
-Everyone is free to fix bugs or perform refactoring just by opening PR. As for features, please refer to existing issue or create one before starting implementation.
+Bug fixes and refactors are welcome as pull requests. For features, open an issue first.
 
 ## Credits
 
-### Core contributors
- - Pawel Lampe (Lampe Games)
- 
-### Contributors
-
-See [contributors](https://github.com/lampe-games/godot-open-rts/graphs/contributors) page.
-
-### Assets
- - 3D Space Kit by [Kenney](https://www.kenney.nl/assets/space-kit)
+Ironbound grew from [Open RTS](https://github.com/lampe-games/godot-open-rts) by Pawel Lampe
+(Lampe Games), MIT licence. See [ASSET_CREDITS.md](ASSET_CREDITS.md) for every asset and its
+licence, and [LOGO_LICENSES.md](LOGO_LICENSES.md) for logos.

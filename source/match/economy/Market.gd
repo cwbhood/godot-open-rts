@@ -1,7 +1,9 @@
 extends Node
 
 # Match-wide trade services:
-# - ships traded goods with caravans between the factions' depots,
+# - ships traded goods with caravans between the factions' depots (command centers and
+#   structures marked "trade_depot", the Syndicate's Trading Post); a faction with
+#   "armed_caravans" sends them out with guns (CaravanGuns),
 # - runs trade agreements: the same exchange repeated on a schedule, so factions can
 #   come to depend on each other's supply,
 # - keeps embargoes: a faction under embargo cannot trade with the imposing faction and
@@ -14,6 +16,9 @@ const Caravan = preload("res://source/match/units/Caravan.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const Hauling = preload("res://source/match/units/actions/Hauling.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
+const GameData = preload("res://source/data-model/GameData.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
+const CaravanGuns = preload("res://source/match/units/traits/CaravanGuns.gd")
 
 const AGREEMENT_INTERVAL_S = 30.0
 const AGREEMENT_DELIVERIES = 5
@@ -24,6 +29,7 @@ var shipped_total = 0  # statistics
 var raided_total = 0  # statistics
 
 var _embargoes = {}  # "imposer_id:target_id" -> expiry time
+var _trade_depot_scenes = GameData.unit_field("trade_depot", "structure")
 var _elapsed_s = 0.0
 
 
@@ -128,6 +134,9 @@ func ship(sender, receiver, goods):
 	caravan.remove_from_group("controlled_units")
 	caravan.add_to_group("caravans")
 	caravan.cargo = goods.duplicate()
+	var armed = Factions.perk(sender, "armed_caravans")
+	if armed is Dictionary:
+		CaravanGuns.arm(caravan, armed)
 	var deliver = func():
 		if not is_instance_valid(receiver) or receiver.logistics == null:
 			return false
@@ -207,7 +216,11 @@ func _on_city_threat_changed(player, threat_level, position):
 func _closest_depot(player, position):
 	var closest = null
 	for unit in get_tree().get_nodes_in_group("units"):
-		if unit is CommandCenter and unit.player == player and unit.is_constructed():
+		if (
+			(unit is CommandCenter or _trade_depot_scenes.get(unit._scene_path(), false))
+			and unit.player == player
+			and unit.is_constructed()
+		):
 			if (
 				closest == null
 				or (

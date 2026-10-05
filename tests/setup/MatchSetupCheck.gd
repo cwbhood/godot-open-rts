@@ -1,6 +1,6 @@
 extends Node
 
-# Checks the colour and AI difficulty choices of the Play menu end to end and saves
+# Checks the faction, colour and AI difficulty choices of the Play menu end to end and saves
 # screenshots of the menu and of the match it starts:
 #
 #   xvfb-run -a -s "-screen 0 1600x900x24" godot --path . \
@@ -10,7 +10,10 @@ extends Node
 # - the colours and difficulties reach MatchSettings and the players of the match,
 # - every unit wears its owner's colour, also on models whose team-coloured material is
 #   only marked by its "TeamColor" name (the Blender models in tools/blender/),
-# - the difficulty's numbers are applied on top of the personality.
+# - the difficulty's numbers are applied on top of the personality,
+# - the faction dropdown starts on Foundry for the human and Random for AIs; the picked
+#   faction, or the one Random drew for the AI's play style, reaches the players, their
+#   starter units and the diplomacy panel's names.
 # Exits with code 1 when a check fails.
 
 const PlayScene = preload("res://source/main-menu/Play.tscn")
@@ -18,13 +21,15 @@ const GameData = preload("res://source/data-model/GameData.gd")
 const Unit = preload("res://source/match/units/Unit.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
 
-# slot -> [controller personality or "human", difficulty, colour id]
+# slot -> [controller personality or "human", difficulty, colour id, faction choice,
+# faction expected in the match]
 const SLOTS = [
-	["human", "", "orange"],
-	["balanced", "easy", "red"],
-	["raider", "hard", "teal"],
-	["turtle", "brutal", "white"],
+	["human", "", "orange", "foundry", "foundry"],
+	["balanced", "easy", "red", "syndicate", "syndicate"],
+	["raider", "hard", "teal", "random", "syndicate"],  # only the Syndicate suits raiders
+	["turtle", "brutal", "white", "random", "foundry"],
 ]
 
 var _args = {"out": "user://setup-check", "map": "plain_and_simple"}
@@ -63,6 +68,13 @@ func _fill_in_menu(play):
 			slot_options.set_difficulty(slot, SLOTS[slot][1])
 		options[slot].select(choice)
 		options[slot].item_selected.emit(choice)
+	for slot in range(SLOTS.size()):
+		var default = "foundry" if SLOTS[slot][0] == "human" else "random"
+		_expect(
+			slot_options.faction_of(slot) == default,
+			"slot %d faction starts on %s (got %s)" % [slot, default, slot_options.faction_of(slot)]
+		)
+	_pick_faction(play, 1, SLOTS[1][3])
 	# pick through the dropdowns like a player: slot 1 first takes the human's colour...
 	_pick_color(play, 0, palette.find("orange"))
 	_pick_color(play, 1, palette.find("orange"))
@@ -85,6 +97,11 @@ func _fill_in_menu(play):
 	await _frames(5)
 	_screenshot("2-difficulty-dropdown.png")
 	difficulty_button.get_popup().hide()
+	var faction_button = play.find_child("FactionButton1", true, false)
+	faction_button.show_popup()
+	await _frames(5)
+	_screenshot("2b-faction-dropdown.png")
+	faction_button.get_popup().hide()
 	var color_button = play.find_child("ColorButton0", true, false)
 	color_button.show_popup()
 	await _frames(5)
@@ -111,7 +128,23 @@ func _fill_in_menu(play):
 				)
 			)
 			_expect(player_settings.ai_personality == SLOTS[slot][0], "slot %d play style" % slot)
+		_expect(
+			player_settings.faction == SLOTS[slot][4],
+			(
+				"slot %d faction %s reached MatchSettings as %s (got %s)"
+				% [slot, SLOTS[slot][3], SLOTS[slot][4], player_settings.faction]
+			)
+		)
 	return settings
+
+
+func _pick_faction(play, slot, faction_id):
+	var button = play.find_child("FactionButton%d" % slot, true, false)
+	var index = Factions.ids().find(faction_id)
+	if index < 0:
+		index = button.item_count - 1  # Random
+	button.select(index)
+	button.item_selected.emit(index)
 
 
 func _pick_color(play, slot, index):
@@ -139,6 +172,7 @@ func _start(play, settings):
 		_expect(player.color == settings.players[index].color, "player %d has its colour" % index)
 		if SLOTS[index][0] != "human":
 			_check_difficulty(player, SLOTS[index][0], SLOTS[index][1])
+		_check_faction(match_node, player, SLOTS[index][4])
 	for unit in get_tree().get_nodes_in_group("units"):
 		if unit.player == null or not unit is Unit:
 			continue
@@ -172,6 +206,31 @@ func _start(play, settings):
 				_screenshot("%d-base-of-player-%d.png" % [shot, player.get_index() + 1])
 				shot += 1
 				break
+
+
+func _check_faction(match_node, player, faction_id):
+	var where = "player %d" % player.get_index()
+	_expect(
+		player.faction == faction_id, "%s plays %s (got %s)" % [where, faction_id, player.faction]
+	)
+	var wanted = Factions.start_units(faction_id).map(
+		func(id): return GameData.unit_by_id(id)["scene"]
+	)
+	var own = get_tree().get_nodes_in_group("units").filter(
+		func(unit): return unit.player == player and not unit is CommandCenter
+	)
+	for scene_path in wanted:
+		_expect(
+			own.any(func(unit): return unit._scene_path() == scene_path),
+			"%s got its starter %s" % [where, scene_path.get_file()]
+		)
+	var hud = match_node.find_child("DiplomacyHud", true, false)
+	if hud != null and hud.has_method("faction_name"):
+		var label = hud.faction_name(player)
+		_expect(
+			label.begins_with(Factions.display_name(faction_id)),
+			"%s is called '%s' in the diplomacy panel" % [where, label]
+		)
 
 
 func _check_difficulty(player, personality_id, difficulty_id):

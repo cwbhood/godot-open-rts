@@ -9,7 +9,8 @@ extends Node3D
 # - Population produces science on its own, scaled by satisfaction and power. Science is
 #   never spent: the city reaches the next tier when it crosses a threshold.
 # - The city draws power from the grid of its core and keeps a civil defense.
-# - Trading with other factions temporarily speeds up growth for both sides.
+# - Trading with other factions temporarily speeds up growth for both sides (more for a
+#   faction with a "trade_growth" multiplier, the Sandline Syndicate).
 
 signal changed
 signal building_added(building)
@@ -18,6 +19,7 @@ signal tier_reached(tier)
 const CityBuilding = preload("res://source/match/city/CityBuilding.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const CivilDefense = preload("res://source/match/city/CivilDefense.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
 
 var population = Constants.Match.City.STARTING_POPULATION
 var science = 0.0
@@ -174,9 +176,13 @@ func seconds_since_last_trade_with(partner):
 
 func register_trade(partner, traded_value):
 	_last_trade_time_s[partner.get_instance_id()] = _elapsed_s
+	var multiplier = Factions.city_multiplier(player, "trade_growth")
 	trade_growth_boost = min(
-		Constants.Match.Trade.GROWTH_BOOST_MAX,
-		trade_growth_boost + traded_value * Constants.Match.Trade.GROWTH_BOOST_PER_TRADED_VALUE
+		Constants.Match.Trade.GROWTH_BOOST_MAX * multiplier,
+		(
+			trade_growth_boost
+			+ traded_value * Constants.Match.Trade.GROWTH_BOOST_PER_TRADED_VALUE * multiplier
+		)
 	)
 	changed.emit()
 

@@ -6,7 +6,9 @@ extends Node
 # by the player's Logistics node like for any other player; the AI keeps as many as the
 # logistics demand estimate asks for (capped by its personality), recycles the surplus,
 # builds a storage next to clusters of extractors and a freight train once its city
-# reaches the train's tier and far extractors call for one.
+# reaches the train's tier and far extractors call for one. Once the extractors are up it
+# adds its faction's economy buildings (roles "production_boost" and "trade_depot", see
+# Factions.gd): the Foundry next to the vehicle factory, the Trading Post near the city.
 
 signal resources_required(resources, metadata)
 
@@ -25,6 +27,9 @@ const StorageScene = preload("res://source/match/units/Storage.tscn")
 const TrainScene = preload("res://source/match/units/Train.tscn")
 const Train = preload("res://source/match/units/Train.gd")
 const Storage = preload("res://source/match/units/Storage.gd")
+const VehicleFactory = preload("res://source/match/units/VehicleFactory.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
+const FACTION_STRUCTURE_ROLES = ["production_boost", "trade_depot"]
 const EXTRACTOR_PRIORITY = ["iron", "oil", "timber", "copper"]  # ties go to the first
 const REFRESH_INTERVAL_S = 2.0
 const MAX_DEPOSIT_DISTANCE_M = 55.0
@@ -169,13 +174,46 @@ func _next_structure():
 		):
 			best = [ratio, kind]
 	if best == null:
-		return null
+		return _next_faction_structure() if extractors >= MIN_EXTRACTORS_FIRST else null
 	var kind = best[1]
 	var scene_path = _extractor_scenes[kind]
 	var spot = _find_extractor_spot(kind, scene_path)
 	if spot == null:
 		return null
 	return [scene_path, spot]
+
+
+func _next_faction_structure():
+	"""[scene path, position] of the faction's Foundry or Trading Post, or null"""
+	for role in FACTION_STRUCTURE_ROLES:
+		var path = Factions.role_scene_of(_player, role)
+		if (
+			path == null
+			or _count_scene(path) > 0
+			or not _player.can_produce(path)
+			or not _obtainable(path)
+			or not _ai._has_resources_beyond_trade_reserve(
+				Constants.Match.Units.CONSTRUCTION_COSTS[path]
+			)
+		):
+			continue
+		var origin = _ccs[0].global_position
+		var min_distance = 9.0
+		if role == "production_boost":
+			var factories = get_tree().get_nodes_in_group("units").filter(
+				func(unit):
+					return (
+						unit is VehicleFactory and unit.player == _player and unit.is_constructed()
+					)
+			)
+			if factories.is_empty():
+				continue  # it only speeds up factories
+			origin = factories[0].global_position
+			min_distance = 3.0
+		var position = _find_position_near(origin, load(path), min_distance)
+		if position != null:
+			return [path, position]
+	return null
 
 
 func _recycle_surplus_haulers(target):

@@ -161,7 +161,7 @@ func _check_guide():
 	await _shot("4-manual")
 	guide.help_window.hide()
 	var resources_bar = _match.find_child("ResourcesBar", true, false)
-	var tooltip = resources_bar.get_child(0).get_child(0).get_child(0).get_child(0).tooltip_text  # margin > column > row > item
+	var tooltip = resources_bar.find_child("Resource_timber", true, false).tooltip_text
 	_expect(tooltip.contains("\n"), "resource tooltips explain the commodity: " + tooltip)
 
 

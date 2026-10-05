@@ -1,0 +1,21 @@
+{
+  "id": "sam_site",
+  "base": "aa_turret",
+  "factions": ["syndicate"],
+  "name": "SAM_SITE",
+  "description": "SAM_SITE_DESCRIPTION",
+  "model_scale": 0.9,
+  "icon_tint": "#e0905a",
+  "cost": {
+    "iron": 4,
+    "copper": 4
+  },
+  "properties": {
+    "sight_range": 11.0,
+    "hp": 7,
+    "hp_max": 7,
+    "attack_damage": 4,
+    "attack_interval": 1.4,
+    "attack_range": 11.0
+  }
+}

@@ -21,6 +21,10 @@ extends Node
 #
 # --rules=raw|guided picks the match rules preset in the Play menu (default: whatever the
 # menu remembers). With auto-build or AI assist off the bot builds everything by hand.
+#
+# --faction=foundry|syndicate picks the player's faction in the Play menu (default: the
+# menu's, the Foundry League). The bot builds from that faction's roster, tries every
+# combat unit of it at least once and reports in stats.roster which ones it got.
 
 const Human = preload("res://source/match/players/human/Human.gd")
 const Structure = preload("res://source/match/units/Structure.gd")
@@ -35,6 +39,7 @@ const Trade = preload("res://source/match/city/Trade.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const PlayScene = preload("res://source/main-menu/Play.tscn")
+const Factions = preload("res://source/data-model/Factions.gd")
 
 const UNITS = "res://source/match/units/"
 const MINE = UNITS + "Mine.tscn"
@@ -45,18 +50,7 @@ const PYLON = UNITS + "Pylon.tscn"
 const VEHICLE_FACTORY = UNITS + "VehicleFactory.tscn"
 const AIRCRAFT_FACTORY = UNITS + "AircraftFactory.tscn"
 const AIRPORT = UNITS + "Airport.tscn"
-const AG_TURRET = UNITS + "AntiGroundTurret.tscn"
-const COMBAT_UNITS = [
-	UNITS + "Tank.tscn",
-	UNITS + "HeavyTank.tscn",
-	UNITS + "BattleTank.tscn",
-	UNITS + "Artillery.tscn",
-	UNITS + "MissileTruck.tscn",
-	UNITS + "Raider.tscn",
-	UNITS + "Militia.tscn",
-	UNITS + "Helicopter.tscn",
-	UNITS + "Gunship.tscn",
-]
+const AG_TURRET = UNITS + "AntiGroundTurret.tscn"  # without a faction, see _role_scene
 const WEATHERS = [&"clear", &"overcast", &"rain", &"sandstorm"]
 const STUCK_WINDOW_S = 45.0
 const SITE_STALL_S = 240.0
@@ -95,6 +89,7 @@ var _args = {
 	"steps": "24",  # physics steps per rendered frame, so game time keeps up on slow GPUs
 	"helper": "off",
 	"rules": "",  # "raw" or "guided", see source/data-model/MatchRules.gd
+	"faction": "",  # "foundry" or "syndicate"; empty keeps the Play menu's default
 }
 var _logger = ErrorLogger.new()
 var _match = null
@@ -182,6 +177,14 @@ func _start_from_menu():
 		option.item_selected.emit(choice)
 	if _args["rules"] != "":
 		play.get("_rules_options").select_preset(_args["rules"])
+	if _args["faction"] != "":
+		var faction_button = play.find_child("FactionButton0", true, false)
+		var faction_index = Factions.ids().find(_args["faction"])
+		if faction_button == null or faction_index < 0:
+			_finding("menu", "cannot pick faction %s in the Play menu" % _args["faction"])
+		else:
+			faction_button.select(faction_index)
+			faction_button.item_selected.emit(faction_index)
 	await _frames(5)
 	var start = play.find_child("StartButton")
 	if not await _click_control(start, "Play menu start button"):
@@ -205,6 +208,11 @@ func _start_from_menu():
 	_human = humans[0]
 	_camera = get_viewport().get_camera_3d()
 	_handler = _human.find_child("StructurePlacementHandler")
+	_stats["faction"] = _human.faction
+	_stats["roster"] = {}
+	for entry in _roster():
+		_stats["roster"][entry["id"]] = 0
+	MatchSignals.unit_spawned.connect(_on_unit_spawned)
 	var weather = _atmosphere()
 	_say(
 		(
@@ -317,8 +325,19 @@ func _next_building(builder, stock):
 		plan.append([MINE, _deposit_spot("iron", builder.global_position)])
 	if _human.has_tier(2) and have.call(AIRCRAFT_FACTORY) < 1:
 		plan.append([AIRCRAFT_FACTORY, _free_spot_near(_base(), 16.0)])
-	if have.call(AG_TURRET) < 2 and _elapsed_s > 300:
-		plan.append([AG_TURRET, _free_spot_near(_base(), 11.0)])
+	var turret = _role_scene("ag_turret", AG_TURRET)
+	if have.call(turret) < 2 and _elapsed_s > 300:
+		plan.append([turret, _free_spot_near(_base(), 11.0)])
+	var aa_turret = _role_scene("aa_turret", null)
+	if aa_turret != null and _human.has_tier(2) and have.call(aa_turret) < 1:
+		plan.append([aa_turret, _free_spot_near(_base(), 12.0)])
+	var foundry = _role_scene("production_boost", null)
+	var factory = _own_constructed(VEHICLE_FACTORY)
+	if foundry != null and factory != null and have.call(foundry) < 1:
+		plan.append([foundry, _free_spot_near(factory, 4.0)])
+	var trading_post = _role_scene("trade_depot", null)
+	if trading_post != null and have.call(trading_post) < 1 and _elapsed_s > 200:
+		plan.append([trading_post, _free_spot_near(_base(), 15.0)])
 	if have.call(POWER_PLANT) < 2 and _elapsed_s > 400:
 		plan.append([POWER_PLANT, _free_spot_near(_base(), 15.0)])
 	for step in plan:
@@ -334,16 +353,13 @@ func _next_building(builder, stock):
 func _produce_army(stock):
 	var factory = _own_constructed(VEHICLE_FACTORY)
 	if factory != null and _queue_size(factory) < 2:
-		var choices = [UNITS + "BattleTank.tscn", UNITS + "HeavyTank.tscn", UNITS + "Tank.tscn"]
-		if _rng.randf() < 0.3:
-			choices = [UNITS + "Artillery.tscn", UNITS + "MissileTruck.tscn", UNITS + "Raider.tscn"]
-		for scene in choices:
+		for scene in _army_choices("vehicle_factory"):
 			if _human.can_produce(scene) and _has(stock, _cost(scene)):
 				await _produce_at(factory, scene)
 				break
 	var air = _own_constructed(AIRCRAFT_FACTORY)
 	if air != null and _queue_size(air) < 1:
-		for scene in [UNITS + "Gunship.tscn", UNITS + "Helicopter.tscn"]:
+		for scene in _army_choices("aircraft_factory"):
 			if _human.can_produce(scene) and _has(stock, _cost(scene)):
 				await _produce_at(air, scene)
 				break
@@ -358,6 +374,59 @@ func _produce_army(stock):
 			await _produce_at(base, UNITS + "Worker.tscn")
 		elif drones < 2 and _human.can_produce(UNITS + "Drone.tscn"):
 			await _produce_at(base, UNITS + "Drone.tscn")
+
+
+func _roster():
+	"""what the player's faction can make in its factories and with constructors"""
+	var entries = []
+	for producer in ["worker", "vehicle_factory", "aircraft_factory", "command_center"]:
+		for entry in GameData.producible_by(producer, _human.faction):
+			if not entry in entries:
+				entries.append(entry)
+	return entries
+
+
+func _role_scene(role, fallback):
+	var path = Factions.role_scene(_human.faction, role)
+	return path if path != null else fallback
+
+
+func _army_choices(producer_id):
+	"""combat units of the roster: ones never built yet first, then the strongest"""
+	var entries = GameData.producible_by(producer_id, _human.faction).filter(
+		func(entry):
+			return (
+				entry.get("category") == "unit"
+				and entry.get("properties", {}).get("attack_damage") != null
+				and entry.get("movement", "land") != "water"
+			)
+	)
+	entries.sort_custom(
+		func(a, b): return Utils.Dict.sum(a.get("cost", {})) > Utils.Dict.sum(b.get("cost", {}))
+	)
+	var untried = entries.filter(func(entry): return _stats["roster"].get(entry["id"], 0) == 0)
+	if _rng.randf() < 0.3:
+		entries.shuffle()
+	return (untried + entries).map(func(entry): return entry["scene"])
+
+
+func _is_army(unit):
+	var entry = GameData.unit_by_scene(unit._scene_path())
+	return (
+		entry != null
+		and entry.get("category") == "unit"
+		and unit.get("attack_damage") != null
+		and not unit.is_in_group("city_defense")
+		and not unit.is_in_group("caravans")
+	)
+
+
+func _on_unit_spawned(unit):
+	if _human == null or not is_instance_valid(unit) or unit.player != _human:
+		return
+	var entry = GameData.unit_by_scene(unit._scene_path())
+	if entry != null and entry["id"] in _stats["roster"]:
+		_stats["roster"][entry["id"]] += 1
 
 
 func _switch_helper_on():
@@ -406,7 +475,7 @@ func _on_unit_died_with_helper(unit):
 
 
 func _maybe_attack():
-	var army = _own_units(func(unit): return unit.scene_file_path in COMBAT_UNITS and _idle(unit))
+	var army = _own_units(func(unit): return _is_army(unit) and _idle(unit))
 	if army.size() < 6:
 		return
 	var target = _closest_enemy_target(army[0].global_position)
@@ -605,6 +674,9 @@ func _trade_round():
 	hud.get("_get_resource_option").select(Constants.Match.Resources.ALL.find(need[0][0]))
 	hud.get("_give_amount").value = 10
 	hud.get("_get_amount").value = 6
+	if hud.has_method("open_trade"):
+		hud.open_trade()  # the city panel starts folded down to its summary
+		await _frames(2)
 	var button = hud.get("_propose_button")
 	if not button.is_visible_in_tree():
 		_finding("hud", "the trade propose button is not visible", false)
@@ -994,6 +1066,8 @@ func _select(units):
 	if units.size() == 1:
 		var unit = units[0]
 		await _look_at(unit.global_position)
+		if not is_instance_valid(unit):
+			return  # destroyed while the camera moved
 		var screen = _camera.unproject_position(unit.global_position + Vector3(0, 0.3, 0))
 		await _mouse_move(screen)
 		if get_viewport().gui_get_hovered_control() != null:
@@ -1002,6 +1076,8 @@ func _select(units):
 				Vector3(0, 0, -7), Vector3(7, 0, 0), Vector3(-7, 0, 0), Vector3(0, 0, 7)
 			]:
 				await _look_at(unit.global_position + offset)
+				if not is_instance_valid(unit):
+					return
 				screen = _camera.unproject_position(unit.global_position + Vector3(0, 0.3, 0))
 				await _mouse_move(screen)
 				if get_viewport().gui_get_hovered_control() == null:
@@ -1010,6 +1086,8 @@ func _select(units):
 		await _frames(2)
 		await _mouse_button(screen, MOUSE_BUTTON_LEFT, false)
 		await _frames(3)
+		if not is_instance_valid(unit):
+			return
 		if not unit.is_in_group("selected_units"):
 			_stats["clicks_missed"] += 1
 			_bump(_stats, "select_fallbacks")
@@ -1301,6 +1379,10 @@ func _finish():
 	var crash_report = CrashReporter.own_report()
 	if crash_report != null:
 		_finding("crash reporter", "%s, see crash_report.txt" % crash_report["kind"])
+	if _stats.has("roster"):
+		_stats["roster_never_built"] = _stats["roster"].keys().filter(
+			func(id): return _stats["roster"][id] == 0
+		)
 	var report = {
 		"args": _args,
 		"result": _result,

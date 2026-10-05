@@ -1,0 +1,240 @@
+{
+  "name": "factions-foundry",
+  "description": "Plays the foundry against the syndicate: shows the build menus of its constructor and factories, trains its tier-1 units, refuses the other faction's unit, and stages a mixed battle in the middle of the map.",
+  "map": "plain_and_simple",
+  "seed": 1,
+  "minutes": 1.5,
+  "speed": 1,
+  "fog": false,
+  "players": [
+    {
+      "type": "human",
+      "faction": "foundry"
+    },
+    {
+      "type": "ai",
+      "personality": "balanced",
+      "faction": "syndicate"
+    }
+  ],
+  "setup": [
+    {
+      "do": "give",
+      "player": "own",
+      "resources": {
+        "timber": 300,
+        "iron": 300,
+        "copper": 300,
+        "oil": 300
+      }
+    },
+    {
+      "do": "spawn",
+      "player": "own",
+      "unit": "vehicle_factory",
+      "spot": "base",
+      "offset": [
+        -9,
+        6
+      ],
+      "expect_ok": true
+    },
+    {
+      "do": "spawn",
+      "player": "own",
+      "unit": "aircraft_factory",
+      "spot": "base",
+      "offset": [
+        9,
+        7
+      ],
+      "expect_ok": true
+    }
+  ],
+  "events": [
+    {
+      "at": 1,
+      "do": "reveal"
+    },
+    {
+      "at": 2,
+      "do": "select",
+      "units": "own:worker",
+      "limit": 1,
+      "expect_ok": true
+    },
+    {
+      "at": 3,
+      "do": "screenshot",
+      "name": "build-menu-worker"
+    },
+    {
+      "at": 4,
+      "do": "select",
+      "units": "own:vehicle_factory",
+      "expect_ok": true
+    },
+    {
+      "at": 5,
+      "do": "screenshot",
+      "name": "build-menu-vehicle-factory"
+    },
+    {
+      "at": 6,
+      "do": "produce",
+      "unit": "tank",
+      "count": 2,
+      "expect_ok": true
+    },
+    {
+      "at": 7,
+      "do": "produce",
+      "unit": "raider"
+    },
+    {
+      "at": 8,
+      "do": "select",
+      "units": "own:aircraft_factory",
+      "expect_ok": true
+    },
+    {
+      "at": 9,
+      "do": "screenshot",
+      "name": "build-menu-aircraft-factory"
+    },
+    {
+      "at": 10,
+      "do": "declare_war",
+      "player": "own",
+      "on": "p1"
+    },
+    {
+      "at": 14,
+      "do": "spawn",
+      "player": "own",
+      "unit": "heavy_tank",
+      "count": 2,
+      "spot": [
+        23,
+        30
+      ],
+      "spacing": 2.5
+    },
+    {
+      "at": 14,
+      "do": "spawn",
+      "player": "own",
+      "unit": "battle_tank",
+      "count": 2,
+      "spot": [
+        23,
+        30
+      ],
+      "spacing": 2.5
+    },
+    {
+      "at": 14,
+      "do": "spawn",
+      "player": "own",
+      "unit": "artillery",
+      "count": 2,
+      "spot": [
+        23,
+        30
+      ],
+      "spacing": 2.5
+    },
+    {
+      "at": 14,
+      "do": "spawn",
+      "player": "p1",
+      "unit": "raider",
+      "count": 2,
+      "spot": [
+        29,
+        30
+      ],
+      "spacing": 2.5
+    },
+    {
+      "at": 14,
+      "do": "spawn",
+      "player": "p1",
+      "unit": "rocket_technical",
+      "count": 2,
+      "spot": [
+        29,
+        30
+      ],
+      "spacing": 2.5
+    },
+    {
+      "at": 14,
+      "do": "spawn",
+      "player": "p1",
+      "unit": "gunship",
+      "count": 2,
+      "spot": [
+        29,
+        30
+      ],
+      "spacing": 2.5
+    },
+    {
+      "at": 15,
+      "do": "fight",
+      "units": "own:combat",
+      "to": [
+        29,
+        30
+      ]
+    },
+    {
+      "at": 15,
+      "do": "fight",
+      "units": "p1:combat",
+      "to": [
+        23,
+        30
+      ]
+    },
+    {
+      "at": 14,
+      "do": "camera",
+      "spot": [
+        26,
+        30
+      ]
+    },
+    {
+      "at": 18,
+      "do": "screenshot",
+      "name": "mixed-battle"
+    },
+    {
+      "at": 21,
+      "do": "screenshot",
+      "name": "mixed-battle-2"
+    }
+  ],
+  "checks": [
+    {
+      "at": 40,
+      "name": "the foundry trained its tier-1 unit",
+      "expect": "units",
+      "units": "own:tank",
+      "min": 1
+    },
+    {
+      "end": true,
+      "name": "the factory refused the other faction's unit",
+      "expect": "units",
+      "units": "own:raider",
+      "equals": 0
+    },
+    {
+      "end": true,
+      "expect": "no_errors"
+    }
+  ]
+}

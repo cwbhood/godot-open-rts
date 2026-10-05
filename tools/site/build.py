@@ -409,7 +409,7 @@ DOWNLOAD = f"""
         <h3>Linux</h3>
         <ol><li>Unzip <code>Ironbound-linux-x86_64.zip</code>.</li><li>Run <code>./Ironbound.x86_64</code> from the folder. If it will not start, run <code>chmod +x Ironbound.x86_64</code> first.</li></ol>
         <h3>macOS</h3>
-        <ol><li>Unzip <code>Ironbound-macos-universal.zip</code> and move the app inside (named <code>Open RTS.app</code> for now) to Applications.</li><li>Right-click (or Control-click) the app, choose <em>Open</em>, then <em>Open</em> again.</li><li>On macOS 15 or later, try to open it once, then go to <em>System Settings</em> &rsaquo; <em>Privacy &amp; Security</em> and click <em>Open Anyway</em>.</li></ol>
+        <ol><li>Unzip <code>Ironbound-macos-universal.zip</code> and move the app inside (<code>Ironbound.app</code>) to Applications.</li><li>Right-click (or Control-click) the app, choose <em>Open</em>, then <em>Open</em> again.</li><li>On macOS 15 or later, try to open it once, then go to <em>System Settings</em> &rsaquo; <em>Privacy &amp; Security</em> and click <em>Open Anyway</em>.</li></ol>
         <p>In the game, press <kbd>F1</kbd> any time for the manual.</p>
       </section>
       <section>
@@ -475,6 +475,7 @@ PLAY_SECTIONS = [
 <tr><td>Control groups</td><td><kbd>Ctrl</kbd>+number saves, the number recalls</td></tr>
 <tr><td>Rotate a blueprint</td><td><kbd>R</kbd>; right-click cancels it</td></tr>
 <tr><td>Manual</td><td><kbd>F1</kbd></td></tr>
+<tr><td>Quicksave / quickload</td><td><kbd>F5</kbd> / <kbd>F9</kbd>; <kbd>Esc</kbd> opens Save game and Load game</td></tr>
 </tbody></table></div>"""),
     ("tutorial", "Your first match", """
 <p>Choose <em>Guided</em> in the Play menu and the tutorial walks you through these steps:</p>
@@ -620,7 +621,17 @@ FACTIONS = f"""
 
 # ---------------------------------------------------------------- changelog
 CHANGES = [
-    ("Unreleased", "Test builds, 4 October 2026", [
+    ("Unreleased", "Test build, 5 October 2026", [
+        "Save and load: Save game and Load game in the pause menu, F5 quicksave, F9 quickload, an autosave every 5 minutes and Continue on the main menu",
+        "Two factions: the Foundry League (tracked armour, bunkers, the Foundry) and the Sandline Syndicate (fast wheeled raiders, gunships, armed trade caravans)",
+        "Faction voices: Syndicate crews, hired guns and pilots sound like the Syndicate; new boat and train crews",
+        "Ironbound title, splash and icon; a tabbed Options screen and a full pause menu",
+        "New HUD with a resource strip and folding panels; the Play menu fits 720p screens",
+        "Original soundtrack that follows the fighting",
+        "End screen with stats, a score chart and Play again",
+        "Fixed: fog of war rendering black on some graphics cards",
+    ]),
+    ("Test builds", "4 October 2026", [
         "Units steer around each other instead of getting stuck in crowds",
         "New unit models made in Blender, with a New / Classic switch in Options",
         "Play harness: one tool to play and test matches from scripts",
@@ -691,9 +702,9 @@ ROADMAP = f"""
 </div>
 <section aria-label="Roadmap">
   <div class="wrap cards">
-    {road("Now", "tag-built", "First public build", ["Merge the test build features into one release", "Windows, Linux and macOS downloads", "This website"])}
-    {road("Next", "tag-planned", "Two factions", ["Faction plumbing: each unit can belong to a faction", "Split the rosters between Foundry League and Sandline Syndicate", "AI that plays each faction by role", "City twists and balance simulations", "Nine new models: Battle Tank, Rocket Technical, Bunker, Flak Tower and more"])}
-    {road("Next", "tag-planned", "Polish", ["Slimmer, faster unit models", "Music", "More maps, including island maps for four players"])}
+    {road("Now", "tag-built", "First public build", ["Every test build feature in one release", "Save and load, autosave", "Windows, Linux and macOS downloads", "This website"])}
+    {road("Built", "tag-built", "Two factions", ["Each unit can belong to a faction", "Foundry League and Sandline Syndicate rosters", "AI that plays each faction by role", "City twists: Foundry production, Syndicate trade", "Faction voices"])}
+    {road("Next", "tag-planned", "Polish", ["Nine new models: Battle Tank, Rocket Technical, Bunker, Flak Tower and more", "Slimmer, faster unit models", "Faction balance from AI ladders", "More maps, including island maps for four players"])}
     {road("Later", "tag-later", "Play in the browser", ["A web build with Godot's browser renderer", "Online matches hosted by one player, joined with a lobby code", "Free hosting, no game servers to pay for"])}
   </div>
 </section>
@@ -752,9 +763,9 @@ SUPPORT_DOCS = docs_page([
     ("contents", "What a report contains", '''<p>Game version and build, Godot version, the map, players and AI styles, match time, weather, unit count, frame rate and memory, your OS, CPU and GPU, the most frequent errors with their call stacks, the crash backtrace and the last log lines.</p>
 <p><strong>It contains no names, accounts or addresses.</strong> Folder paths are shortened so your user name does not appear.</p>'''),
     ("where", "Where reports are kept", '''<div class="table-wrap"><table><thead><tr><th>System</th><th>Folder</th></tr></thead><tbody>
-<tr><td>Windows</td><td><code>%APPDATA%\\Godot\\app_userdata\\Open RTS\\crash_reports</code></td></tr>
-<tr><td>Linux</td><td><code>~/.local/share/godot/app_userdata/Open RTS/crash_reports</code></td></tr>
-<tr><td>macOS</td><td><code>~/Library/Application Support/Godot/app_userdata/Open RTS/crash_reports</code></td></tr>
+<tr><td>Windows</td><td><code>%APPDATA%\\Ironbound\\crash_reports</code></td></tr>
+<tr><td>Linux</td><td><code>~/.local/share/Ironbound/crash_reports</code></td></tr>
+<tr><td>macOS</td><td><code>~/Library/Application Support/Ironbound/crash_reports</code></td></tr>
 </tbody></table></div>'''),
     ("manual", "Report a problem by hand", f'''<p>For bugs that are not crashes, <a href="{REPO}/issues/new">open an issue</a>: say what you did, what you expected and what happened, and attach a screenshot if you can. A GitHub account is needed.</p>'''),
 ])

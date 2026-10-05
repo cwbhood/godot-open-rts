@@ -12,8 +12,11 @@ var _streams = {}  # path -> AudioStream (null when it failed to load)
 
 
 static func set_id_for_unit(unit):
+	"""the set of a unit as its owner's faction voices it (a Syndicate militia is not a Foundry one)"""
 	var scene_path = unit._scene_path() if unit.has_method("_scene_path") else unit.scene_file_path
-	return GameData.voice_set_id_for(GameData.unit_by_scene(scene_path))
+	var owner = unit.get("player")
+	var faction = owner.get("faction") if owner != null else ""
+	return GameData.voice_set_id_for(GameData.unit_by_scene(scene_path), faction if faction else "")
 
 
 static func line_path(voice_set, line):

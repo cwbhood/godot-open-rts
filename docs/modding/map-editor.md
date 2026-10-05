@@ -46,9 +46,9 @@ Saved maps are a small mod in your user folder:
 | `user://mods/custom_maps/data/maps/<id>.json` | the map: size, seed and everything you placed |
 | `user://mods/custom_maps/maps/<id>.tscn` | a two-line scene pointing the desert map at that file |
 
-`user://` is `%APPDATA%\Godot\app_userdata\Open RTS` on Windows,
-`~/.local/share/godot/app_userdata/Open RTS` on Linux and
-`~/Library/Application Support/Godot/app_userdata/Open RTS` on macOS.
+`user://` is `%APPDATA%\Ironbound` on Windows,
+`~/.local/share/Ironbound` on Linux and
+`~/Library/Application Support/Ironbound` on macOS.
 
 To share a map, send both files; the other player puts them in the same folders. To add
 a map to the game itself, copy the JSON to `data/maps/`, copy

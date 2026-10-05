@@ -5,12 +5,14 @@ extends PanelContainer
 # keeps and whether it scouts. Clicking a warning moves the camera there.
 
 const Helper = preload("res://source/match/players/human/Helper.gd")
+const HudStyle = preload("res://source/match/hud/HudStyle.gd")
 
 const REFRESH_INTERVAL_S = 0.5
 const KEEP_CHOICES = [0, 10, 25, 50, 100]
 const ARMY_CHOICES = [0, 4, 8, 12, 20]
 const ALERT_COLOR = Color(1.0, 0.75, 0.4)
 const ALERT_SHOWN_S = 30.0
+const WIDTH = 280
 
 var _helper = null
 var _title = Label.new()
@@ -27,40 +29,35 @@ var _since_refresh_s = REFRESH_INTERVAL_S
 
 func _ready():
 	name = "HelperPanel"
-	custom_minimum_size = Vector2(300, 0)
-	var margin = MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 6)
-	add_child(margin)
+	custom_minimum_size = Vector2(WIDTH, 0)
+	var margin = HudStyle.margin(self, 8, 5)
 	var box = VBoxContainer.new()
 	margin.add_child(box)
-	var header = HBoxContainer.new()
-	box.add_child(header)
 	_title.text = tr("HELPER_TITLE")
-	_title.add_theme_font_size_override("font_size", 16)
-	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title.tooltip_text = tr("HELPER_TOOLTIP")
 	_title.mouse_filter = Control.MOUSE_FILTER_PASS
-	header.add_child(_title)
+	_collapse.pressed.connect(func(): _set_collapsed(_details.visible))
+	var header = HudStyle.header("helper", _title, null)
+	box.add_child(header)
 	_switch.focus_mode = Control.FOCUS_NONE
 	_switch.tooltip_text = tr("HELPER_TOOLTIP")
+	_switch.add_theme_font_size_override("font_size", 13)
 	_switch.toggled.connect(_on_switch_toggled)
 	header.add_child(_switch)
-	_collapse.flat = true
-	_collapse.focus_mode = Control.FOCUS_NONE
-	_collapse.pressed.connect(func(): _set_collapsed(_details.visible))
+	HudStyle.style_fold_button(_collapse)
 	header.add_child(_collapse)
 	box.add_child(_details)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.custom_minimum_size = Vector2(288, 0)
-	_status.add_theme_font_size_override("font_size", 12)
+	_status.custom_minimum_size = Vector2(WIDTH - 16, 0)
+	_status.add_theme_font_size_override("font_size", 13)
+	_status.theme_type_variation = "MutedLabel"
 	_details.add_child(_status)
 	_alert.flat = true
 	_alert.focus_mode = Control.FOCUS_NONE
 	_alert.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_alert.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_alert.clip_text = true
-	_alert.custom_minimum_size = Vector2(288, 0)
+	_alert.custom_minimum_size = Vector2(WIDTH - 16, 0)
 	_alert.add_theme_font_size_override("font_size", 12)
 	_alert.add_theme_color_override("font_color", ALERT_COLOR)
 	_alert.add_theme_color_override("font_hover_color", ALERT_COLOR.lightened(0.3))
@@ -161,8 +158,12 @@ func _option(choices, tooltip):
 
 func _set_collapsed(collapsed):
 	_details.visible = not collapsed
-	_collapse.text = "+" if collapsed else "–"
+	HudStyle.set_folded_icon(_collapse, collapsed)
 	reset_size()
+
+
+func set_collapsed(collapsed):
+	_set_collapsed(collapsed)
 
 
 func _on_switch_toggled(pressed):

@@ -560,7 +560,7 @@ func _stock_share(kind):
 
 
 func _extractor_scene_for(kind):
-	for entry in GameData.producible_by("worker"):
+	for entry in GameData.producible_by("worker", _player().faction):
 		if kind in entry.get("extracts", []) and _player().meets_tier_requirement(entry["scene"]):
 			return entry["scene"]
 	return null
@@ -573,7 +573,7 @@ func _cheapest_power_plant():
 func _scene_with_field(power_field, producer):
 	"""cheapest unlocked structure with the power field; producer: also no grid-only nodes"""
 	var best = null
-	for entry in GameData.producible_by("worker"):
+	for entry in GameData.producible_by("worker", _player().faction):
 		var power = entry.get("power", {})
 		if float(power.get(power_field, 0.0)) <= 0.0:
 			continue

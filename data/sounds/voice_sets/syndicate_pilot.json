@@ -1,0 +1,181 @@
+{
+  "id": "syndicate_pilot",
+  "kind": "speech",
+  "description": "Sandline Syndicate pilots, cocky over the rotor noise",
+  "folder": "res://assets/audio/voices/syndicate_pilot/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Gunship up.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Sky's ours, boss.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Rotors spinning.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Pilot here, make it quick.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Up top.",
+        "speaker": "af_bella"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Fuel's not free, you know.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "I'm hovering, not waiting.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Pick a target already.",
+        "speaker": "am_onyx"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Banking over.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Going low and fast.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Skimming the dunes.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Heading out.",
+        "speaker": "am_onyx"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Strafing run!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Guns hot!",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Coming in from the sun!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "Rockets out!",
+        "speaker": "af_bella"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Pulling up!",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Getting out of here!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Bugging out!",
+        "speaker": "af_bella"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Dropping it in.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Flying it over.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Airlift, on it.",
+        "speaker": "am_onyx"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't land there.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "No airspace.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "Not reachable.",
+        "speaker": "af_bella"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "Flak! Flak!",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Taking hits!",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "They've got us locked!",
+        "speaker": "am_onyx"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Gunship fueled and ready.",
+        "speaker": "af_bella"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Rotors up, ready to fly.",
+        "speaker": "am_onyx"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Fresh bird on the pad.",
+        "speaker": "af_bella"
+      }
+    ]
+  }
+}

@@ -108,6 +108,7 @@ func run():
 	mouse.block_real_mouse = not real_mouse
 	add_child(recorder)
 	add_child(api)
+	api.match_replaced.connect(func(new_match): _match = new_match)
 	get_tree().root.add_child.call_deferred(mouse)
 	_match = load("res://source/match/Match.tscn").instantiate()
 	_match.settings = _match_settings(map_path)
@@ -177,6 +178,8 @@ func _match_settings(map_path):
 		for color in colors:
 			if color["id"] == entry.get("color", ""):
 				player_settings.color = color["color"]
+		# "foundry", "syndicate" or "random"; left out the player builds everything
+		player_settings.faction = str(entry.get("faction", ""))
 		if entry.has("start_zone"):
 			player_settings.start_zone = int(entry["start_zone"])
 		if entry.has("start_position"):

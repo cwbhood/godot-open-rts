@@ -75,6 +75,7 @@ func _try_handling_movement(delta: float) -> bool:
 		screen_move_vector.normalized()
 		* delta
 		* Vector2(movement_speed, movement_speed * 2.0)
+		* _scroll_speed_factor()
 		* size
 	)
 	var camera_move_vector = (
@@ -94,6 +95,9 @@ func _calculate_screen_move_vector() -> Vector2:
 	var y_axis = Input.get_axis("move_map_up", "move_map_down")
 	var move_vector = Vector2(x_axis, y_axis)
 
+	if not _edge_scrolling_enabled():
+		return move_vector
+
 	if mouse_pos.x <= screen_margin_for_movement:
 		move_vector.x = -1
 
@@ -112,10 +116,25 @@ func _calculate_screen_move_vector() -> Vector2:
 func _try_handling_zoom(event: InputEvent):
 	if not event is InputEventMouseButton or not event.is_pressed():
 		return
-	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+	var zoom_in_button = MOUSE_BUTTON_WHEEL_DOWN if _zoom_inverted() else MOUSE_BUTTON_WHEEL_UP
+	var zoom_out_button = MOUSE_BUTTON_WHEEL_UP if _zoom_inverted() else MOUSE_BUTTON_WHEEL_DOWN
+	if event.button_index == zoom_in_button:
 		_zoom_in()
-	elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+	elif event.button_index == zoom_out_button:
 		_zoom_out()
+
+
+# the player's camera options (Options.gd); the map editor shares this camera
+func _scroll_speed_factor() -> float:
+	return Globals.options.camera_scroll_speed
+
+
+func _edge_scrolling_enabled() -> bool:
+	return Globals.options.edge_scrolling
+
+
+func _zoom_inverted() -> bool:
+	return Globals.options.invert_zoom
 
 
 func _zoom_in():

@@ -223,6 +223,7 @@ func _players_info():
 			return {
 				"color": player.color.to_html(false),
 				"personality": player.get("personality_id"),
+				"faction": player.get("faction"),
 				"human": player.get_script().resource_path.contains("human"),
 			}
 	)

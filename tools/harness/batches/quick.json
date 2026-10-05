@@ -1,5 +1,14 @@
 {
   "name": "quick",
   "description": "Every scenario once: the quick check before pushing a change.",
-  "runs": ["smoke", "place-extractors", "line-orders", "helper-never-attacks", "stress-40v40"]
+  "runs": [
+    "smoke",
+    "place-extractors",
+    "line-orders",
+    "helper-never-attacks",
+    "stress-40v40",
+    "factions-foundry",
+    "factions-syndicate",
+    "save-load"
+  ]
 }
