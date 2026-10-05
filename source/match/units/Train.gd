@@ -557,7 +557,9 @@ func _show_cargo():
 		if main == null or cargo[resource] > cargo[main]:
 			main = resource
 	if main != null:
-		_cargo_material.albedo_color = HudStyle.resource_color(main).darkened(0.15)
+		# the goods' HUD colour, dusted down to sit with the weathered wagons
+		var colour = HudStyle.resource_color(main)
+		_cargo_material.albedo_color = colour.lerp(Color(0.45, 0.42, 0.38), 0.35).darkened(0.2)
 	var per_wagon = float(cargo_capacity if cargo_capacity != null else 40) / _cargo_meshes.size()
 	var left = float(total)
 	for mesh in _cargo_meshes:

@@ -28,22 +28,23 @@ from mesh_kit import (  # noqa: E402
 GAME_SCALE = 0.22
 GAUGE = 1.435
 
+# the "Grounded" look: weathered, muted, earthy materials under hard desert light
 PALETTE.update({
     "TeamColor": ((0.22, 0.42, 0.78), 0.55, 0.0),
-    "Hood": ((0.33, 0.35, 0.36), 0.7, 0.1),
-    "HoodDark": ((0.22, 0.23, 0.24), 0.75, 0.1),
-    "Frame": ((0.12, 0.12, 0.13), 0.7, 0.3),
-    "Wheel": ((0.18, 0.17, 0.16), 0.5, 0.6),
-    "Steel": ((0.45, 0.46, 0.47), 0.45, 0.6),
-    "Glass": ((0.08, 0.11, 0.14), 0.2, 0.0),
-    "Hazard": ((0.95, 0.72, 0.12), 0.6, 0.0),
-    "HazardDark": ((0.10, 0.10, 0.10), 0.6, 0.0),
-    "Rust": ((0.45, 0.27, 0.16), 0.85, 0.1),
-    "RustDark": ((0.30, 0.18, 0.11), 0.85, 0.1),
+    "Hood": ((0.36, 0.35, 0.31), 0.8, 0.1),
+    "HoodDark": ((0.24, 0.23, 0.21), 0.85, 0.1),
+    "Frame": ((0.13, 0.12, 0.11), 0.8, 0.3),
+    "Wheel": ((0.17, 0.15, 0.13), 0.6, 0.6),
+    "Steel": ((0.40, 0.40, 0.38), 0.55, 0.5),
+    "Glass": ((0.10, 0.11, 0.12), 0.3, 0.0),
+    "Hazard": ((0.62, 0.50, 0.22), 0.75, 0.0),
+    "HazardDark": ((0.14, 0.13, 0.12), 0.75, 0.0),
+    "Rust": ((0.40, 0.26, 0.18), 0.9, 0.1),
+    "RustDark": ((0.27, 0.18, 0.13), 0.9, 0.1),
     "Hollow": ((0.07, 0.06, 0.05), 0.9, 0.0),
     "Cargo": ((0.85, 0.85, 0.85), 0.9, 0.0),
-    "Concrete": ((0.62, 0.60, 0.56), 0.9, 0.0),
-    "Lamp": ((1.0, 0.92, 0.7), 0.3, 0.0, 4.0),
+    "Concrete": ((0.58, 0.54, 0.47), 0.95, 0.0),
+    "Lamp": ((1.0, 0.92, 0.7), 0.3, 0.0, 2.5),
     "Rubber": ((0.07, 0.07, 0.07), 0.9, 0.0),
 })
 
@@ -271,6 +272,8 @@ def build(kind, out_dir, render_dir):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     PARTS.clear()
     GAME["drop_size"] = 0.12
+    GAME["brighten"] = 1.0  # no toy-like lift: the colours stay as weathered as above
+    GAME["saturate"] = 0.85
     GAME["max_tris"] = 3500
     objects = []
     if kind == "train_locomotive":
