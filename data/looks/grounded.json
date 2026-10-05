@@ -3,7 +3,7 @@
 	"description": "Real desert light: a low hard sun, long shadows, dusty air and muted, earthy colour.",
 	"environment": {
 		"tonemap_mode": 4,
-		"tonemap_exposure": 1.32,
+		"tonemap_exposure": 1.4,
 		"ssao_radius": 2.0,
 		"ssao_intensity": 2.2,
 		"ssao_power": 1.6,
@@ -13,8 +13,8 @@
 		"ssil_intensity": 0.8,
 		"glow_intensity": 0.25,
 		"glow_bloom": 0.03,
-		"adjustment_contrast": 1.08,
-		"adjustment_saturation": 0.95,
+		"adjustment_contrast": 1.1,
+		"adjustment_saturation": 1.0,
 		"ambient_light_color": [
 			0.72,
 			0.78,
@@ -42,7 +42,7 @@
 	"sun": {
 		"elevation": 36,
 		"azimuth": 30,
-		"energy": 1.25,
+		"energy": 1.45,
 		"tint": [
 			1.0,
 			0.95,
@@ -51,29 +51,29 @@
 		"shadow_blur": 0.8
 	},
 	"ambient": {
-		"energy": 0.9
+		"energy": 1.0
 	},
-	"base_haze": 0.05,
+	"base_haze": 0.03,
 	"terrain": {
 		"sand_pale": [
-			0.84,
-			0.78,
-			0.68
+			0.88,
+			0.82,
+			0.72
 		],
 		"sand_light": [
-			0.8,
-			0.71,
-			0.58
+			0.84,
+			0.74,
+			0.6
 		],
 		"sand_dark": [
-			0.66,
-			0.56,
-			0.44
+			0.74,
+			0.63,
+			0.5
 		],
 		"sand_red": [
-			0.7,
-			0.52,
-			0.4
+			0.78,
+			0.58,
+			0.44
 		],
 		"hardpan_color": [
 			0.76,
@@ -112,11 +112,11 @@
 		],
 		"crack_scale": 1.6,
 		"ripple_strength": 0.12,
-		"relief_strength": 0.12
+		"relief_strength": 0.0
 	},
 	"grade": {
 		"lift": 0.02,
-		"split_tone": 0.2,
+		"split_tone": 0.15,
 		"shadow_tint": [
 			0.44,
 			0.5,
@@ -128,7 +128,7 @@
 			0.46
 		],
 		"sharpen": 0.25,
-		"vignette": 0.2,
+		"vignette": 0.18,
 		"grain": 0.025
 	}
 }

@@ -22,7 +22,7 @@ extends Node
 # weather keeps working on top of any look.
 
 const LOOKS_DIR = "res://data/looks"
-const DEFAULT_LOOK = "stylised"
+const DEFAULT_LOOK = "grounded"
 const CLASSIC_LOOK = "classic"
 const GraphicsQuality = preload("res://source/options/GraphicsQuality.gd")
 const GradeShader = preload("res://source/shaders/2d/look_grade.gdshader")
