@@ -3,6 +3,8 @@ extends GridContainer
 # Production or construction buttons generated from the unit definitions in res://data/
 # (see GameData.producible_by). Structures are placed with the blueprint, units are queued
 # in the selected producer. Buttons stay disabled until the city reaches the required tier.
+# Only the units of the player's faction are listed (see Factions.gd); the buttons are
+# made again when the menu is shown for a player of another faction.
 
 const GameData = preload("res://source/data-model/GameData.gd")
 const SLOTS = 16
@@ -14,14 +16,30 @@ const ICON_MARGIN = 10
 var unit = null
 
 var _buttons = {}  # scene path -> button
+var _faction = null  # faction id the buttons were made for
 
 
 func _ready():
 	columns = 4
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var entries = GameData.producible_by(producer_id)
+	_make_buttons(_faction_of(_player()))
+
+
+func _make_buttons(faction_id):
+	_faction = faction_id
+	_buttons.clear()
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
+	var entries = GameData.producible_by(producer_id, faction_id)
+	# without a faction everything is allowed: the units the game had before factions
+	# (no "factions" field, or not data-only) come first so they keep their slots
 	entries.sort_custom(
-		func(a, b): return [int(a.get("tier", 1)), a["id"]] < [int(b.get("tier", 1)), b["id"]]
+		func(a, b):
+			return (
+				[_faction_only(a, faction_id), int(a.get("tier", 1)), a["id"]]
+				< [_faction_only(b, faction_id), int(b.get("tier", 1)), b["id"]]
+			)
 	)
 	entries = entries.slice(0, SLOTS)
 	for _i in range(SLOTS - entries.size()):
@@ -33,8 +51,19 @@ func _ready():
 		add_child(_make_button(entry))
 
 
+static func _faction_only(entry, faction_id):
+	return faction_id == "" and "factions" in entry and "base" in entry
+
+
+static func _faction_of(player):
+	var faction_id = player.get("faction") if player != null else null
+	return faction_id if faction_id is String else ""
+
+
 func _process(_delta):
 	var player = _player()
+	if player != null and _faction_of(player) != _faction:
+		_make_buttons(_faction_of(player))
 	for scene_path in _buttons:
 		_buttons[scene_path].disabled = player == null or not player.can_produce(scene_path)
 
