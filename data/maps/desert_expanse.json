@@ -1,0 +1,14 @@
+{
+  "id": "desert_expanse",
+  "name": "Desert Expanse",
+  "scene": "res://source/match/maps/DesertExpanse.tscn",
+  "players": 4,
+  "size": [120, 120],
+  "generator": {
+    "seed": 7,
+    "resource_layout": "symmetric",
+    "lake_pairs": 2,
+    "forest_pairs": 3,
+    "outcrop_pairs": 4
+  }
+}

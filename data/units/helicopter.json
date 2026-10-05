@@ -1,0 +1,38 @@
+{
+  "id": "helicopter",
+  "category": "unit",
+  "scene": "res://source/match/units/Helicopter.tscn",
+  "model": "res://assets/models/ironbound/units/helicopter.glb",
+  "model_scale": 1.1,
+  "classic_model": "res://assets/models/ironbound/units/helicopter_transport.glb",
+  "classic_model_scale": 1.0,
+  "name": "HELICOPTER",
+  "description": "HELICOPTER_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Helicopter.png",
+  "tier": 2,
+  "cost": {
+    "iron": 4,
+    "copper": 3,
+    "oil": 5
+  },
+  "build_time_s": 7.0,
+  "unit_slots": 3,
+  "speed": 4.0,
+  "produced_by": [
+    "aircraft_factory"
+  ],
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 10,
+    "hp_max": 10,
+    "attack_damage": 1,
+    "attack_interval": 1.0,
+    "attack_range": 5.0,
+    "attack_domains": [
+      "terrain",
+      "air"
+    ]
+  },
+  "projectile": "rocket",
+  "fuel_per_s": 0.03
+}

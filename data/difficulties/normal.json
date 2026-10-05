@@ -1,0 +1,21 @@
+{
+  "id": "normal",
+  "name": "DIFFICULTY_NORMAL",
+  "description": "DIFFICULTY_NORMAL_DESCRIPTION",
+  "order": 2,
+  "cheats": false,
+  "gather_rate": 1.0,
+  "production_speed": 1.0,
+  "think_interval_multiplier": 1.0,
+  "reaction_delay_s": 0.5,
+  "economy_scale": 1.0,
+  "defense_scale": 1.0,
+  "army_size_scale": 1.0,
+  "max_attack_groups": 0,
+  "first_attack_after_s": 0,
+  "raid_interval_scale": 1.0,
+  "scouting": true,
+  "tech_upgrades": true,
+  "retreat_below_hp": 0.0,
+  "focus_fire": true
+}

@@ -1,0 +1,12 @@
+{
+  "name": "maps-vs-ais",
+  "description": "The smoke match on every 2+ player map against each AI personality: 20 matches. Compare with an earlier batch.json via --baseline to spot regressions.",
+  "scenario": "smoke",
+  "matrix": {
+    "map": ["plain_and_simple", "oil_and_iron", "desert_expanse", "four_oases", "twin_basins"],
+    "ai": ["balanced", "raider", "trader", "turtle"]
+  },
+  "override": {"minutes": 8, "speed": 4, "shots_every": 240},
+  "parallel": 2,
+  "timeout_minutes": 20
+}

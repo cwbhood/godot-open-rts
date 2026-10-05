@@ -1,0 +1,26 @@
+{
+  "id": "scout_buggy",
+  "base": "raider",
+  "model": "res://assets/models/ironbound/units/scout_buggy_v2.glb",
+  "model_scale": 1.1,
+  "classic_model": "res://assets/models/ironbound/units/scout_buggy.glb",
+  "classic_model_scale": 1.0,
+  "name": "SCOUT_BUGGY",
+  "description": "SCOUT_BUGGY_DESCRIPTION",
+  "icon_tint": "#9fe0ff",
+  "cost": {
+    "iron": 2,
+    "oil": 2
+  },
+  "build_time_s": 3.0,
+  "unit_slots": 1,
+  "speed": 5.2,
+  "properties": {
+    "sight_range": 12.0,
+    "hp": 4,
+    "hp_max": 4,
+    "attack_damage": 1,
+    "attack_interval": 0.8
+  },
+  "fuel_per_s": 0.008
+}

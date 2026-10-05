@@ -1,0 +1,29 @@
+{
+  "id": "command_center",
+  "category": "structure",
+  "scene": "res://source/match/units/CommandCenter.tscn",
+  "model": "res://assets/models/ironbound/buildings/command_center.glb",
+  "model_scale": 1.0,
+  "blueprint": "res://source/match/units/structure-geometries/CommandCenter.tscn",
+  "name": "CC",
+  "description": "CC_DESCRIPTION",
+  "icon": "res://assets/ui/icons/CommandCenter.png",
+  "tier": 1,
+  "cost": {
+    "timber": 20,
+    "iron": 20,
+    "copper": 6
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 10.0,
+    "hp": 30,
+    "hp_max": 30
+  },
+  "power": {
+    "output_mw": 6.0,
+    "grid_radius_m": 10.0
+  }
+}

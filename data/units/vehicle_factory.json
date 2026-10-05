@@ -1,0 +1,28 @@
+{
+  "id": "vehicle_factory",
+  "category": "structure",
+  "scene": "res://source/match/units/VehicleFactory.tscn",
+  "model": "res://assets/models/ironbound/buildings/vehicle_factory.glb",
+  "model_scale": 1.0,
+  "blueprint": "res://source/match/units/structure-geometries/VehicleFactory.tscn",
+  "name": "VEHICLE_FACTORY",
+  "description": "VEHICLE_FACTORY_DESCRIPTION",
+  "icon": "res://assets/ui/icons/VehicleFactory.png",
+  "tier": 1,
+  "cost": {
+    "timber": 8,
+    "iron": 14,
+    "copper": 2
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 16,
+    "hp_max": 16
+  },
+  "power": {
+    "demand_mw": 4.0
+  }
+}

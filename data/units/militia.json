@@ -1,0 +1,35 @@
+{
+  "id": "militia",
+  "category": "unit",
+  "scene": "res://source/match/units/Militia.tscn",
+  "model": "res://assets/models/ironbound/units/rifleman_squad.glb",
+  "model_scale": 0.7,
+  "classic_model": "res://assets/models/ironbound/units/militia_squad.glb",
+  "classic_model_scale": 2.083,
+  "name": "MILITIA",
+  "description": "MILITIA_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Tank.png",
+  "icon_tint": "#b0b0b0",
+  "tier": 1,
+  "cost": {
+    "iron": 3,
+    "oil": 2
+  },
+  "build_time_s": 0.0,
+  "unit_slots": 0,
+  "speed": 3.2,
+  "produced_by": [],
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 8,
+    "hp_max": 8,
+    "attack_damage": 1,
+    "attack_interval": 0.6,
+    "attack_range": 4.5,
+    "attack_domains": [
+      "terrain",
+      "air"
+    ]
+  },
+  "projectile": "cannon_shell"
+}

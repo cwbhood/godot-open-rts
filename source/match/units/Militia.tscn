@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://i58ffvwxbbwm" path="res://source/match/units/Tank.tscn" id="1_tank"]
+[ext_resource type="Script" path="res://source/match/units/Militia.gd" id="2_script"]
+
+[node name="Militia" instance=ExtResource("1_tank")]
+script = ExtResource("2_script")
+
+[node name="Geometry" parent="." index="0"]
+transform = Transform3D(0.48, 0, 0, 0, 0.48, 0, 0, 0, 0.48, 0, 0, 0)
+
+[node name="Movement" parent="." index="4"]
+speed = 3.2

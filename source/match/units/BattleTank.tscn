@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://source/match/units/HeavyTank.tscn" id="1_heavy"]
+[ext_resource type="Script" path="res://source/match/units/BattleTank.gd" id="2_script"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/weapon_gun.glb" id="3_gun"]
+
+[node name="BattleTank" instance=ExtResource("1_heavy")]
+script = ExtResource("2_script")
+
+[node name="Geometry" parent="." index="0"]
+transform = Transform3D(0.82, 0, 0, 0, 0.82, 0, 0, 0, 0.82, 0, 0, 0)
+
+[node name="Movement" parent="." index="4"]
+speed = 2.0
+
+[node name="LongBarrel" parent="Geometry" instance=ExtResource("3_gun")]
+transform = Transform3D(2.4, 0, 0, 0, 2.4, 0, 0, 0, 2.4, -4.8, 0.85, -4.6)

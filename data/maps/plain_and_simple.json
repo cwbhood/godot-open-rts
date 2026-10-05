@@ -1,0 +1,10 @@
+{
+  "id": "plain_and_simple",
+  "name": "Plain & Simple",
+  "scene": "res://source/match/maps/PlainAndSimple.tscn",
+  "players": 4,
+  "size": [
+    50,
+    50
+  ]
+}

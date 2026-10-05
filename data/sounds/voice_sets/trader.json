@@ -1,0 +1,176 @@
+{
+  "id": "trader",
+  "kind": "speech",
+  "description": "Caravan traders, civilians on a trade route",
+  "folder": "res://assets/audio/voices/trader/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Caravan here.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Goods secure.",
+        "speaker": "af_river"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Trader listening.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "What's the deal?",
+        "speaker": "af_river"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Cargo's loaded.",
+        "speaker": "bm_daniel"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Time is money, friend.",
+        "speaker": "af_river"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "The camels are getting restless.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Still haggling?",
+        "speaker": "af_river"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Taking the road.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "On the trade route.",
+        "speaker": "af_river"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Wagons rolling.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Heading out.",
+        "speaker": "af_river"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "We're traders, not soldiers!",
+        "speaker": "af_river"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "I'll throw a crate at them.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Do I look armed?",
+        "speaker": "af_river"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Protect the cargo!",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Turn the caravan around!",
+        "speaker": "af_river"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Run, run!",
+        "speaker": "bm_daniel"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Delivering supplies.",
+        "speaker": "af_river"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Unloading there.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Bringing the goods over.",
+        "speaker": "af_river"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "The road doesn't go there.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "Can't take the cargo there.",
+        "speaker": "af_river"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "No route.",
+        "speaker": "bm_daniel"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "Bandits! Protect the goods!",
+        "speaker": "af_river"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Caravan under attack!",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "They're after the cargo!",
+        "speaker": "af_river"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Caravan ready to trade.",
+        "speaker": "bm_daniel"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Goods loaded, ready.",
+        "speaker": "af_river"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Trade caravan at your service.",
+        "speaker": "bm_daniel"
+      }
+    ]
+  }
+}

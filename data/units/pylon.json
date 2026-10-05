@@ -1,0 +1,28 @@
+{
+  "id": "pylon",
+  "category": "structure",
+  "scene": "res://source/match/units/Pylon.tscn",
+  "model": "res://assets/models/ironbound/buildings/power_pylon.glb",
+  "model_scale": 1.0,
+  "blueprint": "res://source/match/units/structure-geometries/Pylon.tscn",
+  "name": "PYLON",
+  "description": "PYLON_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AntiAirTurret.png",
+  "icon_tint": "#ffe066",
+  "tier": 1,
+  "cost": {
+    "iron": 2,
+    "copper": 2
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 5.0,
+    "hp": 5,
+    "hp_max": 5
+  },
+  "power": {
+    "grid_radius_m": 8.0
+  }
+}

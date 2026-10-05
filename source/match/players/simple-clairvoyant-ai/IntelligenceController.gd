@@ -16,7 +16,8 @@ var _blacklisted_drone_target_paths = {}
 
 func setup(player):
 	_player = player
-	_attach_current_drones()
+	if not player.scouting:
+		return  # easier AIs leave their drones at home	_attach_current_drones()
 	_initialize_movement_of_current_drones()
 
 

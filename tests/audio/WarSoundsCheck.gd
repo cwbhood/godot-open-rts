@@ -1,0 +1,92 @@
+extends Node
+
+# Stages a small battle and checks that it is heard: weapon fire, impacts, explosions and
+# tank engines. Usage (needs a real renderer, e.g. under xvfb-run):
+#   godot --path . res://tests/audio/WarSoundsCheck.tscn
+# Exits with 1 if a kind of sound never played.
+
+const TankScene = preload("res://source/match/units/Tank.tscn")
+const MilitiaScene = preload("res://source/match/units/Militia.tscn")
+const ArtilleryScene = preload("res://source/match/units/Artillery.tscn")
+const Moving = preload("res://source/match/units/actions/Moving.gd")
+
+
+func _ready():
+	var match_node = load("res://tests/manual/TestDesert.tscn").instantiate()
+	add_child(match_node)
+	await _frames(30)
+	var players = get_tree().get_nodes_in_group("players")
+	var front = Vector3(60.0, 0.0, 60.0)
+	var armies = []
+	for side in range(2):
+		var army = []
+		for i in range(8):
+			var scene = [TankScene, TankScene, MilitiaScene, ArtilleryScene][i % 4]
+			var unit = scene.instantiate()
+			var offset = Vector3(
+				(i % 4) * 2.5 - 4.0, 0.0, (side * 2 - 1) * (9.0 + int(i / 4.0) * 2.5)
+			)
+			MatchSignals.setup_and_spawn_unit.emit(
+				unit, Transform3D(Basis(), front + offset), players[side]
+			)
+			army.append(unit)
+		armies.append(army)
+	await _frames(5)
+	# the factions start neutral (diplomacy): only an AI declaring war would start the battle,
+	# at a moment that varies from run to run, so the check declares it itself
+	var diplomacy = match_node.find_child("Diplomacy", true, false)
+	if diplomacy != null:
+		diplomacy.declare_war(players[0], players[1])
+	for army in armies:
+		for unit in army:
+			unit.action = Moving.new(front)  # drive in: engines, then auto-attack on arrival
+	var camera = get_viewport().get_camera_3d()
+	camera.set_size_safely(18.0)
+	camera.set_position_safely(front)
+	Engine.time_scale = 3.0
+	Engine.max_physics_steps_per_frame = 32
+	var war_sounds = match_node.find_child("WarSounds", true, false)
+	var soundscape = match_node.find_child("Soundscape", true, false)
+	var loudest_tank_engine = 0.0
+	# counted in game time, not frames: how many frames the battle takes depends on how fast
+	# the machine renders, and the factions only open fire once they are at war
+	var started_ms = Time.get_ticks_msec()
+	var game_s = 0.0
+	var next_log_s = 10.0
+	while game_s < 150.0 and not _heard_everything(war_sounds.played_counts):
+		await get_tree().process_frame
+		game_s += get_process_delta_time()
+		loudest_tank_engine = max(loudest_tank_engine, soundscape._targets["tank_engine_loop"])
+		if game_s >= next_log_s:
+			next_log_s += 10.0
+			print("game time %d s " % game_s, war_sounds.played_counts)
+	print("battle took %.0f s of game time, %d ms real" % [game_s, Time.get_ticks_msec() - started_ms])
+	print("played: ", war_sounds.played_counts, " tank engine peak: ", loudest_tank_engine)
+	var failures = 0
+	for kind in ["cannon", "rifle", "rocket", "impact"]:
+		if war_sounds.played_counts.get(kind, 0) == 0:
+			print("FAIL: never heard ", kind)
+			failures += 1
+	if (
+		not war_sounds.played_counts.has("explosion_small")
+		and not war_sounds.played_counts.has("explosion_large")
+	):
+		print("FAIL: no explosion")
+		failures += 1
+	if loudest_tank_engine <= 0.0:
+		print("FAIL: tank engines silent")
+		failures += 1
+	print("war sounds check: {0} failure(s)".format([failures]))
+	get_tree().quit(1 if failures > 0 else 0)
+
+
+func _frames(count):
+	for i in range(count):
+		await get_tree().process_frame
+
+
+func _heard_everything(counts):
+	for kind in ["cannon", "rifle", "rocket", "impact"]:
+		if counts.get(kind, 0) == 0:
+			return false
+	return counts.has("explosion_small") or counts.has("explosion_large")

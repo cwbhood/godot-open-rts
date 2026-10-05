@@ -6,20 +6,37 @@ enum BlueprintPositionValidity {
 	NOT_NAVIGABLE,
 	NOT_ENOUGH_RESOURCES,
 	OUT_OF_MAP,
+	NO_DEPOSIT_NEARBY,
+	TIER_TOO_LOW,
+	IN_WATER,
+	NEEDS_SHORE,
 }
+
+const Extractor = preload("res://source/match/units/Extractor.gd")
+const Worker = preload("res://source/match/units/Worker.gd")
+const GameData = preload("res://source/data-model/GameData.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 
 const ROTATION_BY_KEY_STEP = 45.0
 const ROTATION_DEAD_ZONE_DISTANCE = 0.1
+# with a constructor selected, hovering a deposit picks its extractor automatically
+const AUTO_PICK_HOVER_MARGIN_M = 0.6  # mouse this close to the deposit edge picks it
+const AUTO_PICK_KEEP_MARGIN_M = 2.5  # the blueprint follows the deposit within this ring
+const AUTO_PICK_GAP_M = 0.6  # gap between the snapped blueprint and the deposit
+const AUTO_PICK_SNAP_STEPS = 12  # tries on each side when the spot facing the mouse is taken
 
 const MATERIALS_ROOT = "res://source/match/resources/materials/"
 const BLUEPRINT_VALID_PATH = MATERIALS_ROOT + "blueprint_valid.material.tres"
 const BLUEPRINT_INVALID_PATH = MATERIALS_ROOT + "blueprint_invalid.material.tres"
+const VirtualPointer = preload("res://source/utils/VirtualPointer.gd")
 
 var _active_blueprint_node = null
 var _pending_structure_radius = null
 var _pending_structure_navmap_rid = null
 var _pending_structure_prototype = null
 var _blueprint_rotating = false
+var _auto_deposit = null  # deposit the blueprint was picked for by hovering it
+var _suppressed_deposit = null  # just built at or cancelled, ignored until the mouse leaves
 
 @onready var _player = get_parent()
 @onready var _match = find_parent("Match")
@@ -32,6 +49,8 @@ func _ready():
 
 
 func _unhandled_input(event):
+	if event is InputEventMouseMotion and not _blueprint_rotation_started():
+		_update_auto_picked_extractor()
 	if not _structure_placement_started():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -62,6 +81,8 @@ func _handle_lmb_up_event(_event):
 		_finish_structure_placement()
 	elif blueprint_position_validity == BlueprintPositionValidity.NOT_ENOUGH_RESOURCES:
 		MatchSignals.not_enough_resources_for_construction.emit(_player)
+	else:
+		MatchSignals.structure_placement_refused.emit(_player)
 	_finish_blueprint_rotation()
 
 
@@ -76,6 +97,8 @@ func _handle_mouse_motion_event(_event):
 	get_viewport().set_input_as_handled()
 	if _blueprint_rotation_started():
 		_rotate_blueprint_towards_mouse_pos()
+	elif _auto_deposit != null:
+		_snap_blueprint_next_to_deposit()
 	else:
 		_set_blueprint_position_based_on_mouse_pos()
 	var blueprint_position_validity = _calculate_blueprint_position_validity()
@@ -94,19 +117,58 @@ func _blueprint_rotation_started():
 func _calculate_blueprint_position_validity():
 	if _active_bluprint_out_of_map():
 		return BlueprintPositionValidity.OUT_OF_MAP
+	var scene_path = _pending_structure_prototype.resource_path
+	if not _player.meets_tier_requirement(scene_path):
+		return BlueprintPositionValidity.TIER_TOO_LOW
 	if not _player_has_enough_resources():
 		return BlueprintPositionValidity.NOT_ENOUGH_RESOURCES
+	if (
+		scene_path in Constants.Match.Extraction.EXTRACTOR_KINDS
+		and (
+			Extractor.find_deposit_near(
+				scene_path,
+				_active_blueprint_node.global_position,
+				_pending_structure_radius,
+				get_tree()
+			)
+			== null
+		)
+	):
+		return BlueprintPositionValidity.NO_DEPOSIT_NEARBY
+	var water_validity = (
+		{
+			WaterRules.IN_WATER: BlueprintPositionValidity.IN_WATER,
+			WaterRules.NEEDS_SHORE: BlueprintPositionValidity.NEEDS_SHORE,
+		}
+		. get(
+			WaterRules.structure_problem(
+				_match.map,
+				scene_path,
+				_active_blueprint_node.global_position,
+				_pending_structure_radius
+			),
+			BlueprintPositionValidity.VALID
+		)
+	)
 	var placement_validity = Utils.Match.Unit.Placement.validate_agent_placement_position(
 		_active_blueprint_node.global_position,
 		_pending_structure_radius,
-		get_tree().get_nodes_in_group("units") + get_tree().get_nodes_in_group("resource_units"),
+		(
+			get_tree().get_nodes_in_group("units")
+			+ get_tree().get_nodes_in_group("resource_units")
+			+ get_tree().get_nodes_in_group("city_buildings")
+		),
 		_pending_structure_navmap_rid
 	)
-	if placement_validity == Utils.Match.Unit.Placement.COLLIDES_WITH_AGENT:
-		return BlueprintPositionValidity.COLLIDES_WITH_OBJECT
-	if placement_validity == Utils.Match.Unit.Placement.NOT_NAVIGABLE:
-		return BlueprintPositionValidity.NOT_NAVIGABLE
-	return BlueprintPositionValidity.VALID
+	var validity = (
+		{
+			Utils.Match.Unit.Placement.COLLIDES_WITH_AGENT:
+			BlueprintPositionValidity.COLLIDES_WITH_OBJECT,
+			Utils.Match.Unit.Placement.NOT_NAVIGABLE: BlueprintPositionValidity.NOT_NAVIGABLE,
+		}
+		. get(placement_validity, BlueprintPositionValidity.VALID)
+	)
+	return water_validity if water_validity != BlueprintPositionValidity.VALID else validity
 
 
 func _player_has_enough_resources():
@@ -126,8 +188,26 @@ func _active_bluprint_out_of_map():
 	)
 
 
+func _logistics_hint():
+	"""tells the player whether the site needs haulers and whether it will have power"""
+	var position = _active_blueprint_node.global_position
+	var hints = []
+	if _player.logistics != null and not _player.logistics.is_in_yard(position):
+		hints.append(tr("BLUEPRINT_NEEDS_HAULERS"))
+	var scene_path = _pending_structure_prototype.resource_path
+	if (
+		Constants.Match.Power.DEMAND_MW.get(scene_path, 0.0) > 0.0
+		and _player.power_grid != null
+		and not _player.power_grid.is_position_on_grid(position)
+	):
+		hints.append(tr("BLUEPRINT_OFF_GRID"))
+	return "\n".join(hints)
+
+
 func _update_feedback_label(blueprint_position_validity):
-	_feedback_label.visible = (blueprint_position_validity != BlueprintPositionValidity.VALID)
+	_feedback_label.visible = (
+		blueprint_position_validity != BlueprintPositionValidity.VALID or _logistics_hint() != ""
+	)
 	match blueprint_position_validity:
 		BlueprintPositionValidity.COLLIDES_WITH_OBJECT:
 			_feedback_label.text = tr("BLUEPRINT_COLLIDES_WITH_OBJECT")
@@ -137,6 +217,16 @@ func _update_feedback_label(blueprint_position_validity):
 			_feedback_label.text = tr("BLUEPRINT_NOT_ENOUGH_RESOURCES")
 		BlueprintPositionValidity.OUT_OF_MAP:
 			_feedback_label.text = tr("BLUEPRINT_OUT_OF_MAP")
+		BlueprintPositionValidity.NO_DEPOSIT_NEARBY:
+			_feedback_label.text = tr("BLUEPRINT_NO_DEPOSIT_NEARBY")
+		BlueprintPositionValidity.TIER_TOO_LOW:
+			_feedback_label.text = tr("BLUEPRINT_TIER_TOO_LOW")
+		BlueprintPositionValidity.IN_WATER:
+			_feedback_label.text = tr("BLUEPRINT_IN_WATER")
+		BlueprintPositionValidity.NEEDS_SHORE:
+			_feedback_label.text = tr("BLUEPRINT_NEEDS_SHORE")
+		BlueprintPositionValidity.VALID:
+			_feedback_label.text = _logistics_hint()
 
 
 func _start_structure_placement(structure_prototype):
@@ -168,7 +258,7 @@ func _start_structure_placement(structure_prototype):
 
 
 func _set_blueprint_position_based_on_mouse_pos():
-	var mouse_pos_2d = get_viewport().get_mouse_position()
+	var mouse_pos_2d = VirtualPointer.get_position(get_viewport())
 	var mouse_pos_3d = get_viewport().get_camera_3d().get_ray_intersection(mouse_pos_2d)
 	if mouse_pos_3d == null:
 		return
@@ -188,6 +278,9 @@ func _update_blueprint_color(blueprint_position_is_valid):
 
 
 func _cancel_structure_placement():
+	if _auto_deposit != null and is_instance_valid(_auto_deposit):
+		_suppressed_deposit = _auto_deposit
+	_auto_deposit = null
 	if _structure_placement_started():
 		_feedback_label.hide()
 		_active_blueprint_node.queue_free()
@@ -200,10 +293,11 @@ func _finish_structure_placement():
 			_pending_structure_prototype.resource_path
 		]
 		_player.subtract_resources(construction_cost)
+		var structure = _pending_structure_prototype.instantiate()
+		# only sites laid out by hand pull the selected constructors (see UnitActionsController)
+		structure.set_meta("placed_by_hand", true)
 		MatchSignals.setup_and_spawn_unit.emit(
-			_pending_structure_prototype.instantiate(),
-			_active_blueprint_node.global_transform,
-			_player
+			structure, _active_blueprint_node.global_transform, _player
 		)
 	_cancel_structure_placement()
 
@@ -221,7 +315,7 @@ func _try_rotating_blueprint_by(degrees):
 
 
 func _rotate_blueprint_towards_mouse_pos():
-	var mouse_pos_2d = get_viewport().get_mouse_position()
+	var mouse_pos_2d = VirtualPointer.get_position(get_viewport())
 	var mouse_pos_3d = get_viewport().get_camera_3d().get_ray_intersection(mouse_pos_2d)
 	if mouse_pos_3d == null:
 		return
@@ -243,4 +337,121 @@ func _finish_blueprint_rotation():
 
 
 func _on_structure_placement_request(structure_prototype):
+	if _auto_deposit != null:
+		_cancel_structure_placement()  # a button press wins over the hovered deposit
+		_suppressed_deposit = null
 	_start_structure_placement(structure_prototype)
+
+
+func _update_auto_picked_extractor():
+	if _structure_placement_started() and _auto_deposit == null:
+		return  # the player picked a structure in the menu
+	var mouse_pos_3d = _mouse_pos_3d()
+	if mouse_pos_3d == null:
+		return
+	var hovered = _deposit_under(mouse_pos_3d)
+	if _suppressed_deposit != null and hovered != _suppressed_deposit:
+		_suppressed_deposit = null
+	if _auto_deposit != null:
+		if not is_instance_valid(_auto_deposit) or not _auto_deposit.is_inside_tree():
+			_cancel_structure_placement()
+		elif hovered != null and hovered != _auto_deposit:
+			_cancel_structure_placement()
+		elif not _mouse_near_auto_deposit(mouse_pos_3d):
+			_cancel_structure_placement()
+			_suppressed_deposit = null
+		else:
+			return
+	if hovered == null or hovered == _suppressed_deposit or not _constructor_selected():
+		return
+	var scene_path = _extractor_scene_for(hovered.kind)
+	if scene_path == null:
+		return
+	_start_structure_placement(load(scene_path))
+	_auto_deposit = hovered
+
+
+func _constructor_selected():
+	return get_tree().get_nodes_in_group("selected_units").any(
+		func(unit): return unit is Worker and unit.is_in_group("controlled_units")
+	)
+
+
+func _deposit_under(mouse_pos_3d):
+	var closest = null
+	var closest_distance = INF
+	for deposit in get_tree().get_nodes_in_group("deposits"):
+		if not deposit.is_inside_tree() or not deposit.visible:
+			continue
+		var distance = (deposit.global_position * Vector3(1, 0, 1)).distance_to(
+			mouse_pos_3d * Vector3(1, 0, 1)
+		)
+		if distance <= deposit.radius + AUTO_PICK_HOVER_MARGIN_M and distance < closest_distance:
+			closest = deposit
+			closest_distance = distance
+	return closest
+
+
+func _mouse_near_auto_deposit(mouse_pos_3d):
+	return (
+		(_auto_deposit.global_position * Vector3(1, 0, 1)).distance_to(
+			mouse_pos_3d * Vector3(1, 0, 1)
+		)
+		<= _auto_deposit.radius + _pending_structure_radius + AUTO_PICK_KEEP_MARGIN_M
+	)
+
+
+func _extractor_scene_for(kind):
+	"""scene of a structure constructors can build to extract 'kind', unlocked ones first"""
+	var candidates = []
+	for entry in GameData.producible_by("worker"):
+		if kind in entry.get("extracts", []):
+			candidates.append(entry["scene"])
+	if candidates.is_empty():
+		return null
+	for scene_path in candidates:
+		if _player.meets_tier_requirement(scene_path):
+			return scene_path
+	return candidates[0]
+
+
+func _snap_blueprint_next_to_deposit():
+	"""puts the blueprint right next to the deposit, on the side of the mouse if it is free"""
+	var mouse_pos_3d = _mouse_pos_3d()
+	if mouse_pos_3d == null:
+		return
+	var center = _auto_deposit.global_position * Vector3(1, 0, 1)
+	var direction = (mouse_pos_3d * Vector3(1, 0, 1)) - center
+	if direction.length() < 0.05:
+		direction = Vector3(0, 0, 1)
+	direction = direction.normalized()
+	var distance = _auto_deposit.radius + _pending_structure_radius + AUTO_PICK_GAP_M
+	var height = Vector3(0, mouse_pos_3d.y, 0)
+	for step in range(AUTO_PICK_SNAP_STEPS + 1):
+		for side in [1.0, -1.0]:
+			var angle = side * step * PI / AUTO_PICK_SNAP_STEPS
+			_active_blueprint_node.global_transform.origin = (
+				center + direction.rotated(Vector3.UP, angle) * distance + height
+			)
+			if not (
+				_calculate_blueprint_position_validity()
+				in [
+					BlueprintPositionValidity.COLLIDES_WITH_OBJECT,
+					BlueprintPositionValidity.NOT_NAVIGABLE,
+					BlueprintPositionValidity.OUT_OF_MAP,
+					BlueprintPositionValidity.IN_WATER,
+				]
+			):
+				_feedback_label.global_transform.origin = (
+					_active_blueprint_node.global_transform.origin
+				)
+				return
+	_active_blueprint_node.global_transform.origin = center + direction * distance + height
+	_feedback_label.global_transform.origin = _active_blueprint_node.global_transform.origin
+
+
+func _mouse_pos_3d():
+	var camera = get_viewport().get_camera_3d()
+	if camera == null:
+		return null
+	return camera.get_ray_intersection(VirtualPointer.get_position(get_viewport()))

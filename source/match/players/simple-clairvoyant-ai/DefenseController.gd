@@ -10,10 +10,12 @@ const AATurret = preload("res://source/match/units/AntiAirTurret.gd")
 const AATurretScene = preload("res://source/match/units/AntiAirTurret.tscn")
 
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
+const NO_ROOM_RETRY_S = 30.0  # after finding no free spot, wait before searching again
 
 var _player = null
 var _number_of_pending_ag_turret_resource_requests = 0
 var _number_of_pending_aa_turret_resource_requests = 0
+var _no_room = false  # no free spot was found lately
 
 @onready var _ai = get_parent()
 
@@ -60,7 +62,7 @@ func _setup_refresh_timer():
 	var timer = Timer.new()
 	add_child(timer)
 	timer.timeout.connect(_on_refresh_timer_timeout)
-	timer.start(REFRESH_INTERVAL_S)
+	timer.start(_ai.think_interval(REFRESH_INTERVAL_S))
 
 
 func _attach_current_turrets():
@@ -96,6 +98,8 @@ func _enforce_number_of_ag_turrets():
 
 
 func _enforce_number_of_aa_turrets():
+	if not _player.meets_tier_requirement(AATurretScene.resource_path):
+		return
 	var aa_turrets = get_tree().get_nodes_in_group("units").filter(
 		func(unit): return unit is AATurret and unit.player == _player
 	)
@@ -124,16 +128,23 @@ func _construct_turret(turret_scene):
 	var ccs = get_tree().get_nodes_in_group("units").filter(
 		func(unit): return unit is CommandCenter and unit.player == _player
 	)
+	if _no_room:
+		return
 	var unit_to_spawn = turret_scene.instantiate()
 	# TODO: introduce actual algorithm which takes enemy positions into account
 	var placement_position = Utils.Match.Unit.Placement.find_valid_position_radially(
 		ccs[0].global_position,
 		unit_to_spawn.radius + Constants.Match.Units.EMPTY_SPACE_RADIUS_SURROUNDING_STRUCTURE_M,
 		find_parent("Match").navigation.get_navigation_map_rid_by_domain(
-			unit_to_spawn.movement_domain
+			unit_to_spawn.navigation_domain
 		),
 		get_tree()
 	)
+	if placement_position == Vector3.INF:  # the base is full
+		unit_to_spawn.free()
+		_no_room = true
+		get_tree().create_timer(NO_ROOM_RETRY_S).timeout.connect(func(): _no_room = false)
+		return
 	var target_transform = Transform3D(Basis(), placement_position).looking_at(
 		placement_position + Vector3(0, 0, 1), Vector3.UP
 	)

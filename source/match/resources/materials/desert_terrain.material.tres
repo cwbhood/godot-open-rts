@@ -1,0 +1,30 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3]
+
+[ext_resource type="Shader" path="res://source/shaders/3d/desert_terrain.gdshader" id="1_shader"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_large"]
+frequency = 0.02
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_large"]
+width = 512
+height = 512
+seamless = true
+noise = SubResource("FastNoiseLite_large")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_detail"]
+seed = 5
+frequency = 0.08
+fractal_octaves = 3
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_detail"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("FastNoiseLite_detail")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/noise_large = SubResource("NoiseTexture2D_large")
+shader_parameter/noise_detail = SubResource("NoiseTexture2D_detail")

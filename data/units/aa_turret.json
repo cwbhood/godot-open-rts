@@ -1,0 +1,34 @@
+{
+  "id": "aa_turret",
+  "category": "structure",
+  "scene": "res://source/match/units/AntiAirTurret.tscn",
+  "model": "res://assets/models/ironbound/buildings/defense_aa.glb",
+  "model_scale": 1.0,
+  "blueprint": "res://source/match/units/structure-geometries/AntiAirTurret.tscn",
+  "name": "AA_TURRET",
+  "description": "AA_TURRET_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AntiAirTurret.png",
+  "tier": 2,
+  "cost": {
+    "iron": 5,
+    "copper": 3
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 8.0,
+    "hp": 8,
+    "hp_max": 8,
+    "attack_damage": 2,
+    "attack_interval": 0.75,
+    "attack_range": 8.0,
+    "attack_domains": [
+      "air"
+    ]
+  },
+  "projectile": "rocket",
+  "power": {
+    "demand_mw": 0.5
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "storage",
+  "category": "structure",
+  "scene": "res://source/match/units/Storage.tscn",
+  "model": "res://assets/models/ironbound/buildings/depot.glb",
+  "model_scale": 0.9,
+  "blueprint": "res://source/match/units/structure-geometries/Storage.tscn",
+  "name": "STORAGE",
+  "description": "STORAGE_DESCRIPTION",
+  "icon": "res://assets/ui/icons/ResourceA.png",
+  "icon_tint": "#b7a27a",
+  "tier": 1,
+  "cost": {
+    "timber": 8,
+    "iron": 4
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 16,
+    "hp_max": 16
+  }
+}

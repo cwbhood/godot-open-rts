@@ -1,0 +1,30 @@
+{
+  "id": "hover_skimmer",
+  "base": "raider",
+  "movement": "amphibious",
+  "model": "res://assets/models/ironbound/units/hover_skimmer.glb",
+  "model_scale": 1.0,
+  "name": "HOVER_SKIMMER",
+  "description": "HOVER_SKIMMER_DESCRIPTION",
+  "icon_tint": "#c8f0ff",
+  "cost": {
+    "iron": 3,
+    "oil": 3
+  },
+  "build_time_s": 4.0,
+  "speed": 4.6,
+  "water_speed": 4.6,
+  "produced_by": [
+    "vehicle_factory",
+    "shipyard"
+  ],
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 5,
+    "hp_max": 5,
+    "attack_damage": 1,
+    "attack_interval": 0.6,
+    "attack_range": 4.0
+  },
+  "fuel_per_s": 0.01
+}

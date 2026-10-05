@@ -2,12 +2,17 @@ extends PanelContainer
 
 const Unit = preload("res://source/match/units/Unit.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
+const SupplyRoutesOverlay = preload("res://source/match/hud/SupplyRoutesOverlay.gd")
+const Hauler = preload("res://source/match/units/Hauler.gd")
 
 const GROUND_LEVEL_PLANE = Plane(Vector3.UP, 0)
 const MINIMAP_PIXELS_PER_WORLD_METER = 2
+const UNIT_SYNC_EVERY_PHYSICS_TICKS = 3
 
 var _unit_to_corresponding_node_mapping = {}
 var _camera_movement_active = false
+var _routes_overlay = null
+var _ticks_until_unit_sync = 0
 
 @onready var _match = find_parent("Match")
 @onready var _camera_indicator = find_child("CameraIndicator")
@@ -19,6 +24,10 @@ func _ready():
 	if not FeatureFlags.show_minimap:
 		queue_free()
 	_remove_dummy_nodes()
+	_routes_overlay = SupplyRoutesOverlay.new()
+	_routes_overlay.name = "SupplyRoutesOverlay"
+	_routes_overlay.pixels_per_meter = MINIMAP_PIXELS_PER_WORLD_METER
+	_viewport_background.add_sibling(_routes_overlay)
 	await _match.ready  # make sure Match is ready as it may change map on setup
 	find_child("MinimapViewport").size = (
 		_match.find_child("Map").size * MINIMAP_PIXELS_PER_WORLD_METER
@@ -27,7 +36,12 @@ func _ready():
 
 
 func _physics_process(_delta):
-	_sync_real_units_with_minimap_representations()
+	# unit dots refresh at 20 Hz: a 3 px dot moving a tenth of a metre more often isn't visible,
+	# and walking every unit each tick shows up in big matches
+	_ticks_until_unit_sync -= 1
+	if _ticks_until_unit_sync <= 0:
+		_ticks_until_unit_sync = UNIT_SYNC_EVERY_PHYSICS_TICKS
+		_sync_real_units_with_minimap_representations()
 	_update_camera_indicator()
 
 
@@ -42,7 +56,7 @@ func _sync_real_units_with_minimap_representations():
 		get_tree().get_nodes_in_group("units") + get_tree().get_nodes_in_group("resource_units")
 	)
 	for unit in units_to_sync:
-		if not unit.visible:
+		if not unit.visible or unit is Hauler:  # haulers are drawn by the routes overlay
 			continue
 		units_synced[unit] = 1
 		if not _unit_is_mapped(unit):
@@ -62,7 +76,7 @@ func _map_unit(unit):
 	node_representing_unit.size = Vector2(3, 3)
 	if not unit is Unit:
 		node_representing_unit.rotation_degrees = 45
-	_viewport_background.add_sibling(node_representing_unit)
+	_routes_overlay.add_sibling(node_representing_unit)
 	node_representing_unit.pivot_offset = node_representing_unit.size / 2.0
 	_unit_to_corresponding_node_mapping[unit] = node_representing_unit
 

@@ -8,11 +8,9 @@ BLUEPRINT_COLLIDES_WITH_OBJECT,Something already ocuppies that spot,Inny obiekt 
 BLUEPRINT_NOT_NAVIGABLE,Irregular terrain,Nierówny teren
 BLUEPRINT_NOT_ENOUGH_RESOURCES,Not enough resources,Brakuje zasobów
 BLUEPRINT_OUT_OF_MAP,Out of map limits,Poza granicami mapy
-RESOURCE_A,Blue Crystal,Niebieski Kryształ
-RESOURCE_B,Red Crystal,Czerwony Kryształ
 CANCEL_CURRENT_ACTION,Cancel current action,Anuluj aktualną akcję
-WORKER,Worker,Robotnik
-WORKER_DESCRIPTION,collects resources,zbiera zasoby
+WORKER,Constructor,Konstruktor
+WORKER_DESCRIPTION,builds structures; haulers bring the materials,wznosi budynki; materiały dowożą transportery
 HELICOPTER,Helicopter,Helikopter
 HELICOPTER_DESCRIPTION,fights ground and air targets,zwlacza cele naziemne i powietrzne
 DRONE,Scout drone,Dron zwiadoczy
@@ -24,8 +22,260 @@ AG_TURRET_DESCRIPTION,fights ground targets,zwalcza cele naziemne
 AA_TURRET,Anti-air turret,Wieżyczka przeciwlotnicza
 AA_TURRET_DESCRIPTION,fights air targets,zwalcza cele powietrzne
 CC,Command center,Centrum dowodzenia
-CC_DESCRIPTION,produces workers,produkuje robotników
+CC_DESCRIPTION,"depot of your supply lines, produces constructors and haulers","skład linii zaopatrzenia, produkuje konstruktorów i transportery"
 VEHICLE_FACTORY,Vehicle factory,Fabryka pojazdów
 VEHICLE_FACTORY_DESCRIPTION,produces vehicles,wytwarza pojazdy
 AIRCRAFT_FACTORY,Aircraft factory,Fabryka jednostek powietrznych
 AIRCRAFT_FACTORY_DESCRIPTION,produces air units,wytwarza jednostki powietrzne
+HEAVY_TANK,Heavy tank,Ciężki czołg
+HEAVY_TANK_DESCRIPTION,"tougher tank, needs the Industrial tier","wytrzymalszy czołg, wymaga epoki przemysłowej"
+CITY,City,Miasto
+CITY_POPULATION,Population {0}/{1} ({2}/s),Populacja {0}/{1} ({2}/s)
+CITY_TRADE_BOOST,[trade boom],[boom handlowy]
+CITY_NO_CORE,[needs a command center],[wymaga centrum dowodzenia]
+CITY_BUILDINGS,"Houses {0}, workshops {1} (production +{2}%)","Domy {0}, warsztaty {1} (produkcja +{2}%)"
+CITY_PRODUCTION,Unit production speed +{0}%,Szybkość produkcji jednostek +{0}%
+CITY_SCIENCE,Science {0}/{1} until {2} (+{3}/s),Nauka {0}/{1} do epoki {2} (+{3}/s)
+CITY_SCIENCE_DONE,Science {0}: final tier reached,Nauka {0}: osiągnięto ostatnią epokę
+TRADE,Trade,Handel
+TRADE_PARTNER,With,Z
+TRADE_FACTION,Faction {0},Frakcja {0}
+TRADE_GIVE,Give,Daj
+TRADE_GET,Get,Weź
+TRADE_PROPOSE,Propose trade,Zaproponuj wymianę
+TRADE_ACCEPT,Accept,Akceptuj
+TRADE_DECLINE,Decline,Odrzuć
+TRADE_INCOMING_OFFER,{0} offers {1} for {2},{0} oferuje {1} za {2}
+TRADE_RESULT_ACCEPTED,Deal! Caravans are on their way.,Umowa! Karawany są w drodze.
+TRADE_RESULT_INVALID,Choose what to give and what to get.,"Wybierz, co dać i co wziąć."
+TRADE_RESULT_PROPOSER_CANNOT_AFFORD,You don't have enough of that.,Nie masz tego tyle.
+TRADE_RESULT_PARTNER_CANNOT_AFFORD,They don't have that much.,Nie mają tyle.
+TRADE_RESULT_PARTNER_BUSY,"They traded recently, try again soon.","Niedawno handlowali, spróbuj za chwilę."
+TRADE_RESULT_PARTNER_REFUSED,"They refused, offer a better deal.","Odmówili, zaproponuj lepszą ofertę."
+TRADE_RESULT_OFFER_EXPIRED,The offer is no longer valid.,Oferta jest już nieaktualna.
+TIMBER,Timber,Drewno
+IRON,Iron,Żelazo
+COPPER,Copper,Miedź
+OIL,Oil,Ropa
+HAULER,Hauler,Transporter
+HAULER_DESCRIPTION,carries materials to sites and goods back home; raidable,wozi materiały na budowy i towary do miasta; można go złupić
+RAIDER,Raider,Łupieżca
+RAIDER_DESCRIPTION,fast light vehicle for hitting supply lines,szybki lekki pojazd do atakowania linii zaopatrzenia
+MISSILE_TRUCK,Missile truck,Wyrzutnia rakiet
+MISSILE_TRUCK_DESCRIPTION,long-range rockets against ground and air,rakiety dalekiego zasięgu na cele naziemne i powietrzne
+ARTILLERY,Artillery,Artyleria
+ARTILLERY_DESCRIPTION,"outranges turrets, fragile up close","zasięgiem przewyższa wieżyczki, słaba z bliska"
+BATTLE_TANK,Battle tank,Czołg podstawowy
+BATTLE_TANK_DESCRIPTION,"the strongest ground unit, needs the Electric tier","najsilniejsza jednostka naziemna, wymaga epoki elektrycznej"
+GUNSHIP,Gunship,Śmigłowiec szturmowy
+GUNSHIP_DESCRIPTION,"heavily armed helicopter, burns a lot of fuel","ciężko uzbrojony śmigłowiec, spala dużo paliwa"
+MILITIA,Militia,Milicja
+MILITIA_DESCRIPTION,"city civil defense, reinforced by the city","obrona cywilna miasta, uzupełniana przez miasto"
+CARAVAN,Trade caravan,Karawana handlowa
+CARAVAN_DESCRIPTION,carries traded goods between cities,przewozi towary między miastami
+OIL_DERRICK,Oil derrick,Szyb naftowy
+OIL_DERRICK_DESCRIPTION,pumps oil from a nearby oil field,wydobywa ropę z pobliskiego złoża
+MINE,Mine,Kopalnia
+MINE_DESCRIPTION,mines a nearby iron or copper deposit,wydobywa pobliskie złoże żelaza lub miedzi
+LUMBER_MILL,Lumber mill,Tartak
+LUMBER_MILL_DESCRIPTION,cuts timber from a nearby forest,pozyskuje drewno z pobliskiego lasu
+POWER_PLANT,Power plant,Elektrownia
+POWER_PLANT_DESCRIPTION,burns oil to power the grid around it,"spala ropę, zasilając sieć wokół siebie"
+PYLON,Pylon,Słup energetyczny
+PYLON_DESCRIPTION,extends the electric grid,rozszerza sieć elektryczną
+SOLAR_PLANT,Solar plant,Elektrownia słoneczna
+SOLAR_PLANT_DESCRIPTION,"power without fuel, needs the Electric tier","prąd bez paliwa, wymaga epoki elektrycznej"
+TIER_FRONTIER,Frontier,Pogranicze
+TIER_INDUSTRIAL,Industrial,Przemysł
+TIER_ELECTRIC,Electric,Elektryczność
+CITY_TIER,Tier {0}: {1},Epoka {0}: {1}
+CITY_SATISFACTION,Needs met {0}%: {1}. Power {2}%,Potrzeby {0}%: {1}. Zasilanie {2}%
+CITY_WAREHOUSE,Warehouse: {0} (gets {1}% of deliveries),Magazyn: {0} (dostaje {1}% dostaw)
+CITY_DEFENSE,"Civil defense: {0} posts, {1} militia, {2}","Obrona cywilna: {0} posterunki, {1} milicji, {2}"
+THREAT_NONE,calm,spokój
+THREAT_CONTAINED,fighting,walka
+THREAT_OVERWHELMING,CITY CALLS FOR HELP,MIASTO WZYWA POMOCY
+LOGISTICS_SUMMARY,"Delivered {0}, lost {1}, looted {2}","Dostarczono {0}, stracono {1}, złupiono {2}"
+OUT_OF_FUEL,Out of oil: vehicles crawl and power plants stop,"Brak ropy: pojazdy zwalniają, elektrownie stają"
+POWER_BAR,{0}/{1} MW,{0}/{1} MW
+POWER_TOOLTIP,"Power supply / demand. A short grid slows factories, extractors, civil defense and science.","Podaż / popyt energii. Niedobór spowalnia fabryki, kopalnie, obronę cywilną i naukę."
+TRADE_PRICES_HEADER,Prices (yours / theirs),Ceny (twoje / ich)
+TRADE_FAIR_AMOUNT,Fair price: about {0} {1},Uczciwa cena: około {0} {1}
+TRADE_PROPOSE_AGREEMENT,Propose agreement,Zaproponuj umowę
+TRADE_AGREEMENT_TOOLTIP,"Repeat this trade every 30 s, 5 times. Caravans carry each delivery.","Powtarzaj tę wymianę co 30 s, 5 razy. Każdą dostawę wiezie karawana."
+TRADE_AGREEMENT_LINE,{0}: {1} for {2} ({3} left),{0}: {1} za {2} (zostało {3})
+TRADE_EMBARGO,Embargo,Embargo
+TRADE_LIFT_EMBARGO,Lift embargo,Znieś embargo
+TRADE_RESULT_EMBARGO,There is an embargo between you.,Obowiązuje embargo.
+BLUEPRINT_NO_DEPOSIT_NEARBY,Must be built next to a matching deposit,Trzeba zbudować obok odpowiedniego złoża
+BLUEPRINT_TIER_TOO_LOW,Your city has not reached the required tier,Miasto nie osiągnęło wymaganej epoki
+BLUEPRINT_NEEDS_HAULERS,Outside the depot yard: haulers must bring the materials,Poza placem składu: materiały muszą dowieźć transportery
+BLUEPRINT_OFF_GRID,Off the power grid: build a pylon nearby,Poza siecią: zbuduj w pobliżu słup
+COST,Cost: {0},Koszt: {0}
+REQUIRES_TIER,Requires the {0} tier,Wymaga epoki: {0}
+EXTRACTS,Extracts {0},Wydobywa: {0}
+CARGO_CAPACITY,cargo {0},ładowność {0}
+GRID_RADIUS,grid {0} m,sieć {0} m
+AI_PLAYER,AI: {0},SI: {0}
+AI_BALANCED,Balanced,Zrównoważona
+AI_BALANCED_DESCRIPTION,"builds, trades and attacks in equal measure","buduje, handluje i atakuje po równo"
+AI_RAIDER,Raider,Łupieżca
+AI_RAIDER_DESCRIPTION,hunts your haulers and extractors early and often,wcześnie i często poluje na twoje transportery i kopalnie
+AI_TRADER,Hoarding trader,Kupiec-chomik
+AI_TRADER_DESCRIPTION,"hoards goods, drives hard bargains and signs agreements","gromadzi towary, twardo negocjuje i podpisuje umowy"
+AI_TURTLE,Turtle,Żółw
+AI_TURTLE_DESCRIPTION,walls up with turrets and out-builds you before attacking,"okopuje się wieżyczkami i rozbudowuje, zanim zaatakuje"
+SANDBOX_MODE,Sandbox,Piaskownica
+SANDBOX_MODE_DESCRIPTION,"no match end, spending into debt allowed, whole map visible","bez końca gry, wydatki na kredyt, cała mapa widoczna"
+ROAD_DIRT,Dirt track,Droga gruntowa
+ROAD_PAVED,Paved road,Droga utwardzona
+ROAD_RAIL,Railway,Kolej
+ROAD_BUTTON,Road,Droga
+ROAD_CURRENT,Route: {0} (haulers x{1} speed),Trasa: {0} (transportery x{1} prędkości)
+ROAD_LENGTH,Length to depot: {0} m,Długość do składu: {0} m
+ROAD_UPGRADE,Upgrade to {0} (x{1} speed) for {2},Ulepsz do: {0} (x{1} prędkości) za {2}
+ROAD_MAXED,Fully upgraded,W pełni ulepszona
+SCOUT_BUGGY,Scout buggy,Łazik zwiadowczy
+SCOUT_BUGGY_DESCRIPTION,"fast, sharp-eyed and fragile; defined only in data","szybki, dalekowzroczny i kruchy; zdefiniowany tylko w danych"
+ESCORTING,Escorting,Eskortuje
+SANDBOX_SPAWN,Spawn,Postaw
+SANDBOX_SPAWN_TOOLTIP,"Left-click the map to spawn, right-click to stop","Kliknij lewym, aby postawić, prawym, aby przestać"
+SANDBOX_TOP_UP,+{0} of everything for all,+{0} wszystkiego dla wszystkich
+AIRPORT,Airport,Lotnisko
+AIRPORT_DESCRIPTION,"drones and planes land here to refuel; right-click it with aircraft selected to send them home","tu lądują drony i samoloty, by zatankować; kliknij prawym przyciskiem z zaznaczonymi samolotami, by je odesłać"
+NEEDS_AIRPORT,"Flies for {0} s, then must land at an airport (build one first)","Lata przez {0} s, potem musi wylądować na lotnisku (najpierw zbuduj lotnisko)"
+AIRCRAFT_LOW_FUEL,LOW FUEL,MAŁO PALIWA
+AIRCRAFT_NO_AIRPORT,NO AIRPORT - WILL CRASH,BRAK LOTNISKA - ROZBIJE SIĘ
+TRADE_VERDICT_GOOD_TITLE,Good deal for you,Dobry interes dla ciebie
+TRADE_VERDICT_FAIR_TITLE,Fair deal,Uczciwa wymiana
+TRADE_VERDICT_BAD_TITLE,Bad deal for you,Zła wymiana dla ciebie
+TRADE_VERDICT_GOOD,"you get {0}% more than you give, at your current prices","dostajesz o {0}% więcej niż dajesz, według twoich obecnych cen"
+TRADE_VERDICT_FAIR,roughly even at your current prices,mniej więcej po równo według twoich obecnych cen
+TRADE_VERDICT_BAD,"you give {0}% more than you get, at your current prices","dajesz o {0}% więcej niż dostajesz, według twoich obecnych cen"
+TRADE_VERDICT_DRAINS,"it would leave you with only {0} {1}","zostałoby ci tylko {0} {1}"
+TRADE_VERDICT_CANNOT_AFFORD,you do not have enough {0},nie masz wystarczająco {0}
+TRADE_VERDICT_FREE,you give nothing away,nic nie oddajesz
+TRADE_RESULT_AT_WAR,"You are at war with them, so they won't trade. Sign a non-aggression pact first (Diplomacy, top of the screen).","Jesteście w stanie wojny, więc nie handlują. Najpierw podpisz pakt o nieagresji (Dyplomacja, góra ekranu)."
+DIPLOMACY,Diplomacy,Dyplomacja
+DIPLOMACY_STATE_WAR,War,Wojna
+DIPLOMACY_STATE_NEUTRAL,Neutral,Neutralni
+DIPLOMACY_STATE_PACT,Pact,Pakt
+DIPLOMACY_STATE_ALLIANCE,Allied,Sojusz
+DIPLOMACY_CHIP_TOOLTIP,Click to see your relations with this faction and offer a pact or an alliance.,"Kliknij, aby zobaczyć relacje z tą frakcją i zaproponować pakt lub sojusz."
+DIPLOMACY_HELP_TOOLTIP,How diplomacy works,Jak działa dyplomacja
+DIPLOMACY_RULES,"Every faction starts Neutral: units only shoot when you order them to, and the first hit on the other side means WAR. At war, units fight on sight and you cannot trade. To end a war, sign a NON-AGGRESSION PACT: for 5 minutes neither of you can shoot the other (others still can), then you are neutral again. Only after a pact (or while neutral) can you ALLY: for 15 minutes you cannot harm each other, you trade at fair prices and an AI ally attacks your enemies. You can have one ally at a time, and only with a faction that has no other ally. When the alliance ends, a 5 minute pact follows, then neutral. Offer treaties for free or with goods; each AI asks a price that depends on its personality and on who is stronger.","Każda frakcja zaczyna jako neutralna: jednostki strzelają tylko na rozkaz, a pierwsze trafienie drugiej strony oznacza WOJNĘ. W czasie wojny jednostki walczą od razu i nie można handlować. Aby zakończyć wojnę, podpisz PAKT O NIEAGRESJI: przez 5 minut żadna strona nie może strzelać do drugiej (inni mogą), potem znów jesteście neutralni. Dopiero po pakcie (albo będąc neutralnym) możesz zawrzeć SOJUSZ: przez 15 minut nie możecie sobie szkodzić, handlujecie po uczciwych cenach, a sojusznik SI atakuje twoich wrogów. Możesz mieć jednego sojusznika naraz i tylko z frakcją bez innego sojusznika. Po sojuszu następuje 5-minutowy pakt, a potem neutralność. Proponuj traktaty za darmo lub za towary; każda SI ma cenę zależną od charakteru i od tego, kto jest silniejszy."
+DIPLOMACY_HELP_WAR,"At war: units fight on sight and you cannot trade. A non-aggression pact is the only way out, and you need one before you can ally.","Wojna: jednostki walczą od razu i nie można handlować. Jedynym wyjściem jest pakt o nieagresji, potrzebny też przed sojuszem."
+DIPLOMACY_HELP_NEUTRAL,"Neutral: units hold fire unless ordered. The first hit, on any unit or caravan, means war.",Neutralni: jednostki nie strzelają bez rozkazu. Pierwsze trafienie jednostki lub karawany oznacza wojnę.
+DIPLOMACY_HELP_PACT,Non-aggression pact: neither of you can shoot the other until it runs out. Others can still attack either of you.,Pakt o nieagresji: do końca paktu żadna strona nie może strzelać do drugiej. Inni wciąż mogą atakować.
+DIPLOMACY_HELP_ALLIANCE,"Allied: no fighting, trades at fair prices, and an AI ally goes after your enemies. A 5 minute pact follows when it ends.","Sojusz: bez walk, handel po uczciwych cenach, a sojusznik SI atakuje twoich wrogów. Po nim następuje 5-minutowy pakt."
+DIPLOMACY_THEY_HAVE_ALLY,They are allied with {0}.,Mają sojusz z {0}.
+DIPLOMACY_OFFER_KIND,Offer,Oferta
+DIPLOMACY_KIND_PACT,Non-aggression pact (5 min),Pakt o nieagresji (5 min)
+DIPLOMACY_KIND_ALLIANCE,Alliance (15 min),Sojusz (15 min)
+DIPLOMACY_USE_THEIR_PRICE,Their price,Ich cena
+DIPLOMACY_USE_THEIR_PRICE_TOOLTIP,Fill in what they ask for this treaty. Set both amounts to 0 to offer it for free.,"Wpisz, czego żądają za ten traktat. Ustaw obie ilości na 0, aby zaproponować go za darmo."
+DIPLOMACY_YOU_GIVE,You give,Dajesz
+DIPLOMACY_YOU_ASK,You ask,Żądasz
+DIPLOMACY_OFFER,Offer treaty,Zaproponuj traktat
+DIPLOMACY_NOTHING,nothing,nic
+DIPLOMACY_PRICE_ASKS,they ask {0},żądają {0}
+DIPLOMACY_PRICE_PAYS,they would sign for free and pay up to {0},podpiszą za darmo i zapłacą do {0}
+DIPLOMACY_PRICE_FREE,they would sign for free,podpiszą za darmo
+DIPLOMACY_PRICE_NEVER,they never make alliances,nigdy nie zawierają sojuszy
+DIPLOMACY_RESULT_ACCEPTED,Signed!,Podpisane!
+DIPLOMACY_RESULT_NEEDS_PACT,"not while at war, sign a non-aggression pact first","nie w czasie wojny, najpierw podpisz pakt o nieagresji"
+DIPLOMACY_RESULT_ALREADY_ALLIED,you already have an ally (one at a time),masz już sojusznika (jednego naraz)
+DIPLOMACY_RESULT_PARTNER_ALLIED,they already have an ally,mają już sojusznika
+DIPLOMACY_RESULT_IN_EFFECT,already in effect,już obowiązuje
+DIPLOMACY_RESULT_REFUSED,They refused. Check their price above or offer more.,Odmówili. Sprawdź ich cenę powyżej lub zaoferuj więcej.
+DIPLOMACY_WORTH_STRONGER,"they are stronger, so this treaty is worth about {0} to you","są silniejsi, więc ten traktat jest wart dla ciebie około {0}"
+DIPLOMACY_WORTH_EVEN,"you are evenly matched, so this treaty is worth about {0} to you","siły są wyrównane, więc ten traktat jest wart dla ciebie około {0}"
+DIPLOMACY_WORTH_WEAKER,"they are weaker, so this treaty is worth only about {0} to you","są słabsi, więc ten traktat jest wart dla ciebie tylko około {0}"
+DIPLOMACY_INCOMING_FREE,{0} offers a {1} for free.,{0} proponuje: {1} za darmo.
+DIPLOMACY_INCOMING_PAYS,{0} offers a {1} and will pay {2}.,{0} proponuje: {1} i zapłaci {2}.
+DIPLOMACY_INCOMING_ASKS,{0} offers a {1} if you pay {3}.,"{0} proponuje: {1}, jeśli zapłacisz {3}."
+DIPLOMACY_TOAST_ATTACKED,{0} attacked you! You are at WAR: no trade until you sign a non-aggression pact.,{0} cię zaatakowała! WOJNA: brak handlu do podpisania paktu o nieagresji.
+DIPLOMACY_TOAST_YOU_ATTACKED,You attacked {0}. You are at WAR: no trade until you sign a non-aggression pact.,Zaatakowałeś {0}. WOJNA: brak handlu do podpisania paktu o nieagresji.
+DIPLOMACY_TOAST_PACT,Non-aggression pact with {0} for 5 minutes. Neither of you can attack the other.,Pakt o nieagresji z {0} na 5 minut. Żadna strona nie może atakować drugiej.
+DIPLOMACY_TOAST_ALLIANCE,Allied with {0} for 15 minutes.,Sojusz z {0} na 15 minut.
+DIPLOMACY_TOAST_ALLIANCE_ENDED,Your alliance with {0} ended. A 5 minute non-aggression pact follows.,Sojusz z {0} wygasł. Następuje 5-minutowy pakt o nieagresji.
+DIPLOMACY_TOAST_NEUTRAL,The pact with {0} ended. You are neutral again: the first hit means war.,Pakt z {0} wygasł. Znów jesteście neutralni: pierwsze trafienie oznacza wojnę.
+DIPLOMACY_TOAST_OTHERS_WAR,{0} and {1} are at war.,{0} i {1} są w stanie wojny.
+DIPLOMACY_TOAST_OTHERS_ALLIANCE,{0} and {1} are now allies.,{0} i {1} zawarły sojusz.
+DIPLOMACY_TOAST_PROTECTED,"You have a treaty with {0} ({1}), so your units won't attack them.","Masz traktat z {0} ({1}), więc twoje jednostki ich nie zaatakują."
+CITY_PANEL_COLLAPSE_TOOLTIP,Fold the city and trade panel away (incoming offers still show),Zwiń panel miasta i handlu (oferty nadal się pojawią)
+CITY_POPULATION_MAX,[max {0}],[maks. {0}]
+CITY_POPULATION_FULL,[city full: {0} raises it to {1}],[miasto pełne: {0} podnosi limit do {1}]
+CITY_POPULATION_FULL_LAST,[city full: largest size],[miasto pełne: największy rozmiar]
+UNITS_BAR,Units {0}/{1},Jednostki {0}/{1}
+UNITS_BAR_TOOLTIP,"Unit slots in use / your cap. Every unit takes slots (light units 1, tanks 2-5), queued units too. At the cap factories refuse new orders until you lose units. All players together share a match cap of {0}, so with {1} players yours is {2}.","Zajęte miejsca jednostek / twój limit. Każda jednostka zajmuje miejsca (lekkie 1, czołgi 2-5), także te w kolejce. Przy limicie fabryki nie przyjmują zamówień, dopóki nie stracisz jednostek. Wszyscy gracze dzielą limit meczu {0}, więc przy {1} graczach twój wynosi {2}."
+MATCH_CLOCK,Ends in {0},Koniec za {0}
+MATCH_CLOCK_DEPLETED,Map dry: ends in {0},Mapa wyczerpana: koniec za {0}
+MATCH_CLOCK_TOOLTIP,The match ends when this clock runs out (or {3} minutes after the last deposit runs dry). The best score wins: citizens + unit slots in use + 5 per building + science / 10. Your score now: {0} ({1} of {2}).,"Mecz kończy się, gdy zegar dobiegnie końca (lub {3} min po wyczerpaniu ostatniego złoża). Wygrywa najlepszy wynik: mieszkańcy + zajęte miejsca jednostek + 5 za budynek + nauka / 10. Twój wynik teraz: {0} ({1}. z {2})."
+MATCH_END_TIME,Time is up,Koniec czasu
+MATCH_END_DEPLETION,Every deposit ran dry,Wszystkie złoża wyczerpane
+MATCH_END_DRAW,Draw,Remis
+MATCH_END_SCORE_ROW,"{0}. {1}: {2} (citizens {3}, army {4}, buildings {5}, science {6})","{0}. {1}: {2} (mieszkańcy {3}, armia {4}, budynki {5}, nauka {6})"
+MATCH_END_YOU,You,Ty
+STORAGE,Storage,Magazyn
+STORAGE_DESCRIPTION,place next to extractors: their conveyors fill it so they never stop; trucks and trains collect full loads,"postaw obok kopalń: przenośniki go napełniają, więc nigdy nie stają; ciężarówki i pociągi zabierają pełne ładunki"
+TRAIN,Freight train,Pociąg towarowy
+TRAIN_DESCRIPTION,"lays its own track to extractors and storages, then runs the loop at twice truck speed with four truckloads","sam kładzie tory do kopalń i magazynów, potem jeździ pętlą dwa razy szybciej niż ciężarówka, z czterema ładunkami"
+LOGISTICS_FLEET,"Trucks {0}: {1} working, {2} standing by, {3} parked (work for about {4}). Trains {5}. Upkeep {6} oil/min","Ciężarówki {0}: {1} w pracy, {2} czeka, {3} na postoju (praca dla ok. {4}). Pociągi {5}. Utrzymanie {6} ropy/min"
+LOGISTICS_RECYCLING,({0} going to be recycled),({0} jedzie do recyklingu)
+LOGISTICS_SURPLUS,{0} trucks had nothing to do for a minute,{0} ciężarówek nie miało nic do roboty przez minutę
+LOGISTICS_RECYCLE_BUTTON,Recycle {0},Recykling {0}
+LOGISTICS_RECYCLE_TOOLTIP,Idle trucks drive to the depot and are taken apart: you get {0}% of their cost back ({1}). They also stop costing upkeep.,Bezczynne ciężarówki jadą do składu i są rozbierane: odzyskujesz {0}% kosztu ({1}). Przestają też kosztować utrzymanie.
+PRIORITY_LOW,low,niski
+PRIORITY_NORMAL,normal,normalny
+PRIORITY_HIGH,high,wysoki
+PRIORITY_BUTTON,"Priority
+{0}","Priorytet
+{0}"
+PRIORITY_TOOLTIP,"How eagerly trucks come here. High: they come first, even from further away. Low: only when nothing better waits.","Jak chętnie przyjeżdżają tu ciężarówki. Wysoki: najpierw tu, nawet z daleka. Niski: tylko gdy nic lepszego nie czeka."
+STORAGE_KIND_BUTTON,"Keeps
+{0}","Trzyma
+{0}"
+STORAGE_AUTO,auto,auto
+STORAGE_KIND_TOOLTIP,"Which commodity this storage takes. Auto: whatever arrives first, until it is empty again.","Jaki towar przyjmuje ten magazyn. Auto: to, co przyjdzie pierwsze, aż znów będzie pusty."
+STORAGE_EMPTY,Empty,Pusty
+ROUTE_STATS,"Route: {0} delivered in {1} trips, {2} lost, about {3} s per trip","Trasa: dostarczono {0} w {1} kursach, stracono {2}, ok. {3} s na kurs"
+ROUTE_ON_TRAIN_LINE,A train serves this stop: trucks only come when it overflows.,Ten przystanek obsługuje pociąg: ciężarówki przyjadą tylko przy przepełnieniu.
+ROUTE_FEEDS_STORAGE,A conveyor feeds a storage next to it.,Przenośnik zasila pobliski magazyn.
+ROUTE_IN_DANGER,A truck was destroyed on this route: trucks avoid it for now.,Na tej trasie zniszczono ciężarówkę: ciężarówki na razie jej unikają.
+GAUGE_TO_STORAGE,conveyor to storage,przenośnik do magazynu
+GAUGE_FULL,"FULL: stopped, waiting for a truck","PEŁNA: stoi, czeka na ciężarówkę"
+GAUGE_FULL_STORAGE,FULL: waiting for a truck or train,PEŁNY: czeka na ciężarówkę lub pociąg
+TRAIN_STATUS_NO_LINE,No line yet: right-click your extractors or storages to add stops,"Brak linii: kliknij PPM swoje kopalnie lub magazyny, by dodać przystanki"
+TRAIN_STATUS_WAITING_FOR_TRACK,Waiting for materials to lay track ({0} per 10 m),Czeka na materiały na tory ({0} za 10 m)
+TRAIN_STATUS_LAYING,"Laying track, {0} m to go","Kładzie tory, zostało {0} m"
+TRAIN_STATUS_RUNNING,Running to {0},Jedzie do: {0}
+TRAIN_STATUS_UNLOADING,Unloading at the depot,Rozładunek w składzie
+TRAIN_STATUS_LOADING,Loading at {0},Załadunek: {0}
+TRAIN_AUTO_LINE,"Auto
+line","Linia
+auto"
+TRAIN_AUTO_LINE_TOOLTIP,Let the train plan its own line again: the busiest far extractors and storages nobody's train serves yet.,Niech pociąg znów sam zaplanuje linię: najbardziej ruchliwe dalekie kopalnie i magazyny bez pociągu.
+TRAIN_LINE,Line: depot > {0},Linia: skład > {0}
+RECYCLE_BUTTON,"Recycle
+{0}","Recykling
+{0}"
+RECYCLE_TOOLTIP,Drive to the closest depot and take apart: gives back {0}.,Jedź do najbliższego składu i rozbierz: zwraca {0}.
+HAULER_DOING_RECYCLING,Driving to the depot to be recycled,Jedzie do składu na recykling
+HAULER_DOING_MANUAL,Under your orders: right-click your command center to put it back on the job board,"Pod twoimi rozkazami: kliknij PPM centrum dowodzenia, by wróciła do zleceń"
+HAULER_DOING_PARKED,Parked: nothing to collect anywhere,Na postoju: nigdzie nic do odebrania
+HAULER_DOING_STANDBY,Standing by at the extractor that fills up next,"Czeka przy kopalni, która napełni się najszybciej"
+HAULER_DOING_COLLECTING,Collecting goods,Odbiera towary
+HAULER_DOING_SUPPLYING,Bringing materials to a site,Wiezie materiały na budowę
+HAULER_DOING_BUSY,Busy,Zajęta
+FLEET_SELECTED,{0} vehicles selected,Zaznaczono pojazdy: {0}
+SHIPYARD,Shipyard,Stocznia
+SHIPYARD_DESCRIPTION,"builds boats and amphibious vehicles; must stand on the shore, next to deep water","buduje łodzie i pojazdy amfibijne; musi stać na brzegu, przy głębokiej wodzie"
+PATROL_BOAT,Patrol boat,Łódź patrolowa
+PATROL_BOAT_DESCRIPTION,"fast gunboat; sails deep and shallow water, cannot go ashore","szybka kanonierka; pływa po głębokiej i płytkiej wodzie, nie wychodzi na ląd"
+AMPHIBIOUS_APC,Amphibious APC,Amfibijny transporter
+AMPHIBIOUS_APC_DESCRIPTION,"armoured eight-wheeler that swims; slower in water, slows down while climbing in or out","opancerzony ośmiokołowiec, który pływa; w wodzie wolniejszy, zwalnia przy wjeździe i wyjeździe"
+HOVER_SKIMMER,Hover skimmer,Poduszkowiec
+HOVER_SKIMMER_DESCRIPTION,"light hovercraft, as fast on water as on sand; fragile","lekki poduszkowiec, na wodzie tak szybki jak na piasku; kruchy"
+BLUEPRINT_IN_WATER,Cannot build in water,Nie można budować w wodzie
+BLUEPRINT_NEEDS_SHORE,Must be built on the shore next to deep water,Trzeba zbudować na brzegu przy głębokiej wodzie

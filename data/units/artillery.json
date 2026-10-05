@@ -1,0 +1,38 @@
+{
+  "id": "artillery",
+  "category": "unit",
+  "scene": "res://source/match/units/Artillery.tscn",
+  "model": "res://assets/models/ironbound/units/artillery.glb",
+  "model_scale": 0.85,
+  "classic_model": "res://assets/models/ironbound/units/artillery_truck.glb",
+  "classic_model_scale": 1.0,
+  "name": "ARTILLERY",
+  "description": "ARTILLERY_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AntiGroundTurret.png",
+  "icon_tint": "#ffd27a",
+  "tier": 2,
+  "cost": {
+    "iron": 8,
+    "copper": 2,
+    "oil": 4
+  },
+  "build_time_s": 9.0,
+  "unit_slots": 3,
+  "speed": 2.0,
+  "produced_by": [
+    "vehicle_factory"
+  ],
+  "properties": {
+    "sight_range": 7.0,
+    "hp": 9,
+    "hp_max": 9,
+    "attack_damage": 5,
+    "attack_interval": 2.5,
+    "attack_range": 11.0,
+    "attack_domains": [
+      "terrain"
+    ]
+  },
+  "projectile": "rocket",
+  "fuel_per_s": 0.02
+}

@@ -22,67 +22,67 @@ layout_mode = 2
 columns = 4
 
 [node name="Panel" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel2" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel3" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel4" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel5" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel6" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel7" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel8" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel9" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel10" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel11" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel12" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel13" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel14" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel15" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="Panel16" type="Panel" parent="MarginContainer/BackgroundGrid"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
 [node name="GenericMenu" parent="MarginContainer" instance=ExtResource("1_4ci70")]

@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/machine_generatorLarge.glb" id="1_m"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/chimney_detailed.glb" id="2_m"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/chimney.glb" id="3_m"]
+
+[node name="Geometry" type="Node3D"]
+
+[node name="machine_generatorLarge_0" parent="." instance=ExtResource("1_m")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, -0, 0, 1.4, -2.8, 0, -2.1)
+
+[node name="chimney_detailed_1" parent="." instance=ExtResource("2_m")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, -0, 0, 0.9, -1.25, 0, -1.85)
+
+[node name="chimney_2" parent="." instance=ExtResource("3_m")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, -0, 0, 0.9, -1.25, 0, -0.9)

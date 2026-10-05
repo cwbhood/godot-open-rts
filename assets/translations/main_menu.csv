@@ -7,3 +7,77 @@ BACK,Back,Wstecz
 CORE_CONTRIBUTORS,Core contributors,Kluczowi współtwórcy
 ASSETS,Assets,Treści multimedialne
 START,Start,Rozpocznij
+REPLAYS,Replays,Powtórki
+REPLAYS_NONE,No replays yet: play a match first,Brak powtórek: najpierw rozegraj mecz
+REPLAY_PLAY,Play,Odtwórz
+REPLAY_PAUSE,Pause,Pauza
+REPLAY_PLAYER_LINE,"Player {0} {1}: tier {2}, population {3}, science {4}
+Delivered {5}, lost {6}, power {7} MW
+{8}","Gracz {0} {1}: epoka {2}, populacja {3}, nauka {4}
+Dostarczono {5}, stracono {6}, energia {7} MW
+{8}"
+REPLAY_EVENT_RAID,{0} lost {1} goods to {2},{0} stracił {1} towarów na rzecz {2}
+REPLAY_EVENT_TIER,{0} reached tier {1},{0} osiągnął epokę {1}
+REPLAY_EVENT_TRADE,{0} traded with {1},{0} handlował z {1}
+REPLAY_EVENT_EMBARGO,{0} put {1} under embargo,{0} nałożył embargo na {1}
+REPLAY_EVENT_CALL_FOR_HELP,{0} city calls for help,miasto {0} wzywa pomocy
+REPLAY_EVENT_ROAD,{0} upgraded a road to level {1},{0} ulepszył drogę do poziomu {1}
+MAP_EDITOR,Map editor,Edytor map
+MAP_EDITOR_DEFAULT_NAME,My desert map,Moja pustynna mapa
+MAP_EDITOR_NAME,Name,Nazwa
+MAP_EDITOR_SIZE,Size (m),Rozmiar (m)
+MAP_EDITOR_SEED,Seed,Ziarno
+MAP_EDITOR_RANDOM,New random,Nowa losowa
+MAP_EDITOR_CLEAR,Clear,Wyczyść
+MAP_EDITOR_OPEN,Open,Otwórz
+MAP_EDITOR_OPEN_PICK,Pick a map...,Wybierz mapę...
+MAP_EDITOR_MIRROR,Mirror placements,Odbijaj postawienia
+MAP_EDITOR_TOOLS,Paint,Malowanie
+MAP_EDITOR_TOOL_LAKE,Lake,Jezioro
+MAP_EDITOR_TOOL_FOREST,Trees,Drzewa
+MAP_EDITOR_TOOL_OUTCROP,Rocks,Skały
+MAP_EDITOR_TOOL_DEPOSIT,Deposit,Złoże
+MAP_EDITOR_TOOL_SPAWN,Start point,Punkt startowy
+MAP_EDITOR_TOOL_ERASE,Desert (erase),Pustynia (usuń)
+MAP_EDITOR_FOREST_KIND,Trees,Drzewa
+MAP_EDITOR_FOREST_ACACIA,Acacia,Akacje
+MAP_EDITOR_FOREST_PINE,Pine,Sosny
+MAP_EDITOR_FOREST_MIXED,Mixed,Mieszany
+MAP_EDITOR_DEPOSIT_KIND,Deposit,Złoże
+MAP_EDITOR_BRUSH,Brush (m),Pędzel (m)
+MAP_EDITOR_INFO,"{0} start points, {1} lakes, {2} forests, {3} rock outcrops. Deposits: {4}","{0} punktów startowych, {1} jezior, {2} lasów, {3} skał. Złoża: {4}"
+MAP_EDITOR_HELP,"Left click places, right click erases. Mirroring copies each placement to the opposite side so both sides get the same map. Move with WASD or the screen edges, zoom with the wheel, rotate with the middle button.","Lewy przycisk stawia, prawy usuwa. Odbijanie kopiuje każde postawienie na przeciwną stronę, więc obie strony mają tę samą mapę. Ruch: WASD lub krawędzie ekranu, przybliżanie: kółko, obrót: środkowy przycisk."
+MAP_EDITOR_SAVE,Save map,Zapisz mapę
+MAP_EDITOR_SAVED,Saved to {0}. It is now in the Play menu.,Zapisano w {0}. Mapa jest już w menu Gra.
+MAP_EDITOR_REBUILDING,Rebuilding the map...,Przebudowywanie mapy...
+MAP_EDITOR_OUTSIDE,That is outside the map.,To jest poza mapą.
+MAP_EDITOR_NOTHING_TO_ERASE,Nothing to erase there.,Nie ma tu nic do usunięcia.
+MAP_EDITOR_TOO_MANY_SPAWNS,A map can have at most {0} start points.,Mapa może mieć najwyżej {0} punktów startowych.
+MAP_EDITOR_NEEDS_NAME,Give the map a name first.,Najpierw nadaj mapie nazwę.
+MAP_EDITOR_NEEDS_SPAWNS,Place at least 2 start points.,Postaw co najmniej 2 punkty startowe.
+MAP_EDITOR_CANNOT_LOAD,That map file could not be read.,Nie można odczytać pliku mapy.
+MAP_EDITOR_START_N,Start {0},Start {0}
+START_PICK_TITLE,Place your starter city,Postaw swoje miasto startowe
+START_PICK_HINT,"Click inside a start zone to place your city. Rivals pick their zones in secret: scout to find them. Bigger dots are richer deposits, and the richest sit in the middle.","Kliknij wewnątrz strefy startowej, aby postawić miasto. Rywale wybierają strefy w tajemnicy: znajdź ich zwiadem. Większe kropki to bogatsze złoża, a najbogatsze leżą na środku."
+START_PICK_TIME_LEFT,{0} s,{0} s
+START_PICK_RANDOM,Random spot,Losowe miejsce
+START_PICK_START,Start match,Rozpocznij mecz
+START_PICK_ZONE_N,Zone {0},Strefa {0}
+START_PICK_YOUR_CITY,Your city,Twoje miasto
+START_PICK_YOU_WAITING,"You: pick a start zone","Ty: wybierz strefę startową"
+START_PICK_YOU_READY,"You: ready in zone {0}","Ty: gotowy w strefie {0}"
+START_PICK_AI_SECRET,AI: picks in secret,AI: wybiera w tajemnicy
+START_PICK_OUTSIDE_ZONE,Pick a spot inside one of the start zones.,Wybierz miejsce wewnątrz jednej ze stref startowych.
+START_PICK_TOO_CLOSE_TO_DEPOSIT,Too close to a deposit: leave room for the extractor.,Za blisko złoża: zostaw miejsce na wydobycie.
+START_PICK_TOO_CLOSE_TO_EDGE,Too close to the edge of the map.,Za blisko krawędzi mapy.
+START_PICK_BLOCKED,"Water, trees or rocks are in the way there.","Woda, drzewa lub skały stoją tam na przeszkodzie."
+START_PICK_LEGEND,"If the timer runs out, you start in your slot's zone.","Gdy czas minie, zaczynasz w strefie swojego miejsca."
+MAP_EDITOR_MIRROR_4,Mirror 4 ways (square maps),Odbijaj na 4 strony (mapy kwadratowe)
+MAP_EDITOR_MIRROR_4_TOOLTIP,"Copies each placement to all four quarters, turned around the center, so a 4-player map gives every start zone the same surroundings.","Kopiuje każde postawienie do czterech ćwiartek, obrócone wokół środka, więc na mapie dla 4 graczy każda strefa startowa ma to samo otoczenie."
+MAP_EDITOR_FAIR,"Fair start: every start zone has the same deposits at the same distances.","Uczciwy start: każda strefa startowa ma te same złoża w tych samych odległościach."
+MAP_EDITOR_UNFAIR,"Unfair start: {0}","Nieuczciwy start: {0}"
+MAP_EDITOR_TOOL_ISLAND,Island,Wyspa
+MAP_EDITOR_TOOL_SHALLOWS,Shallows (ford),Płycizna (bród)
+MAP_EDITOR_SEA,Sea (land only on islands),Morze (ląd tylko na wyspach)
+MAP_EDITOR_WATER_INFO,"Water: {0}, {1} islands, {2} shallows","Woda: {0}, {1} wysp, {2} płycizn"
+MAP_EDITOR_IN_WATER,A start point or deposit is in water. Move it onto land first.,Punkt startowy lub złoże jest w wodzie. Najpierw przenieś je na ląd.

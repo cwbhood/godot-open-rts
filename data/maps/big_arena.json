@@ -1,0 +1,10 @@
+{
+  "id": "big_arena",
+  "name": "Big Arena",
+  "scene": "res://source/match/maps/BigArena.tscn",
+  "players": 8,
+  "size": [
+    100,
+    100
+  ]
+}

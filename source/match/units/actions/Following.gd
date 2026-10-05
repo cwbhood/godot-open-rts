@@ -38,6 +38,8 @@ func _setup_refresh_timer():
 
 
 func _refresh():
+	if not is_instance_valid(_target_unit) or not _target_unit.is_inside_tree():
+		return
 	if (
 		_last_known_target_unit_position == null
 		or not _target_unit.global_position.is_equal_approx(_last_known_target_unit_position)

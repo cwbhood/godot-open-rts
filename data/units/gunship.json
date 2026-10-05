@@ -1,0 +1,37 @@
+{
+  "id": "gunship",
+  "category": "unit",
+  "scene": "res://source/match/units/Gunship.tscn",
+  "model": "res://assets/models/ironbound/units/helicopter_attack.glb",
+  "model_scale": 0.826,
+  "name": "GUNSHIP",
+  "description": "GUNSHIP_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Helicopter.png",
+  "icon_tint": "#ff7070",
+  "tier": 3,
+  "cost": {
+    "iron": 8,
+    "copper": 6,
+    "oil": 8
+  },
+  "build_time_s": 11.0,
+  "unit_slots": 4,
+  "speed": 3.6,
+  "produced_by": [
+    "aircraft_factory"
+  ],
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 20,
+    "hp_max": 20,
+    "attack_damage": 3,
+    "attack_interval": 0.8,
+    "attack_range": 6.0,
+    "attack_domains": [
+      "terrain",
+      "air"
+    ]
+  },
+  "projectile": "rocket",
+  "fuel_per_s": 0.045
+}

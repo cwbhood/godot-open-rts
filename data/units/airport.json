@@ -1,0 +1,23 @@
+{
+  "id": "airport",
+  "category": "structure",
+  "scene": "res://source/match/units/Airport.tscn",
+  "blueprint": "res://source/match/units/structure-geometries/Airport.tscn",
+  "name": "AIRPORT",
+  "description": "AIRPORT_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AircraftFactory.png",
+  "icon_tint": "#9fd3ff",
+  "tier": 1,
+  "cost": {
+    "timber": 4,
+    "iron": 4
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 7.0,
+    "hp": 12,
+    "hp_max": 12
+  }
+}

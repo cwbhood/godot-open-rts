@@ -1,0 +1,29 @@
+{
+  "id": "drone",
+  "category": "unit",
+  "scene": "res://source/match/units/Drone.tscn",
+  "model": "res://assets/models/ironbound/units/drone.glb",
+  "model_scale": 1.0,
+  "name": "DRONE",
+  "description": "DRONE_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Drone.png",
+  "tier": 1,
+  "cost": {
+    "iron": 1,
+    "copper": 2,
+    "oil": 1
+  },
+  "build_time_s": 3.0,
+  "unit_slots": 1,
+  "speed": 4.0,
+  "produced_by": [
+    "aircraft_factory"
+  ],
+  "properties": {
+    "sight_range": 10.0,
+    "hp": 6,
+    "hp_max": 6
+  },
+  "fuel_per_s": 0.005,
+  "flight_endurance_s": 150.0
+}

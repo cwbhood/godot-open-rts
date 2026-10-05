@@ -1,0 +1,34 @@
+{
+  "expected_number_of_workers": 4,
+  "expected_number_of_haulers": 4,
+  "extractor_targets": {
+    "timber": 2,
+    "iron": 2,
+    "copper": 1,
+    "oil": 2
+  },
+  "expected_number_of_power_plants": 2,
+  "expected_number_of_ag_turrets": 4,
+  "expected_number_of_aa_turrets": 2,
+  "expected_number_of_battlegroups": 1,
+  "expected_number_of_units_in_battlegroup": 8,
+  "raid_party_size": 0,
+  "raid_interval_s": 0,
+  "trade_hoarding_factor": 1.0,
+  "trade_profit_margin": 1.1,
+  "trade_offer_interval_s": 30,
+  "proposes_agreements": false,
+  "peacefulness": 1.3,
+  "accepts_alliances": true,
+  "attacks_neutrals": false,
+  "upgrades_roads": true,
+  "defence": {
+    "shape": "ring",
+    "ring_m": 4,
+    "react_m": 18,
+    "leash_m": 20
+  },
+  "id": "turtle",
+  "name": "AI_TURTLE",
+  "description": "AI_TURTLE_DESCRIPTION"
+}

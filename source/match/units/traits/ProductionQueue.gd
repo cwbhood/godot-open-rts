@@ -4,6 +4,7 @@ signal element_enqueued(element)
 signal element_removed(element)
 
 const Moving = preload("res://source/match/units/actions/Moving.gd")
+const MatchLimits = preload("res://source/match/MatchLimits.gd")
 
 
 class ProductionQueueElement:
@@ -25,6 +26,9 @@ var _queue = []
 
 
 func _process(delta):
+	if _queue.is_empty():
+		return
+	delta *= _unit.player.get_production_multiplier() * _power_factor()
 	while _queue.size() > 0 and delta > 0.0:
 		var current_queue_element = _queue.front()
 		current_queue_element.time_left = max(0.0, current_queue_element.time_left - delta)
@@ -44,11 +48,17 @@ func get_elements():
 
 func produce(unit_prototype, ignore_limit = false):
 	if not ignore_limit and _queue.size() >= Constants.Match.Units.PRODUCTION_QUEUE_LIMIT:
-		return
+		return null
+	if not _unit.player.can_produce(unit_prototype.resource_path):
+		return null
+	var limits = MatchLimits.of(get_tree())
+	if limits != null and not limits.has_room_for(_unit.player, unit_prototype.resource_path):
+		MatchSignals.unit_cap_reached.emit(_unit.player)
+		return null
 	var production_cost = Constants.Match.Units.PRODUCTION_COSTS[unit_prototype.resource_path]
 	if not _unit.player.has_resources(production_cost):
 		MatchSignals.not_enough_resources_for_production.emit(_unit.player)
-		return
+		return null
 	_unit.player.subtract_resources(production_cost)
 	var queue_element = ProductionQueueElement.new()
 	queue_element.unit_prototype = unit_prototype
@@ -56,6 +66,15 @@ func produce(unit_prototype, ignore_limit = false):
 	queue_element.time_left = Constants.Match.Units.PRODUCTION_TIMES[unit_prototype.resource_path]
 	_enqueue_element(queue_element)
 	MatchSignals.unit_production_started.emit(unit_prototype, _unit)
+	return queue_element
+
+
+func _power_factor():
+	"""factories slow down during blackouts and when they are not connected to the grid"""
+	if Constants.Match.Power.DEMAND_MW.get(_unit._scene_path(), 0.0) <= 0.0:
+		return 1.0
+	var unpowered = Constants.Match.Power.UNPOWERED_PRODUCTION_FACTOR
+	return unpowered + (1.0 - unpowered) * _unit.power_ratio
 
 
 func cancel_all():
@@ -98,11 +117,16 @@ func _finalize_production(former_queue_element):
 			Vector3(0, 0, 1),
 			false,
 			find_parent("Match").navigation.get_navigation_map_rid_by_domain(
-				produced_unit.movement_domain
+				produced_unit.navigation_domain
 			),
 			get_tree()
 		)
 	)
+	if placement_position == Vector3.INF:  # no free spot left: squeeze it in at the door
+		placement_position = (
+			_unit.global_position * Vector3(1, 0, 1)
+			+ Vector3(0, 0, _unit.radius + produced_unit.radius)
+		)
 	MatchSignals.setup_and_spawn_unit.emit(
 		produced_unit, Transform3D(Basis(), placement_position), _unit.player
 	)

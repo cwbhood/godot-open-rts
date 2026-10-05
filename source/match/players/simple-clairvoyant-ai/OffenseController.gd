@@ -8,15 +8,48 @@ const VehicleFactory = preload("res://source/match/units/VehicleFactory.gd")
 const VehicleFactoryScene = preload("res://source/match/units/VehicleFactory.tscn")
 const Tank = preload("res://source/match/units/Tank.gd")
 const TankScene = preload("res://source/match/units/Tank.tscn")
+const HeavyTankScene = preload("res://source/match/units/HeavyTank.tscn")
+const BattleTankScene = preload("res://source/match/units/BattleTank.tscn")
+const GunshipScene = preload("res://source/match/units/Gunship.tscn")
 const AircraftFactory = preload("res://source/match/units/AircraftFactory.gd")
 const AircraftFactoryScene = preload("res://source/match/units/AircraftFactory.tscn")
 const Helicopter = preload("res://source/match/units/Helicopter.gd")
 const HelicopterScene = preload("res://source/match/units/Helicopter.tscn")
+const GameData = preload("res://source/data-model/GameData.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 const AutoAttackingBattlegroup = preload(
 	"res://source/match/players/simple-clairvoyant-ai/AutoAttackingBattlegroup.gd"
 )
 
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
+const NO_ROOM_RETRY_S = 30.0  # after finding no free spot, wait before searching again
+const CROSSING_CHECK_INTERVAL_S = 20.0
+# vehicles that cannot cross deep water; on maps where the enemy is only reachable over
+# water, the amphibious vehicle is built instead (see _crossing_needed)
+const LAND_VEHICLE_SCENES = [
+	"res://source/match/units/Tank.tscn",
+	"res://source/match/units/HeavyTank.tscn",
+	"res://source/match/units/BattleTank.tscn",
+]
+const AMPHIBIOUS_VEHICLE_ID = "amphibious_apc"
+# better units replace the basic ones as the city reaches higher tiers
+const UPGRADES = {
+	"res://source/match/units/Tank.tscn": "res://source/match/units/HeavyTank.tscn",
+	"res://source/match/units/HeavyTank.tscn": "res://source/match/units/BattleTank.tscn",
+	"res://source/match/units/Helicopter.tscn": "res://source/match/units/Gunship.tscn",
+}
+const BATTLE_UNIT_SCENES = [
+	"res://source/match/units/Tank.tscn",
+	"res://source/match/units/HeavyTank.tscn",
+	"res://source/match/units/BattleTank.tscn",
+	"res://source/match/units/Helicopter.tscn",
+	"res://source/match/units/Gunship.tscn",
+]
+static var amphibious_vehicle_scene_path = (
+	GameData.unit_by_id(AMPHIBIOUS_VEHICLE_ID).get("scene", "")
+	if GameData.unit_by_id(AMPHIBIOUS_VEHICLE_ID) != null
+	else ""
+)
 
 var _player = null
 var _primary_structure_scene = null
@@ -27,6 +60,10 @@ var _secondary_unit_scene = null
 var _number_of_pending_unit_resource_requests = {}
 var _battlegroup_under_forming = null
 var _battlegroups = []
+var _no_room = false  # no free spot was found lately
+var _retreated = []  # damaged units that pulled back, they join the next battlegroup
+var _crossing_needed = false
+var _crossing_checked_at_s = -INF
 
 @onready var _ai = get_parent()
 
@@ -53,6 +90,7 @@ func setup(player):
 		if _ai.secondary_offensive_structure == _ai.OffensiveStructure.VEHICLE_FACTORY
 		else HelicopterScene
 	)
+	MatchSignals.tier_reached.connect(_on_tier_reached)
 	_setup_refresh_timer()
 	_try_creating_new_battlegroup()
 	_attach_current_battle_units()
@@ -77,7 +115,7 @@ func _setup_refresh_timer():
 	var timer = Timer.new()
 	add_child(timer)
 	timer.timeout.connect(_on_refresh_timer_timeout)
-	timer.start(REFRESH_INTERVAL_S)
+	timer.start(_ai.think_interval(REFRESH_INTERVAL_S))
 
 
 func _provision_structure(structure_scene, resources, metadata):
@@ -95,6 +133,12 @@ func _provision_structure(structure_scene, resources, metadata):
 
 
 func _provision_unit(unit_scene, structure_producing_unit, resources, metadata):
+	unit_scene = _adapted_to_water(unit_scene)
+	if resources != Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path]:
+		for scene_path in _battle_unit_scene_paths():  # requested before an upgrade or a swap
+			if resources == Constants.Match.Units.PRODUCTION_COSTS[scene_path]:
+				unit_scene = load(scene_path)
+				break
 	assert(
 		resources == Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path],
 		"unexpected amount of resources"
@@ -103,6 +147,15 @@ func _provision_unit(unit_scene, structure_producing_unit, resources, metadata):
 		return
 	_number_of_pending_unit_resource_requests[metadata] -= 1
 	structure_producing_unit.production_queue.produce(unit_scene, true)
+
+
+func committed_units():
+	"""units of battlegroups that are on the attack right now"""
+	var units = []
+	for battlegroup in _battlegroups:
+		if is_instance_valid(battlegroup) and battlegroup.is_attacking():
+			units += battlegroup.units()
+	return units
 
 
 func _try_creating_new_battlegroup():
@@ -118,19 +171,25 @@ func _try_creating_new_battlegroup():
 		func(player): return player != _player
 	)
 	adversary_players.shuffle()
+	# factions it is at war with come first
+	adversary_players.sort_custom(
+		func(a, b): return _ai.Diplomacy.at_war(_player, a) and not _ai.Diplomacy.at_war(_player, b)
+	)
 	var battlegroup = AutoAttackingBattlegroup.new(
-		_ai.expected_number_of_units_in_battlegroup, adversary_players
+		_ai.expected_number_of_units_in_battlegroup, adversary_players, _ai
 	)
 	_battlegroups.append(battlegroup)
 	battlegroup.tree_exited.connect(_on_battlegroup_died.bind(battlegroup))
+	battlegroup.unit_retreated.connect(_on_unit_retreated)
 	add_child(battlegroup)
 	_battlegroup_under_forming = battlegroup
+	_attach_retreated_units.call_deferred()
 	return true
 
 
 func _attach_current_battle_units():
 	var battle_units = get_tree().get_nodes_in_group("units").filter(
-		func(unit): return unit.player == _player and (unit is Tank or unit is Helicopter)
+		func(unit): return unit.player == _player and _is_battle_unit(unit)
 	)
 	for battle_unit in battle_units:
 		_on_unit_spawned(battle_unit)
@@ -149,6 +208,8 @@ func _construct_structure(structure_scene):
 	var workers = get_tree().get_nodes_in_group("units").filter(
 		func(unit): return unit is Worker and unit.player == _player
 	)
+	if _no_room:
+		return
 	var unit_to_spawn = structure_scene.instantiate()
 	var reference_position_for_placement = (
 		ccs[0].global_position if not ccs.is_empty() else workers[0].global_position
@@ -157,10 +218,15 @@ func _construct_structure(structure_scene):
 		reference_position_for_placement,
 		unit_to_spawn.radius + Constants.Match.Units.EMPTY_SPACE_RADIUS_SURROUNDING_STRUCTURE_M,
 		find_parent("Match").navigation.get_navigation_map_rid_by_domain(
-			unit_to_spawn.movement_domain
+			unit_to_spawn.navigation_domain
 		),
 		get_tree()
 	)
+	if placement_position == Vector3.INF:  # the base is full
+		unit_to_spawn.free()
+		_no_room = true
+		get_tree().create_timer(NO_ROOM_RETRY_S).timeout.connect(func(): _no_room = false)
+		return
 	var target_transform = Transform3D(Basis(), placement_position).looking_at(
 		placement_position + Vector3(-1, 0, 1), Vector3.UP
 	)
@@ -182,6 +248,8 @@ func _enforce_secondary_structure_existence():
 
 
 func _enforce_structure_existence(structure, structure_scene, type):
+	if not _player.meets_tier_requirement(structure_scene.resource_path):
+		return
 	if structure == null and _number_of_pending_structure_resource_requests.get(type, 0) == 0:
 		_number_of_pending_structure_resource_requests[type] = (
 			_number_of_pending_structure_resource_requests.get(type, 0) + 1
@@ -202,6 +270,9 @@ func _enforce_secondary_units_production():
 func _enforce_units_production(structure, unit_scene, type):
 	if structure == null or not structure.is_constructed() or not _is_units_production_allowed():
 		return
+	unit_scene = _adapted_to_water(unit_scene)
+	if not _player.meets_tier_requirement(unit_scene.resource_path):
+		return
 	var number_of_pending_units = structure.production_queue.size()
 	if number_of_pending_units + _number_of_pending_unit_resource_requests.get(type, 0) == 0:
 		_number_of_pending_unit_resource_requests[type] = (
@@ -210,6 +281,56 @@ func _enforce_units_production(structure, unit_scene, type):
 		resources_required.emit(
 			Constants.Match.Units.PRODUCTION_COSTS[unit_scene.resource_path], type
 		)
+
+
+func _is_battle_unit(unit):
+	return unit._scene_path() in _battle_unit_scene_paths()
+
+
+func _battle_unit_scene_paths():
+	if amphibious_vehicle_scene_path == "":
+		return BATTLE_UNIT_SCENES
+	return BATTLE_UNIT_SCENES + [amphibious_vehicle_scene_path]
+
+
+func _adapted_to_water(unit_scene):
+	"""the amphibious vehicle in place of a land one when no enemy can be reached by land"""
+	if unit_scene.resource_path in LAND_VEHICLE_SCENES and _is_crossing_needed():
+		return load(amphibious_vehicle_scene_path)
+	return unit_scene
+
+
+func _is_crossing_needed():
+	if amphibious_vehicle_scene_path == "":
+		return false
+	var now_s = Time.get_ticks_msec() / 1000.0
+	if now_s - _crossing_checked_at_s < CROSSING_CHECK_INTERVAL_S:
+		return _crossing_needed
+	_crossing_checked_at_s = now_s
+	_crossing_needed = false
+	var a_match = find_parent("Match")
+	if a_match == null or not a_match.map.has_method("has_water") or not a_match.map.has_water():
+		return false
+	var own_ccs = _ccs_of(func(player): return player == _player)
+	var enemy_ccs = _ccs_of(func(player): return player != _player and _ai.wants_to_attack(player))
+	if own_ccs.is_empty() or enemy_ccs.is_empty():
+		return false
+	var land = a_match.navigation.get_navigation_map_rid_by_domain(
+		Constants.Match.Navigation.Domain.TERRAIN
+	)
+	_crossing_needed = not enemy_ccs.any(
+		func(cc):
+			return WaterRules.path_reaches(
+				land, own_ccs[0].global_position, cc.global_position, cc.radius + 6.0
+			)
+	)
+	return _crossing_needed
+
+
+func _ccs_of(player_filter):
+	return get_tree().get_nodes_in_group("units").filter(
+		func(unit): return unit is CommandCenter and player_filter.call(unit.player)
+	)
 
 
 func _primary_structure():
@@ -276,7 +397,7 @@ func _number_of_additional_units_required():
 func _on_unit_spawned(unit):
 	if unit.player != _player:
 		return
-	if unit is Tank or unit is Helicopter:
+	if _is_battle_unit(unit):
 		# TODO: check if this still happens after ensuring only own players should match
 		# assert(_battlegroup_under_forming != null) # TODO: investigate how do we get here
 		if _battlegroup_under_forming == null:
@@ -286,6 +407,22 @@ func _on_unit_spawned(unit):
 			_try_creating_new_battlegroup()
 		_enforce_primary_units_production()
 		_enforce_secondary_units_production()
+
+
+func _on_unit_retreated(unit):
+	_retreated.append(unit)
+	_attach_retreated_units()
+
+
+func _attach_retreated_units():
+	_retreated = _retreated.filter(
+		func(unit): return is_instance_valid(unit) and unit.is_inside_tree()
+	)
+	while not _retreated.is_empty() and _battlegroup_under_forming != null:
+		var unit = _retreated.pop_front()
+		_battlegroup_under_forming.attach_unit(unit)
+		if _battlegroup_under_forming.size() == _ai.expected_number_of_units_in_battlegroup:
+			_try_creating_new_battlegroup()
 
 
 func _on_battlegroup_died(battlegroup):
@@ -299,3 +436,19 @@ func _on_refresh_timer_timeout():
 	# secondary structure existence is enforced only when a battlegroup is formed
 	_enforce_primary_units_production()
 	_enforce_secondary_units_production()
+
+
+func _on_tier_reached(player, _tier):
+	if player != _player or not _ai.tech_upgrades:
+		return  # easier AIs keep building their first units
+	for _i in range(2):
+		var primary_upgrade = UPGRADES.get(_primary_unit_scene.resource_path)
+		if primary_upgrade != null and _player.meets_tier_requirement(primary_upgrade):
+			_primary_unit_scene = load(primary_upgrade)
+		var secondary_upgrade = UPGRADES.get(_secondary_unit_scene.resource_path)
+		if (
+			secondary_upgrade != null
+			and _player.meets_tier_requirement(secondary_upgrade)
+			and _player.meets_tier_requirement(_secondary_unit_scene.resource_path)
+		):
+			_secondary_unit_scene = load(secondary_upgrade)

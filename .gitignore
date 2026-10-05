@@ -4,7 +4,9 @@ tmp/
 *.translation
 misc/
 build/
+build_info.json
+__pycache__/
+harness-out/
 
 # release builds
 dist/
-build_info.json

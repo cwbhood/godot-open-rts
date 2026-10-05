@@ -1,0 +1,14 @@
+{
+  "id": "oil_and_iron",
+  "name": "Oil and Iron (asymmetric)",
+  "scene": "res://source/match/maps/OilAndIron.tscn",
+  "players": 2,
+  "size": [110, 110],
+  "generator": {
+    "seed": 21,
+    "resource_layout": "asymmetric",
+    "lake_pairs": 1,
+    "forest_pairs": 3,
+    "outcrop_pairs": 5
+  }
+}

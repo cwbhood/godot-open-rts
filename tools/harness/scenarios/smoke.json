@@ -1,0 +1,31 @@
+{
+  "name": "smoke",
+  "description": "A short match against one balanced AI: build the first extractors the way a player does, train a constructor and a few tanks, send them out. Catches script errors, refused placements and a match that does not run.",
+  "map": "plain_and_simple",
+  "seed": 1,
+  "minutes": 4,
+  "speed": 4,
+  "players": [
+    {"type": "human"},
+    {"type": "ai", "personality": "balanced"}
+  ],
+  "shots_every": 60,
+  "setup": [
+    {"do": "extract", "resource": "iron", "expect_ok": true},
+    {"do": "extract", "resource": "timber", "expect_ok": true},
+    {"do": "build", "structure": "power_plant", "spot": "base", "offset": [9, 4], "search": true, "expect_ok": true}
+  ],
+  "events": [
+    {"at": 5, "do": "produce", "unit": "worker", "expect_ok": true},
+    {"at": 60, "do": "extract", "resource": "oil"},
+    {"at": 90, "do": "build", "structure": "vehicle_factory", "spot": "base", "offset": [-10, 6], "search": true, "expect_ok": true},
+    {"at": 150, "do": "produce", "unit": "tank", "count": 3, "expect_ok": true},
+    {"at": 210, "do": "fight", "units": "own:combat", "to": "base", "offset": [0, 15]}
+  ],
+  "checks": [
+    {"at": 30, "name": "the iron mine and lumber mill are standing", "expect": "units", "units": "own:structures", "min": 3},
+    {"at": 120, "name": "a second constructor was trained", "expect": "units", "units": "own:worker", "min": 2},
+    {"end": true, "name": "the AI built a base too", "expect": "units", "units": "p1:structures", "min": 3},
+    {"end": true, "expect": "no_errors"}
+  ]
+}

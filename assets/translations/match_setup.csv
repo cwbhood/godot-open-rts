@@ -1,0 +1,42 @@
+keys,en,pl
+AI_DIFFICULTY,AI difficulty,Poziom trudności SI
+PLAYER_COLOR,Colour,Kolor
+DIFFICULTY_VERY_EASY,Very easy,Bardzo łatwy
+DIFFICULTY_VERY_EASY_DESCRIPTION,"small economy, no turrets or raids, first attack after 12 minutes, never cheats","mała gospodarka, bez wieżyczek i najazdów, pierwszy atak po 12 minutach, nigdy nie oszukuje"
+DIFFICULTY_EASY,Easy,Łatwy
+DIFFICULTY_EASY_DESCRIPTION,"slower and smaller economy, small attacks from minute 8, no unit upgrades, never cheats","wolniejsza i mniejsza gospodarka, małe ataki od 8. minuty, bez ulepszeń jednostek, nigdy nie oszukuje"
+DIFFICULTY_NORMAL,Normal,Normalny
+DIFFICULTY_NORMAL_DESCRIPTION,"plays its style at full speed, no bonuses","gra swoim stylem z pełną prędkością, bez premii"
+DIFFICULTY_HARD,Hard,Trudny
+DIFFICULTY_HARD_DESCRIPTION,"reacts fast, expands wider, bigger attacks, pulls damaged units back, no bonuses","szybko reaguje, szerzej się rozbudowuje, większe ataki, wycofuje uszkodzone jednostki, bez premii"
+DIFFICULTY_BRUTAL,Brutal (cheats),Brutalny (oszukuje)
+DIFFICULTY_BRUTAL_DESCRIPTION,"plays like Hard with a bigger army, and CHEATS: +20% income and +15% build speed","gra jak Trudny z większą armią i OSZUKUJE: +20% dochodu i +15% szybkości budowy"
+COLOR_BLUE,Blue,Niebieski
+COLOR_RED,Red,Czerwony
+COLOR_GREEN,Green,Zielony
+COLOR_PURPLE,Purple,Fioletowy
+COLOR_ORANGE,Orange,Pomarańczowy
+COLOR_YELLOW,Yellow,Żółty
+COLOR_TEAL,Teal,Morski
+COLOR_WHITE,White,Biały
+COLOR_BLACK,Black,Czarny
+COLOR_PINK,Pink,Różowy
+COLOR_DARK_GREEN,Dark green,Ciemnozielony
+COLOR_NAVY,Navy,Granatowy
+MATCH_RULES,Match rules,Zasady meczu
+MATCH_RULES_TOOLTIP,"How much help you get this match. Everyone sees these rules on the start screen.","Ile pomocy dostajesz w tym meczu. Wszyscy widzą te zasady na ekranie startowym."
+MATCH_RULES_PRESET_GUIDED,Guided,Z pomocą
+MATCH_RULES_PRESET_GUIDED_TOOLTIP,"Guided: tutorial and tips, the AI assist and auto-building constructors are all allowed.","Z pomocą: samouczek i wskazówki, asystent SI i samodzielni konstruktorzy są dozwoleni."
+MATCH_RULES_PRESET_RAW,Raw,Surowo
+MATCH_RULES_PRESET_RAW_TOOLTIP,"Raw: no tutorial or tips, no AI assist and no auto-building. Everything is your own work.","Surowo: bez samouczka i wskazówek, bez asystenta SI i bez samodzielnej budowy. Wszystko robisz sam."
+MATCH_RULES_PRESET_CUSTOM,Custom,Własne
+MATCH_RULES_PRESET_CUSTOM_TOOLTIP,Custom: only the ticked help is allowed.,Własne: dozwolona jest tylko zaznaczona pomoc.
+MATCH_RULE_TUTORIAL,Tutorial and tips,Samouczek i wskazówki
+MATCH_RULE_TUTORIAL_TOOLTIP,"The tutorial at the top of the screen and the one-off hints. The manual (F1) is always there.","Samouczek u góry ekranu i jednorazowe wskazówki. Podręcznik (F1) jest zawsze dostępny."
+MATCH_RULE_AI_ASSIST,Allow AI assist,Pozwól na asystenta SI
+MATCH_RULE_AI_ASSIST_TOOLTIP,"The helper AI (H) that can run your economy, army build-up, scouting and constructor guard. Off: it cannot be switched on.","Pomocnik SI (H), który może prowadzić gospodarkę, armię, zwiad i ochronę konstruktorów. Wyłączone: nie da się go włączyć."
+MATCH_RULE_AUTO_BUILD,Allow auto-build constructors,Pozwól na samodzielnych konstruktorów
+MATCH_RULE_AUTO_BUILD_TOOLTIP,"Auto-expand (G): constructors that pick and build extractors, power and roads on their own. Off: every building is placed by you.","Auto-rozbudowa (G): konstruktorzy sami budują wydobycie, zasilanie i drogi. Wyłączone: każdy budynek stawiasz sam."
+MATCH_RULES_ON,on,wł.
+MATCH_RULES_OFF,off,wył.
+MATCH_RULES_LINE,"Rules: {0}. Tutorial and tips {1}, AI assist {2}, auto-build {3}.","Zasady: {0}. Samouczek i wskazówki {1}, asystent SI {2}, samodzielna budowa {3}."

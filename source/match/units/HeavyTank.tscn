@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" uid="uid://i58ffvwxbbwm" path="res://source/match/units/Tank.tscn" id="1_tank"]
+[ext_resource type="Script" path="res://source/match/units/HeavyTank.gd" id="2_heavy"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/turret_double.glb" id="3_turret"]
+
+[node name="HeavyTank" instance=ExtResource("1_tank")]
+script = ExtResource("2_heavy")
+
+[node name="Geometry" parent="." index="0"]
+transform = Transform3D(0.72, 0, 0, 0, 0.72, 0, 0, 0, 0.72, 0, 0, 0)
+
+[node name="Movement" parent="." index="4"]
+speed = 2.2
+
+[node name="turret_double" parent="Geometry" instance=ExtResource("3_turret")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0.75, 0.3)

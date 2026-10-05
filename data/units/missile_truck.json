@@ -1,0 +1,38 @@
+{
+  "id": "missile_truck",
+  "category": "unit",
+  "scene": "res://source/match/units/MissileTruck.tscn",
+  "model": "res://assets/models/ironbound/units/missile_truck.glb",
+  "model_scale": 1.0,
+  "classic_model": "res://assets/models/ironbound/units/aa_halftrack.glb",
+  "classic_model_scale": 1.0,
+  "name": "MISSILE_TRUCK",
+  "description": "MISSILE_TRUCK_DESCRIPTION",
+  "icon": "res://assets/ui/icons/AntiAirTurret.png",
+  "icon_tint": "#9ad0ff",
+  "tier": 2,
+  "cost": {
+    "iron": 5,
+    "copper": 3,
+    "oil": 3
+  },
+  "build_time_s": 7.0,
+  "unit_slots": 2,
+  "speed": 2.8,
+  "produced_by": [
+    "vehicle_factory"
+  ],
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 9,
+    "hp_max": 9,
+    "attack_damage": 3,
+    "attack_interval": 1.0,
+    "attack_range": 8.0,
+    "attack_domains": [
+      "air"
+    ]
+  },
+  "projectile": "rocket",
+  "fuel_per_s": 0.015
+}

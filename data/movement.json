@@ -1,0 +1,19 @@
+{
+  "movement": {
+    "crowd_steering": true,
+    "avoidance_time_horizon_s": 1.5,
+    "avoidance_neighbor_distance_m": 6.0,
+    "avoidance_max_neighbors": 12,
+    "avoidance_radius_padding_m": 0.0,
+    "path_max_distance_m": 1.5,
+    "path_requests_per_frame": 24,
+    "spread_crowded_destinations": true,
+    "destination_spacing_m": 0.4,
+    "arrival_slack_radii": 4.0,
+    "arrival_blocked_s": 1.0,
+    "repath_when_stuck_s": 2.0,
+    "give_up_when_stuck_s": 30.0,
+    "keep_on_navmesh_every_ticks": 6,
+    "parked_units_make_way": true
+  }
+}

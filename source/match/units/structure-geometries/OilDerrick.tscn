@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/supports_high.glb" id="1_m"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/pipe_supportHigh.glb" id="2_m"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/machine_barrelLarge.glb" id="3_m"]
+[ext_resource type="PackedScene" path="res://assets/models/kenney-spacekit/barrels.glb" id="4_m"]
+
+[node name="Geometry" type="Node3D"]
+
+[node name="supports_high_0" parent="." instance=ExtResource("1_m")]
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, -0, 0, 1.1, -2.2, 0, -1.65)
+
+[node name="pipe_supportHigh_1" parent="." instance=ExtResource("2_m")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, -0, 0, 1.2, -2.4, 0, -1.8)
+
+[node name="machine_barrelLarge_2" parent="." instance=ExtResource("3_m")]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, -0, 0, 0.9, -1.05, 0, -0.8)
+
+[node name="barrels_3" parent="." instance=ExtResource("4_m")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, -0, 0, 1.2, -3.1, 0, -1.2)

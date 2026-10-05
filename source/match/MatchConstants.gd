@@ -2,39 +2,68 @@ const OWNED_PLAYER_CIRCLE_COLOR = Color.GREEN
 const ADVERSARY_PLAYER_CIRCLE_COLOR = Color.RED
 const RESOURCE_CIRCLE_COLOR = Color.YELLOW
 const DEFAULT_CIRCLE_COLOR = Color.WHITE
-const MAPS = {
-	"res://source/match/maps/PlainAndSimple.tscn":
-	{
-		"name": "Plain & Simple",
-		"players": 4,
-		"size": Vector2i(50, 50),
-	},
-	"res://source/match/maps/BigArena.tscn":
-	{
-		"name": "Big Arena",
-		"players": 8,
-		"size": Vector2i(100, 100),
-	},
-}
+const GameData = preload("res://source/data-model/GameData.gd")
+
+# content definitions (units, structures, commodities, tiers, maps) live in res://data/,
+# see data/README.md; the static vars below expose them in the shape the code expects
+# gdlint: ignore=class-variable-name
+static var MAPS = GameData.maps()
 
 
 class Navigation:
-	enum Domain { AIR, TERRAIN }
+	# WATER (boats) and AMPHIBIOUS (land and water) are navigation layers of surface units:
+	# Unit.movement_domain reports them as TERRAIN, so targeting, selection and orders treat
+	# boats like any ground unit, while Unit.navigation_domain picks the navigation map
+	enum Domain { AIR, TERRAIN, WATER, AMPHIBIOUS }
 
 	const DOMAIN_TO_GROUP_MAPPING = {
 		Domain.AIR: "air_navigation_input",
 		Domain.TERRAIN: "terrain_navigation_input",
+		Domain.WATER: "terrain_navigation_input",
+		Domain.AMPHIBIOUS: "terrain_navigation_input",
 	}
+	const NAMES = {"land": Domain.TERRAIN, "water": Domain.WATER, "amphibious": Domain.AMPHIBIOUS}
+
+	static func surface(domain):
+		"""the targeting domain of a navigation domain"""
+		if domain == Domain.WATER or domain == Domain.AMPHIBIOUS:
+			return Domain.TERRAIN
+		return domain
+
+
+class Water:
+	# see source/match/maps/WaterLayout.gd; deep water is boats' and amphibious units' only,
+	# shallow water (fords, shoals) can be waded by land units and sailed by boats
+	const SHALLOW_WADING_SPEED_FACTOR = 0.55  # land units in shallow water
+	const SHORE_TRANSITION_SPEED_FACTOR = 0.6  # amphibious units while climbing in or out
+	const FLOAT_OFFSET_DEEP = -0.3  # boats and swimming amphibious units sit in the water
+	const FLOAT_OFFSET_SHALLOW = -0.12
+	const SHORE_REACH_M = 4.0  # a shore structure needs deep water this close to its edge
+
+	# gdlint: ignore=class-variable-name
+	static var WATER_SPEEDS = GameData.unit_field("water_speed")
+	# gdlint: ignore=class-variable-name
+	static var PLACEMENT = GameData.unit_field("placement", "structure")
 
 
 class Air:
 	const Y = 1.5
 	const PLANE = Plane(Vector3.UP, Y)
+	# fixed-wing aircraft (units with "flight_endurance_s" in data/units) cannot hover:
+	# they fly for that long, then have to land at an airport to refuel or they crash.
+	# Helicopters have no endurance limit.
+	const REFUEL_TIME_S = 6.0  # empty to full, while landed
+	const RETURN_RESERVE_S = 6.0  # spare airtime kept when heading home on low fuel
+	const LOW_FUEL_WARNING_RATIO = 0.25
+	const LANDING_DURATION_S = 0.6
 
 	class Navmesh:
 		const CELL_SIZE = 0.4
 		const CELL_HEIGHT = 0.4
 		const MAX_AGENT_RADIUS = 0.8
+
+	# gdlint: ignore=class-variable-name
+	static var FLIGHT_ENDURANCE_S = GameData.unit_field("flight_endurance_s")
 
 
 class Terrain:
@@ -47,223 +76,229 @@ class Terrain:
 
 
 class Resources:
-	class A:
-		const COLOR = Color.BLUE
-		const MATERIAL_PATH = "res://source/match/resources/materials/resource_a.material.tres"
-		const COLLECTING_TIME_S = 1.0
-
-	class B:
-		const COLOR = Color.RED
-		const MATERIAL_PATH = "res://source/match/resources/materials/resource_b.material.tres"
-		const COLLECTING_TIME_S = 2.0
+	# commodities stored by every player; all of them come from deposits on the map
+	const TIMBER = "timber"
+	const IRON = "iron"
+	const COPPER = "copper"
+	const OIL = "oil"
+	# gdlint: ignore=class-variable-name
+	static var ALL = GameData.resource_ids()
+	# gdlint: ignore=class-variable-name
+	static var COLORS = GameData.resource_field("color")
+	# gdlint: ignore=class-variable-name
+	static var STARTING_STOCK = GameData.resource_field("starting_stock")
+	# gdlint: ignore=class-variable-name
+	static var DEFAULT_DEPOSIT_AMOUNT = GameData.resource_field("deposit_amount")
+	# gdlint: ignore=class-variable-name
+	static var DEPOSIT_SCENES = GameData.resource_field("deposit_scene")
 
 
 class Units:
-	const PRODUCTION_COSTS = {
-		"res://source/match/units/Worker.tscn":
-		{
-			"resource_a": 2,
-			"resource_b": 0,
-		},
-		"res://source/match/units/Helicopter.tscn":
-		{
-			"resource_a": 1,
-			"resource_b": 3,
-		},
-		"res://source/match/units/Drone.tscn":
-		{
-			"resource_a": 2,
-			"resource_b": 0,
-		},
-		"res://source/match/units/Tank.tscn":
-		{
-			"resource_a": 3,
-			"resource_b": 1,
-		},
-	}
-	const PRODUCTION_TIMES = {
-		"res://source/match/units/Worker.tscn": 3.0,
-		"res://source/match/units/Helicopter.tscn": 6.0,
-		"res://source/match/units/Drone.tscn": 3.0,
-		"res://source/match/units/Tank.tscn": 6.0,
-	}
 	const PRODUCTION_QUEUE_LIMIT = 5
-	const STRUCTURE_BLUEPRINTS = {
-		"res://source/match/units/CommandCenter.tscn":
-		"res://source/match/units/structure-geometries/CommandCenter.tscn",
-		"res://source/match/units/VehicleFactory.tscn":
-		"res://source/match/units/structure-geometries/VehicleFactory.tscn",
-		"res://source/match/units/AircraftFactory.tscn":
-		"res://source/match/units/structure-geometries/AircraftFactory.tscn",
-		"res://source/match/units/AntiGroundTurret.tscn":
-		"res://source/match/units/structure-geometries/AntiGroundTurret.tscn",
-		"res://source/match/units/AntiAirTurret.tscn":
-		"res://source/match/units/structure-geometries/AntiAirTurret.tscn",
-	}
-	const CONSTRUCTION_COSTS = {
-		"res://source/match/units/CommandCenter.tscn":
-		{
-			"resource_a": 8,
-			"resource_b": 8,
-		},
-		"res://source/match/units/VehicleFactory.tscn":
-		{
-			"resource_a": 6,
-			"resource_b": 0,
-		},
-		"res://source/match/units/AircraftFactory.tscn":
-		{
-			"resource_a": 4,
-			"resource_b": 4,
-		},
-		"res://source/match/units/AntiGroundTurret.tscn":
-		{
-			"resource_a": 2,
-			"resource_b": 2,
-		},
-		"res://source/match/units/AntiAirTurret.tscn":
-		{
-			"resource_a": 2,
-			"resource_b": 2,
-		},
-	}
-	const DEFAULT_PROPERTIES = {
-		"res://source/match/units/Drone.tscn":
-		{
-			"sight_range": 10.0,
-			"hp": 6,
-			"hp_max": 6,
-		},
-		"res://source/match/units/Worker.tscn":
-		{
-			"sight_range": 5.0,
-			"hp": 6,
-			"hp_max": 6,
-			"resources_max": 2,
-		},
-		"res://source/match/units/Helicopter.tscn":
-		{
-			"sight_range": 8.0,
-			"hp": 10,
-			"hp_max": 10,
-			"attack_damage": 1,
-			"attack_interval": 1.0,
-			"attack_range": 5.0,
-			"attack_domains": [Navigation.Domain.TERRAIN, Navigation.Domain.AIR],
-		},
-		"res://source/match/units/Tank.tscn":
-		{
-			"sight_range": 8.0,
-			"hp": 10,
-			"hp_max": 10,
-			"attack_damage": 2,
-			"attack_interval": 0.75,
-			"attack_range": 5.0,
-			"attack_domains": [Navigation.Domain.TERRAIN],
-		},
-		"res://source/match/units/CommandCenter.tscn":
-		{
-			"sight_range": 10.0,
-			"hp": 20,
-			"hp_max": 20,
-		},
-		"res://source/match/units/VehicleFactory.tscn":
-		{
-			"sight_range": 8.0,
-			"hp": 16,
-			"hp_max": 16,
-		},
-		"res://source/match/units/AircraftFactory.tscn":
-		{
-			"sight_range": 8.0,
-			"hp": 16,
-			"hp_max": 16,
-		},
-		"res://source/match/units/AntiGroundTurret.tscn":
-		{
-			"sight_range": 8.0,
-			"hp": 8,
-			"hp_max": 8,
-			"attack_damage": 2,
-			"attack_interval": 1.0,
-			"attack_range": 8.0,
-			"attack_domains": [Navigation.Domain.TERRAIN],
-		},
-		"res://source/match/units/AntiAirTurret.tscn":
-		{
-			"sight_range": 8.0,
-			"hp": 8,
-			"hp_max": 8,
-			"attack_damage": 2,
-			"attack_interval": 0.75,
-			"attack_range": 8.0,
-			"attack_domains": [Navigation.Domain.AIR],
-		},
-	}
-	const PROJECTILES = {
-		"res://source/match/units/Helicopter.tscn":
-		"res://source/match/units/projectiles/Rocket.tscn",
-		"res://source/match/units/Tank.tscn":
-		"res://source/match/units/projectiles/CannonShell.tscn",
-		"res://source/match/units/AntiGroundTurret.tscn":
-		"res://source/match/units/projectiles/CannonShell.tscn",
-		"res://source/match/units/AntiAirTurret.tscn":
-		"res://source/match/units/projectiles/Rocket.tscn"
-	}
 	const ADHERENCE_MARGIN_M = 0.3  # TODO: try lowering while fixing a 'push' problem
 	const NEW_RESOURCE_SEARCH_RADIUS_M = 30
 	const MOVING_UNIT_RADIUS_MAX_M = 1.0
 	const EMPTY_SPACE_RADIUS_SURROUNDING_STRUCTURE_M = MOVING_UNIT_RADIUS_MAX_M * 2.5
 	const STRUCTURE_CONSTRUCTING_SPEED = 0.3  # progress [0.0..1.0] per second
+	# gdlint: ignore=class-variable-name
+	static var PRODUCTION_COSTS = GameData.unit_field("cost", "unit")
+	# gdlint: ignore=class-variable-name
+	static var PRODUCTION_TIMES = GameData.unit_field("build_time_s", "unit")
+	# minimal city tier (see Tech.TIERS) required to produce a unit or construct a structure
+	# gdlint: ignore=class-variable-name
+	static var TIER_REQUIREMENTS = GameData.unit_field("tier")
+	# gdlint: ignore=class-variable-name
+	static var STRUCTURE_BLUEPRINTS = GameData.unit_field("blueprint", "structure")
+	# construction materials are paid when a structure is placed; outside of the city yard
+	# they have to be brought to the construction site by haulers, see Logistics
+	# gdlint: ignore=class-variable-name
+	static var CONSTRUCTION_COSTS = GameData.unit_field("cost", "structure")
+	# gdlint: ignore=class-variable-name
+	static var DEFAULT_PROPERTIES = GameData.unit_field("properties")
+	# gdlint: ignore=class-variable-name
+	static var PROJECTILES = GameData.unit_field("projectile")
+	# oil burnt per second while a unit is moving
+	# gdlint: ignore=class-variable-name
+	static var FUEL_PER_S = GameData.unit_field("fuel_per_s")
+	# movement speed in m/s, overrides the Movement node of the scene
+	# gdlint: ignore=class-variable-name
+	static var SPEEDS = GameData.unit_field("speed")
 
 
-class VoiceNarrator:
-	enum Events {
-		MATCH_STARTED,
-		MATCH_ABORTED,
-		MATCH_FINISHED_WITH_VICTORY,
-		MATCH_FINISHED_WITH_DEFEAT,
-		BASE_UNDER_ATTACK,
-		UNIT_UNDER_ATTACK,
-		UNIT_LOST,
-		UNIT_PRODUCTION_STARTED,
-		UNIT_PRODUCTION_FINISHED,
-		UNIT_CONSTRUCTION_FINISHED,
-		UNIT_HELLO,
-		UNIT_ACK_1,
-		UNIT_ACK_2,
-		NOT_ENOUGH_RESOURCES,
+class Extraction:
+	# extractors have to be placed next to a deposit of the matching kind
+	const MAX_DISTANCE_TO_DEPOSIT_M = 1.5  # gap between the extractor and the deposit edges
+	const UNPOWERED_RATE_FACTOR = 0.5
+	# goods wait at the extractor until a truck picks them up; a full extractor stops
+	# gdlint: ignore=class-variable-name
+	static var STORAGE_MAX = int(GameData.logistics().get("extractor_buffer", 16))
+	# gdlint: ignore=class-variable-name
+	static var EXTRACTOR_KINDS = GameData.unit_field("extracts", "structure")
+	# with a fully powered grid
+	# gdlint: ignore=class-variable-name
+	static var RATE_PER_S = GameData.resource_field("extraction_rate_per_s")
+
+
+class Logistics:
+	const TICK_S = 0.5
+	const YARD_RADIUS_M = 9.0  # sites this close to a depot get materials without haulers
+	const YARD_DELIVERY_PER_S = 4.0
+	const LOOT_SHARE = 0.5  # share of destroyed cargo that goes to the attacker
+	const HAULER_IDLE_RECHECK_S = 1.0
+	# haulers do not drive out for less than this
+	# gdlint: ignore=class-variable-name
+	static var MIN_PICKUP = int(GameData.logistics().get("jobs", {}).get("min_pickup", 4))
+	# the rest of the tunables of trucks, storage, trains and the fleet: data/logistics.json
+	# gdlint: ignore=class-variable-name
+	static var JOBS = GameData.logistics().get("jobs", {})
+	# gdlint: ignore=class-variable-name
+	static var STANDBY = GameData.logistics().get("standby", {})
+	# gdlint: ignore=class-variable-name
+	static var RAIDS = GameData.logistics().get("raids", {})
+	# gdlint: ignore=class-variable-name
+	static var STORAGE = GameData.logistics().get("storage", {})
+	# gdlint: ignore=class-variable-name
+	static var TRAIN = GameData.logistics().get("train", {})
+	# gdlint: ignore=class-variable-name
+	static var FLEET = GameData.logistics().get("fleet", {})
+
+
+class Roads:
+	# road levels a supply route can be upgraded to, from data/roads.json
+	# gdlint: ignore=class-variable-name
+	static var LEVELS = GameData.roads()
+
+
+class Fuel:
+	# units burn oil from the player stock while moving (rates in data/units/*.json);
+	# with no oil left they crawl
+	const OUT_OF_FUEL_SPEED_FACTOR = 0.4
+
+
+class Power:
+	const TICK_S = 1.0
+	# MW produced by a structure when it runs
+	const CITY_DEMAND_MW_PER_POPULATION = 0.08
+	const UNPOWERED_PRODUCTION_FACTOR = 0.25
+	# gdlint: ignore=class-variable-name
+	static var OUTPUT_MW = GameData.unit_power_field("output_mw")
+	# gdlint: ignore=class-variable-name
+	static var DEMAND_MW = GameData.unit_power_field("demand_mw")
+	# structures within this radius are wired to the grid node; two nodes connect when
+	# their radii overlap
+	# gdlint: ignore=class-variable-name
+	static var GRID_RADIUS_M = GameData.unit_power_field("grid_radius_m")
+	# commodities burnt per MW per second while a plant is loaded
+	# gdlint: ignore=class-variable-name
+	static var BURNS = GameData.unit_power_field("burns")
+
+
+class City:
+	const TICK_S = 0.5
+	const STARTING_POPULATION = 10.0
+	const POPULATION_PER_BUILDING = 5.0
+	const MAX_BUILDINGS = 24
+	const BASE_GROWTH_PER_S = 0.12  # slows down as housing fills up
+	const WORKSHOP_EVERY_NTH_BUILDING = 3  # the rest are houses
+	const PRODUCTION_SPEED_BONUS_PER_WORKSHOP = 0.06
+	const SCIENCE_PER_POPULATION_PER_S = 0.02
+	const BUILDING_RADIUS_M = 1.0
+	const FIRST_BUILDING_RING_RADIUS_M = 5.5
+	const BUILDING_RING_SPACING_M = 2.5
+	const BUILDING_RINGS = 4
+	# each city building picks one of its kind's models at random
+	const BUILDING_MODELS = {
+		"house":
+		[
+			"res://assets/models/ironbound/buildings/house_a.glb",
+			"res://assets/models/ironbound/buildings/house_b.glb",
+			"res://assets/models/ironbound/buildings/apartment.glb",
+		],
+		"workshop":
+		[
+			"res://assets/models/ironbound/buildings/workshop.glb",
+			"res://assets/models/ironbound/buildings/market.glb",
+			"res://assets/models/ironbound/buildings/depot.glb",
+		],
 	}
-
-	const EVENT_TO_ASSET_MAPPING = {
-		Events.MATCH_STARTED:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/battle_control_online.ogg"),
-		Events.MATCH_ABORTED:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/battle_control_offline.ogg"),
-		Events.MATCH_FINISHED_WITH_VICTORY:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/you_are_victorious.ogg"),
-		Events.MATCH_FINISHED_WITH_DEFEAT:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/you_have_lost.ogg"),
-		Events.BASE_UNDER_ATTACK:
-		preload(
-			"res://assets/voice/english/ttsmaker-com-148-alayna-us/your_base_is_under_attack.ogg"
-		),
-		Events.UNIT_UNDER_ATTACK:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/unit_under_attack.ogg"),
-		Events.UNIT_LOST:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/unit_lost.ogg"),
-		Events.UNIT_PRODUCTION_STARTED:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/training.ogg"),
-		Events.UNIT_PRODUCTION_FINISHED:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/unit_ready.ogg"),
-		Events.UNIT_CONSTRUCTION_FINISHED:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/construction_complete.ogg"),
-		Events.UNIT_HELLO:
-		preload("res://assets/voice/english/ttsmaker-com-2704-jackson-us/sir.ogg"),
-		Events.UNIT_ACK_1:
-		preload("res://assets/voice/english/ttsmaker-com-2704-jackson-us/yes_sir.ogg"),
-		Events.UNIT_ACK_2:
-		preload("res://assets/voice/english/ttsmaker-com-2704-jackson-us/acknowledged.ogg"),
-		Events.NOT_ENOUGH_RESOURCES:
-		preload("res://assets/voice/english/ttsmaker-com-148-alayna-us/not_enough_resources.ogg"),
+	# share of every delivery that goes into the city warehouse instead of the player stock
+	const DELIVERY_SHARE = 0.25
+	const WAREHOUSE_CAPACITY = 40.0  # per commodity; overflow spills into the player stock
+	const BUILDING_COSTS = {
+		"house": {"timber": 4.0, "iron": 1.0},
+		"workshop": {"timber": 2.0, "iron": 3.0, "copper": 1.0},
 	}
+	const SATISFACTION_SMOOTHING = 0.05  # per tick, exponential moving average
+	const STARVING_SATISFACTION = 0.35  # below this the population slowly shrinks
+	const SHRINK_PER_S = 0.03
+	const UNPOWERED_SCIENCE_FACTOR = 0.4
+	# gdlint: ignore=class-variable-name
+	static var STARTING_WAREHOUSE = GameData.resource_field("city_starting_warehouse")
+	# commodities consumed per citizen per minute
+	# gdlint: ignore=class-variable-name
+	static var UPKEEP_PER_POPULATION_PER_MIN = GameData.resource_field(
+		"city_upkeep_per_population_per_min"
+	)
+
+
+class CivilDefense:
+	const TICK_S = 1.0
+	const THREAT_RADIUS_M = 16.0
+	const POSTS_BASE = 2
+	const POSTS_PER_POPULATION = 1.0 / 20.0
+	const POSTS_MAX = 5
+	const MILITIA_BASE = 2
+	const MILITIA_PER_POPULATION = 1.0 / 30.0
+	const MILITIA_MAX = 4
+	const MILITIA_REINFORCEMENT_S = 25.0
+	const POST_REBUILD_S = 40.0
+	const POST_RING_RADIUS_M = 4.0
+	const POST_COST = {"iron": 4.0, "timber": 2.0}  # paid from the city warehouse
+
+
+class Diplomacy:
+	const PACT_S = 300.0  # non-aggression pact: neither side can harm the other
+	const ALLIANCE_S = 900.0  # an alliance turns into a pact when it runs out
+	# what a treaty is worth to a faction, in trade value (see Trade.value_for), before
+	# scaling by how much stronger the other side is
+	const TREATY_WORTH = {"pact": 15.0, "alliance": 25.0}
+	# what an AI wants for giving up the option to attack, before its personality's
+	# peacefulness divides it; the AI asks for the difference (or pays it, if negative).
+	# Tuned so a balanced AI's price is a fair deal between equally strong factions.
+	const AI_BASE_DEMAND = {"pact": 30.0, "alliance": 50.0}
+	const WAR_WORTH_FACTOR = 1.5  # ending a war is worth more than keeping neutral
+	const AGGRESSOR_GRUDGE = 20.0  # extra an AI asks from whoever started the war
+	const STRENGTH_FLOOR = 300.0  # keeps strength ratios sane early in the match
+	const THREAT_MIN = 0.25
+	const THREAT_MAX = 4.0
+	const AI_DECISION_INTERVAL_S = 20.0
+	const AI_OFFER_COOLDOWN_S = 90.0  # per partner, so the AI does not nag
+	const OFFER_EXPIRY_S = 30.0
+	const ALLY_TRADE_MARGIN = 1.0  # allies trade at fair prices, without the AI's margin
+
+
+class Trade:
+	const PARTNER_COOLDOWN_S = 20.0  # how often a single faction is willing to trade
+	const GROWTH_BOOST_PER_TRADED_VALUE = 0.01  # population/s, for both sides
+	const GROWTH_BOOST_MAX = 0.5
+	const GROWTH_BOOST_DECAY_PER_S = 0.005
+	const COMFORTABLE_STOCK = 40.0  # local price equals the base price at this stock level
+	const PRICE_FACTOR_MIN = 0.5
+	const PRICE_FACTOR_MAX = 2.5
+	const AI_PROFIT_MARGIN = 1.05  # AI wants to receive at least this much more than it gives
+	const AI_TRADE_RESERVE = {"timber": 4, "iron": 4, "copper": 2, "oil": 3}
+	const AI_OFFER_INTERVAL_S = 30.0
+	const OFFER_EXPIRY_S = 20.0
+	# trade advice shown to the player (see Trade.assess): received value / given value in
+	# the player's own prices, and the stock below which giving a commodity away is bad
+	const ASSESSMENT_GOOD_RATIO = 1.1
+	const ASSESSMENT_FAIR_RATIO = 0.9
+	const ASSESSMENT_SAFETY_STOCK = 10
+	# gdlint: ignore=class-variable-name
+	static var BASE_PRICES = GameData.resource_field("base_price")
+
+
+class Tech:
+	# science is never spent; the city reaches the next tier once it accumulates enough
+	# gdlint: ignore=class-variable-name
+	static var TIERS = GameData.tiers()

@@ -1,5 +1,7 @@
-[gd_scene load_steps=44 format=3 uid="uid://camns8fqod8d4"]
+[gd_scene load_steps=48 format=3 uid="uid://camns8fqod8d4"]
 
+[ext_resource type="Script" path="res://source/match/environment/Soundscape.gd" id="36_sound"]
+[ext_resource type="Script" path="res://source/match/environment/RoadVisuals.gd" id="35_roads"]
 [ext_resource type="Script" path="res://source/match/Match.gd" id="1_1555u"]
 [ext_resource type="Script" path="res://source/match/IsometricCamera3D.gd" id="1_qb2ry"]
 [ext_resource type="Script" path="res://source/match/FogOfWar.gd" id="5_eb52t"]
@@ -29,8 +31,14 @@
 [ext_resource type="PackedScene" uid="uid://yn470qvc3eak" path="res://source/match/handlers/MatchEndHandler.tscn" id="26_4d7im"]
 [ext_resource type="PackedScene" uid="uid://ck6vrgdyg7hja" path="res://source/match/handlers/UnitGroupSelectionHandler.tscn" id="27_j2drv"]
 [ext_resource type="PackedScene" uid="uid://b8p6lcwubx1tp" path="res://source/match/handlers/UnitVisibilityHandler.tscn" id="32_fci1c"]
+[ext_resource type="Script" path="res://source/match/hud/CityHud.gd" id="33_cityhud"]
+[ext_resource type="PackedScene" path="res://source/match/environment/Atmosphere.tscn" id="34_atmo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ysb0j"]
+sky_top_color = Color(0.3, 0.5, 0.78, 1)
+sky_horizon_color = Color(0.86, 0.78, 0.68, 1)
+ground_bottom_color = Color(0.45, 0.33, 0.24, 1)
+ground_horizon_color = Color(0.86, 0.78, 0.68, 1)
 sun_angle_max = 200.0
 
 [sub_resource type="Sky" id="Sky_kunr4"]
@@ -40,13 +48,23 @@ sky_material = SubResource("ProceduralSkyMaterial_ysb0j")
 background_mode = 2
 background_energy_multiplier = 1.2
 sky = SubResource("Sky_kunr4")
-ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.85, 0.83, 0.8, 1)
+ambient_light_sky_contribution = 0.6
 tonemap_mode = 3
-tonemap_exposure = 0.9
-fog_light_color = Color(0.960784, 0.745098, 0.654902, 1)
-fog_density = 0.0016
-fog_height = 0.25
-fog_height_density = 1.2
+tonemap_exposure = 0.95
+ssao_enabled = true
+ssao_radius = 1.5
+ssao_intensity = 1.6
+glow_enabled = true
+glow_intensity = 0.4
+glow_bloom = 0.05
+glow_hdr_threshold = 1.2
+fog_light_color = Color(0.93, 0.8, 0.65, 1)
+fog_density = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.05
+adjustment_saturation = 1.08
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qw0ps"]
 render_priority = 0
@@ -129,22 +147,35 @@ projection = 1
 current = true
 size = 15.0
 script = ExtResource("1_qb2ry")
-size_max = 60
+size_max = 95
+visible_height_max = 40
 bounding_planes = Array[Plane]([Plane(1, 0, 0, 0), Plane(-1, 0, 0, -50), Plane(0, 0, 1, 0), Plane(0, 0, -1, -50)])
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.512043, 0.673162, -0.533541, 0, 0.621148, 0.783694, 0.85896, -0.401285, 0.318054, 0, 38.7614, 0)
+rotation = Vector3(-0.9, 0.62, 0)
+position = Vector3(0, 38.7614, 0)
+light_color = Color(1, 0.93, 0.82, 1)
+light_energy = 1.35
 shadow_enabled = true
-shadow_bias = 0.3
-shadow_blur = 0.05
-directional_shadow_split_1 = 0.45
-directional_shadow_split_2 = 0.5
-directional_shadow_split_3 = 0.55
+shadow_bias = 0.05
+shadow_normal_bias = 1.5
+shadow_blur = 0.6
+directional_shadow_mode = 1
+directional_shadow_split_1 = 0.3
 directional_shadow_blend_splits = true
+directional_shadow_max_distance = 250.0
 directional_shadow_pancake_size = 100.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_qxcnu")
+
+[node name="RoadVisuals" type="Node3D" parent="."]
+script = ExtResource("35_roads")
+
+[node name="Soundscape" type="Node" parent="."]
+script = ExtResource("36_sound")
+
+[node name="Atmosphere" parent="." instance=ExtResource("34_atmo")]
 
 [node name="RectangularSelection3D" parent="." instance=ExtResource("5_yi0pu")]
 
@@ -155,6 +186,7 @@ script = ExtResource("7_ccpu4")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Terrain"]
 
 [node name="Fog" type="MeshInstance3D" parent="."]
+visible = false
 material_override = SubResource("ShaderMaterial_qw0ps")
 cast_shadow = 0
 extra_cull_margin = 16384.0
@@ -405,6 +437,17 @@ layout_mode = 2
 [node name="UnitMenus" parent="HUD/MarginContainer3/VBoxContainer" instance=ExtResource("13_6cypl")]
 layout_mode = 2
 size_flags_horizontal = 8
+
+[node name="CityHud" type="PanelContainer" parent="HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -335.0
+offset_top = 70.0
+offset_right = -5.0
+offset_bottom = 110.0
+grow_horizontal = 0
+script = ExtResource("33_cityhud")
 
 [node name="Menu" parent="." instance=ExtResource("22_ofmlu")]
 visible = false

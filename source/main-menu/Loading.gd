@@ -30,6 +30,8 @@ func _ready():
 	var a_match = match_prototype.instantiate()
 	a_match.settings = match_settings
 	a_match.map = map
+	# --no-build-up skips the starter city animation (automated runs)
+	a_match.play_city_build_up = not "--no-build-up" in OS.get_cmdline_user_args()
 	_progress_bar.value = 0.9
 
 	_label.text = tr("LOADING_STEP_STARTING_MATCH")
@@ -40,6 +42,7 @@ func _ready():
 
 
 func _preload_scenes():
+	preload("res://source/data-model/GameData.gd").register_generated_scenes()
 	var scene_paths = []
 	scene_paths += Constants.Match.Units.PROJECTILES.values()
 	scene_paths += Constants.Match.Units.CONSTRUCTION_COSTS.keys()

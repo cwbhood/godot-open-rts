@@ -1,0 +1,23 @@
+{
+  "id": "caravan",
+  "category": "unit",
+  "scene": "res://source/match/units/Caravan.tscn",
+  "model": "res://assets/models/ironbound/units/trade_truck.glb",
+  "model_scale": 0.87,
+  "name": "CARAVAN",
+  "description": "CARAVAN_DESCRIPTION",
+  "icon": "res://assets/ui/icons/Worker.png",
+  "icon_tint": "#7fe0c0",
+  "tier": 1,
+  "cost": {},
+  "build_time_s": 0.0,
+  "unit_slots": 0,
+  "speed": 3.2,
+  "produced_by": [],
+  "properties": {
+    "sight_range": 5.0,
+    "hp": 10,
+    "hp_max": 10,
+    "cargo_capacity": 999
+  }
+}

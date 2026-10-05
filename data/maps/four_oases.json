@@ -1,0 +1,24 @@
+{
+  "id": "four_oases",
+  "name": "Four Oases (large)",
+  "scene": "res://source/match/maps/FourOases.tscn",
+  "players": 4,
+  "size": [200, 200],
+  "start_zone_radius": 7,
+  "start_pick_seconds": 30,
+  "generator": {
+    "seed": 11,
+    "symmetry": "rotational",
+    "spawn_inset": 0.11,
+    "center_lake": true,
+    "lake_pairs": 1,
+    "forest_pairs": 4,
+    "outcrop_pairs": 5,
+    "home_deposits": ["timber", "iron", "oil"],
+    "contested_deposits": ["copper", "iron", "oil"],
+    "contested_richness": 1.5,
+    "middle_deposits": ["oil", "iron", "copper", "oil", "iron"],
+    "middle_richness": 3.0,
+    "middle_reach": 0.35
+  }
+}

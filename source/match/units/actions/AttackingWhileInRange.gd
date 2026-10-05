@@ -47,15 +47,17 @@ func _setup_range_check_timer():
 
 
 func _rotate_unit_towards_target():
-	_unit.global_transform = _unit.global_transform.looking_at(
-		Vector3(
-			_target_unit.global_position.x, _unit.global_position.y, _target_unit.global_position.z
-		),
-		Vector3(0, 1, 0)
+	var target_position = Vector3(
+		_target_unit.global_position.x, _unit.global_position.y, _target_unit.global_position.z
 	)
+	if _unit.global_position.is_equal_approx(target_position):
+		return
+	_unit.global_transform = _unit.global_transform.looking_at(target_position, Vector3(0, 1, 0))
 
 
 func _schedule_hit():
+	if not is_inside_tree():
+		return  # the last hit ended the action (e.g. the unit got a new one)
 	var now = Time.get_ticks_msec()
 	var next_attack_availability_time = _unit.get_meta("next_attack_availability_time", now)
 	if next_attack_availability_time > now:

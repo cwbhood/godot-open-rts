@@ -1,0 +1,152 @@
+{
+  "id": "drone",
+  "kind": "machine",
+  "description": "Unmanned scout drone: rotor buzz and beeps",
+  "folder": "res://assets/audio/voices/drone/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "(drone select)"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "(drone select)"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "(drone select)"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "(drone select)"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "(drone move)"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "(drone move)"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "(drone move)"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "(drone move)"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "(drone attack)"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "(drone attack)"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "(drone attack)"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "(drone attack)"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "(drone retreat)"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "(drone retreat)"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "(drone retreat)"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "(drone retreat)"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "(drone build)"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "(drone build)"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "(drone build)"
+      },
+      {
+        "file": "build_04.ogg",
+        "text": "(drone build)"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "(drone cannot)"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "(drone cannot)"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "(drone cannot)"
+      },
+      {
+        "file": "cannot_04.ogg",
+        "text": "(drone cannot)"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "(drone under attack)"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "(drone under attack)"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "(drone under attack)"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "(drone under attack)"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "(drone ready)"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "(drone ready)"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "(drone ready)"
+      },
+      {
+        "file": "ready_04.ogg",
+        "text": "(drone ready)"
+      }
+    ]
+  }
+}

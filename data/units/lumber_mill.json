@@ -1,0 +1,31 @@
+{
+  "id": "lumber_mill",
+  "category": "structure",
+  "scene": "res://source/match/units/LumberMill.tscn",
+  "model": "res://assets/models/ironbound/buildings/lumber_mill.glb",
+  "model_scale": 1.0,
+  "blueprint": "res://source/match/units/structure-geometries/LumberMill.tscn",
+  "name": "LUMBER_MILL",
+  "description": "LUMBER_MILL_DESCRIPTION",
+  "icon": "res://assets/ui/icons/ResourceA.png",
+  "icon_tint": "#5c9e40",
+  "tier": 1,
+  "cost": {
+    "timber": 4,
+    "iron": 2
+  },
+  "built_by": [
+    "worker"
+  ],
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 10,
+    "hp_max": 10
+  },
+  "extracts": [
+    "timber"
+  ],
+  "power": {
+    "demand_mw": 1.0
+  }
+}
