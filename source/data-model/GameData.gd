@@ -204,13 +204,17 @@ static func voice_set_by_id(id):
 	return null
 
 
-static func voice_set_id_for(unit_entry):
-	"""a unit's own "voice" field wins, then data/sounds/voices.json, then a default"""
+static func voice_set_id_for(unit_entry, faction = ""):
+	"""a unit's own "voice" field wins, then the faction's entry in data/sounds/voices.json
+	(faction_voices), then its unit_voices, then a default"""
 	if unit_entry == null:
 		return null
 	if "voice" in unit_entry:
 		return unit_entry["voice"]
 	var config = voices()
+	var faction_mapped = config.get("faction_voices", {}).get(faction, {}).get(unit_entry["id"])
+	if faction_mapped != null:
+		return faction_mapped
 	var mapped = config.get("unit_voices", {}).get(unit_entry["id"])
 	if mapped != null:
 		return mapped
@@ -516,9 +520,16 @@ static func _deep_merge(base, patch):
 
 
 static func _merge_voices(base, mod):
-	"""unit_voices and default_voices are patched key by key, other fields replaced"""
+	"""unit_voices, default_voices and each faction of faction_voices are patched key by key,
+	other fields replaced"""
 	for key in mod:
-		if key in ["unit_voices", "default_voices"] and key in base:
+		if key == "faction_voices" and key in base:
+			for faction in mod[key]:
+				if faction in base[key]:
+					base[key][faction].merge(mod[key][faction], true)
+				else:
+					base[key][faction] = mod[key][faction]
+		elif key in ["unit_voices", "default_voices"] and key in base:
 			base[key].merge(mod[key], true)
 		else:
 			base[key] = mod[key]

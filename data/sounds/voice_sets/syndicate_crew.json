@@ -1,0 +1,211 @@
+{
+  "id": "syndicate_crew",
+  "kind": "speech",
+  "description": "Sandline Syndicate drivers and gunners on a crackling CB radio",
+  "folder": "res://assets/audio/voices/syndicate_crew/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Wheels hot.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Syndicate rig, talk to me.",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Engine's screaming, boss.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Gun's loaded, what's the job?",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Riding light.",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "select_06.ogg",
+        "text": "Sand in the tires, ready to roll.",
+        "speaker": "am_puck"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "You paying by the click, boss?",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Quit poking the rig.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "We get it, you like us.",
+        "speaker": "am_fenrir"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Kicking up dust.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Rolling out.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Pedal down.",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "On the dunes.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Cutting across.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "move_06.ogg",
+        "text": "Moving fast.",
+        "speaker": "bf_isabella"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Light 'em up!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Hit and run!",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Rockets away!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "They won't see us coming.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "attack_05.ogg",
+        "text": "Take the shot!",
+        "speaker": "bf_isabella"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Burn rubber, get out!",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Scatter!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Break off, break off!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "retreat_04.ogg",
+        "text": "Not worth dying for.",
+        "speaker": "bf_isabella"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Hauling it there.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Dropping it off.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "We'll make it work.",
+        "speaker": "bf_isabella"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Rig can't go there.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "No road, no ride.",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "Not with these wheels.",
+        "speaker": "am_puck"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "Taking fire!",
+        "speaker": "bf_isabella"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "They're on our tail!",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Rig's getting chewed up!",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "Ambush!",
+        "speaker": "bf_isabella"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Syndicate rig, ready to ride.",
+        "speaker": "am_puck"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Fresh off the line, tank's full.",
+        "speaker": "am_fenrir"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "New wheels, who's paying?",
+        "speaker": "bf_isabella"
+      }
+    ]
+  }
+}

@@ -9,9 +9,11 @@ extends Node
 #   speaking set has fewer than MIN_SPEECH_VARIANTS lines for one
 # - the advisor has no line for one of its events
 # - a sound file does not load
+# - a faction voice override is missing, a unit unique to one faction talks with the voice
+#   of a unit unique to the other, or both factions' militia sound the same
 # - a line plays twice in a row when the same action repeats
 # - in a staged match, selecting, ordering, hitting or producing a unit does not play a
-#   line from that unit's own set (the drone must buzz, not talk), or the advisor stays
+#   line from that unit's own set for its owner's faction (the drone must buzz, not talk), or the advisor stays
 #   silent on low oil, a full storage, a new tier or a helper alert
 # --report writes a markdown list of every unit with its voice set and lines.
 
@@ -71,6 +73,7 @@ func _check_data():
 						[set_id, lines.size(), action]
 					)
 				)
+	_check_faction_voices()
 	var advisor = GameData.voice_set_by_id(config.get("advisor", "advisor"))
 	if advisor == null:
 		_fail("advisor voice set is missing")
@@ -84,6 +87,46 @@ func _check_data():
 				var path = VoiceBank.line_path(voice_set, line)
 				if not VoiceBank.load_stream(path) is AudioStream:
 					_fail("cannot load '{0}'".format([path]))
+
+
+func _check_faction_voices():
+	"""every faction's voice override exists, and a faction's own units never talk with the
+	voice of the other faction's own units (a Syndicate raider is no Foundry tank crew)"""
+	var own_sets = {}  # faction -> {set id: unit id}
+	for faction in GameData.voices().get("faction_voices", {}):
+		if GameData.faction_by_id(faction) == null:
+			_fail("faction_voices names unknown faction '{0}'".format([faction]))
+		for unit_id in GameData.voices()["faction_voices"][faction]:
+			var set_id = GameData.voices()["faction_voices"][faction][unit_id]
+			if GameData.unit_by_id(unit_id) == null:
+				_fail("faction_voices.{0} names unknown unit '{1}'".format([faction, unit_id]))
+			if GameData.voice_set_by_id(set_id) == null:
+				_fail("faction_voices.{0}.{1} uses missing set '{2}'".format([faction, unit_id, set_id]))
+	for unit in GameData.units():
+		if unit.get("category") == "structure":
+			continue
+		for faction in unit.get("factions", []):
+			var set_id = GameData.voice_set_id_for(unit, faction)
+			if GameData.voice_set_by_id(set_id) == null:
+				_fail("{0} unit '{1}' has no voice set".format([faction, unit["id"]]))
+				continue
+			if GameData.voice_set_by_id(set_id).get("kind") == "speech":
+				own_sets[faction] = own_sets.get(faction, {})
+				own_sets[faction][set_id] = unit["id"]
+	for faction in own_sets:
+		for other in own_sets:
+			if other == faction:
+				continue
+			for set_id in own_sets[faction]:
+				if set_id in own_sets[other]:
+					_fail(
+						"{0} '{1}' and {2} '{3}' share the voice '{4}'".format(
+							[faction, own_sets[faction][set_id], other, own_sets[other][set_id], set_id]
+						)
+					)
+	var foundry_militia = GameData.voice_set_id_for(GameData.unit_by_id("militia"), "foundry")
+	if foundry_militia == GameData.voice_set_id_for(GameData.unit_by_id("militia"), "syndicate"):
+		_fail("Foundry and Syndicate militia share a voice")
 
 
 func _check_no_repeats():
@@ -115,18 +158,30 @@ func _check_in_match():
 	var mute = func(controller): controller.find_child("AudioStreamPlayer").volume_db = -80.0
 	mute.call(voices)
 	mute.call(advisor)
-	var expected = {}  # unit id -> voice set
-	for unit_id in ["drone", "scout_buggy", "militia", "tank", "helicopter", "worker"]:
-		expected[unit_id] = GameData.voice_set_id_for(GameData.unit_by_id(unit_id))
-	if expected["drone"] == expected["militia"]:
+	var expected = []  # [faction, unit id, voice set]
+	for faction_units in [
+		["", ["drone", "scout_buggy", "militia", "tank", "helicopter", "worker"]],
+		["foundry", ["militia", "tank", "heavy_tank", "artillery", "battle_tank", "helicopter"]],
+		["syndicate", ["militia", "raider", "rocket_technical", "missile_truck", "helicopter", "gunship"]],
+	]:
+		for unit_id in faction_units[1]:
+			var set_id = GameData.voice_set_id_for(GameData.unit_by_id(unit_id), faction_units[0])
+			expected.append([faction_units[0], unit_id, set_id])
+	var drone_set = GameData.voice_set_id_for(GameData.unit_by_id("drone"))
+	if drone_set == GameData.voice_set_id_for(GameData.unit_by_id("militia")):
 		_fail("the drone shares the infantry voice")
-	if GameData.voice_set_by_id(expected["drone"]).get("kind") != "machine":
+	if GameData.voice_set_by_id(drone_set).get("kind") != "machine":
 		_fail("the drone does not use machine sounds")
-	for unit_id in expected:
+	var original_faction = human.faction
+	var spot = 0
+	for case in expected:
+		var unit_id = case[1]
+		human.faction = case[0]
+		spot += 1
 		var entry = GameData.unit_by_id(unit_id)
 		var unit = load(entry["scene"]).instantiate()
 		MatchSignals.setup_and_spawn_unit.emit(
-			unit, Transform3D(Basis(), Vector3(20 + expected.size(), 0, 20)), human
+			unit, Transform3D(Basis(), Vector3(16 + spot, 0, 20)), human
 		)
 		await _frames(2)
 		for action in ["select", "move", "attack", "retreat", "build", "cannot"]:
@@ -140,15 +195,18 @@ func _check_in_match():
 				voices._damage_ms.erase(unit.get_instance_id())
 			else:
 				MatchSignals.units_ordered.emit([unit], action)
-			_expect(voices.last_line, expected[unit_id], action, unit_id)
+			_expect(voices.last_line, case[2], action, case[0] + " " + unit_id)
 		voices.find_child("AudioStreamPlayer").stop()
 		voices._under_attack_ms = -INF
 		MatchSignals.unit_damaged.emit(unit)
-		_expect(voices.last_line, expected[unit_id], "under_attack", unit_id)
+		_expect(voices.last_line, case[2], "under_attack", case[0] + " " + unit_id)
 		voices.find_child("AudioStreamPlayer").stop()
 		MatchSignals.unit_production_finished.emit(unit, unit)  # any own producer will do
-		_expect(voices.last_line, expected[unit_id], "ready", unit_id)
+		_expect(voices.last_line, case[2], "ready", case[0] + " " + unit_id)
 		voices.last_line = {}
+		unit.queue_free()
+		await _frames(1)
+	human.faction = original_faction
 	await _check_advisor(human, advisor)
 	match_node.queue_free()
 	await _frames(2)
@@ -188,17 +246,24 @@ func _write_report(path):
 	out.append("Generated by `tests/audio/VoiceCheck.tscn -- --report=" + path + "`.")
 	out.append("Voice sets live in `data/sounds/`, the files in `assets/audio/voices/`.")
 	out.append("")
-	out.append("| Unit | Voice set | Kind | Lines (select / move / attack / retreat / build / cannot / under attack / ready) |")
-	out.append("| --- | --- | --- | --- |")
+	out.append("| Unit | Voice set | Syndicate voice | Kind | Lines (select / move / attack / retreat / build / cannot / under attack / ready) |")
+	out.append("| --- | --- | --- | --- | --- |")
 	for unit in GameData.units():
 		var set_id = GameData.voice_set_id_for(unit)
+		var syndicate_set = GameData.voice_set_id_for(unit, "syndicate")
 		var voice_set = GameData.voice_set_by_id(set_id)
 		var counts = []
 		for action in config.get("unit_actions", []):
 			counts.append(str(voice_set.get("lines", {}).get(action, []).size()))
 		out.append(
-			"| {0} | {1} | {2} | {3} |".format(
-				[unit["id"], set_id, voice_set.get("kind", ""), " / ".join(counts)]
+			"| {0} | {1} | {2} | {3} | {4} |".format(
+				[
+					unit["id"],
+					set_id,
+					syndicate_set if syndicate_set != set_id else "same",
+					voice_set.get("kind", ""),
+					" / ".join(counts)
+				]
 			)
 		)
 	for voice_set in GameData.voice_sets():

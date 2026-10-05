@@ -5,17 +5,29 @@
     "militia": "infantry",
     "tank": "vehicle_crew",
     "battle_tank": "vehicle_crew",
-    "raider": "vehicle_crew",
+    "raider": "syndicate_crew",
     "missile_truck": "vehicle_crew",
     "heavy_tank": "officer",
     "artillery": "officer",
     "helicopter": "pilot",
-    "gunship": "pilot",
+    "gunship": "syndicate_pilot",
     "worker": "worker",
     "hauler": "worker",
     "caravan": "trader",
     "drone": "drone",
-    "scout_buggy": "auto_vehicle"
+    "scout_buggy": "auto_vehicle",
+    "rocket_technical": "syndicate_crew",
+    "patrol_boat": "boat_crew",
+    "hover_skimmer": "boat_crew",
+    "amphibious_apc": "boat_crew",
+    "train": "rail_crew"
+  },
+  "faction_voices": {
+    "syndicate": {
+      "militia": "syndicate_infantry",
+      "missile_truck": "syndicate_crew",
+      "helicopter": "syndicate_pilot"
+    }
   },
   "default_voices": {
     "unit": "vehicle_crew",

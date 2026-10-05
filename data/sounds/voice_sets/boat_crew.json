@@ -1,0 +1,186 @@
+{
+  "id": "boat_crew",
+  "kind": "speech",
+  "description": "Boat and hovercraft crews on a marine radio",
+  "folder": "res://assets/audio/voices/boat_crew/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Helm here.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Boat crew ready.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Deck's clear.",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "On the water.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Afloat and listening.",
+        "speaker": "am_adam"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "We're getting seasick here.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Steady as she goes.",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Still bobbing, captain.",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Full ahead.",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Setting course.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Making way.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Heading out.",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Coming about.",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Gunners, fire!",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Engaging from the water!",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Open fire!",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "Broadside!",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Hard about!",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Full reverse!",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Back to shore!",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Ferrying it over.",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Landing party going.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Bringing it across.",
+        "speaker": "am_adam"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't sail there.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "Too shallow.",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "No water route.",
+        "speaker": "bf_emma"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "We're hit, hull damage!",
+        "speaker": "am_adam"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Taking water!",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Under fire!",
+        "speaker": "bm_lewis"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Boat launched, crew aboard.",
+        "speaker": "bf_emma"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Ready on the water.",
+        "speaker": "bm_lewis"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "Hull's sealed, ready to sail.",
+        "speaker": "am_adam"
+      }
+    ]
+  }
+}

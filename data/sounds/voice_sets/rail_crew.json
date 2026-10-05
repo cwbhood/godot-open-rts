@@ -1,0 +1,171 @@
+{
+  "id": "rail_crew",
+  "kind": "speech",
+  "description": "Freight train driver laying and running track",
+  "folder": "res://assets/audio/voices/rail_crew/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Train here.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Driver listening.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Engine's steaming.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "On the rails.",
+        "speaker": "am_liam"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Mind the gap.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Running on time, boss.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Choo choo, alright?",
+        "speaker": "am_liam"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "Laying track there.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Rolling down the line.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Full steam.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Heading out.",
+        "speaker": "am_liam"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "We're freight, not a warship!",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Ram them? Really?",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "No guns on this train.",
+        "speaker": "am_liam"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Reverse the engine!",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Back down the line!",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Get us out of here!",
+        "speaker": "bm_george"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Laying rails.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Track going down.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "Building the line.",
+        "speaker": "am_liam"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't lay track there.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "No line goes there.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "Ground's no good.",
+        "speaker": "bm_george"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "They're shooting the train!",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Cars under fire!",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "Derail warning!",
+        "speaker": "am_liam"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Freight train ready.",
+        "speaker": "bm_george"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Engine coupled, ready to roll.",
+        "speaker": "am_liam"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "All aboard.",
+        "speaker": "bm_george"
+      }
+    ]
+  }
+}

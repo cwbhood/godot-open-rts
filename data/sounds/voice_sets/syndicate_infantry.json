@@ -1,0 +1,191 @@
+{
+  "id": "syndicate_infantry",
+  "kind": "speech",
+  "description": "Sandline Syndicate militia, hired guns on a cheap handset",
+  "folder": "res://assets/audio/voices/syndicate_infantry/",
+  "lines": {
+    "select": [
+      {
+        "file": "select_01.ogg",
+        "text": "Hired guns here.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "select_02.ogg",
+        "text": "Yeah, what's the pay?",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "select_03.ogg",
+        "text": "Syndicate squad.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "select_04.ogg",
+        "text": "Ready for work.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "select_05.ogg",
+        "text": "Listening, boss.",
+        "speaker": "af_jessica"
+      }
+    ],
+    "select_repeat": [
+      {
+        "file": "select_repeat_01.ogg",
+        "text": "Contract says breaks every hour.",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "select_repeat_02.ogg",
+        "text": "Still waiting on that payday.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "select_repeat_03.ogg",
+        "text": "Yeah, yeah, we hear you.",
+        "speaker": "am_michael"
+      }
+    ],
+    "move": [
+      {
+        "file": "move_01.ogg",
+        "text": "On foot, on our way.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "move_02.ogg",
+        "text": "Moving.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "move_03.ogg",
+        "text": "Through the sand.",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "move_04.ogg",
+        "text": "Got it, going.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "move_05.ogg",
+        "text": "Hoofing it.",
+        "speaker": "am_michael"
+      }
+    ],
+    "attack": [
+      {
+        "file": "attack_01.ogg",
+        "text": "Get paid, get 'em!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "attack_02.ogg",
+        "text": "Open up!",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "attack_03.ogg",
+        "text": "Light them up!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "attack_04.ogg",
+        "text": "For the cut!",
+        "speaker": "am_michael"
+      }
+    ],
+    "retreat": [
+      {
+        "file": "retreat_01.ogg",
+        "text": "Not for this wage!",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "retreat_02.ogg",
+        "text": "Pull back!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "retreat_03.ogg",
+        "text": "Run for the trucks!",
+        "speaker": "am_michael"
+      }
+    ],
+    "build": [
+      {
+        "file": "build_01.ogg",
+        "text": "Fine, we'll dig.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "build_02.ogg",
+        "text": "Grabbing the shovels.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "build_03.ogg",
+        "text": "On it.",
+        "speaker": "af_jessica"
+      }
+    ],
+    "cannot": [
+      {
+        "file": "cannot_01.ogg",
+        "text": "Can't walk there.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "cannot_02.ogg",
+        "text": "No way through.",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "cannot_03.ogg",
+        "text": "Not happening.",
+        "speaker": "am_eric"
+      }
+    ],
+    "under_attack": [
+      {
+        "file": "under_attack_01.ogg",
+        "text": "We're hit!",
+        "speaker": "af_jessica"
+      },
+      {
+        "file": "under_attack_02.ogg",
+        "text": "Contact, contact!",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "under_attack_03.ogg",
+        "text": "They're shooting at us!",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "under_attack_04.ogg",
+        "text": "Taking fire here!",
+        "speaker": "af_jessica"
+      }
+    ],
+    "ready": [
+      {
+        "file": "ready_01.ogg",
+        "text": "Fresh crew, signed and ready.",
+        "speaker": "am_eric"
+      },
+      {
+        "file": "ready_02.ogg",
+        "text": "Squad hired.",
+        "speaker": "am_michael"
+      },
+      {
+        "file": "ready_03.ogg",
+        "text": "New guns on the payroll.",
+        "speaker": "af_jessica"
+      }
+    ]
+  }
+}

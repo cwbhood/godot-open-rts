@@ -10,7 +10,7 @@ Speech comes from Kokoro-82M (Apache 2.0 weights) through kokoro-onnx (MIT), run
     pip install kokoro-onnx soundfile numpy
     DIR = a folder with kokoro-v1.0.onnx and voices-v1.0.bin from
     https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0
-The lines, speakers and radio styles are in tools/audio/voice_lines.json. Every clip is then
+The lines, speakers, pitch and radio styles are in tools/audio/voice_lines.json. Every clip is then
 put through a radio filter (band-pass, saturation, hiss, squelch clicks) so it sounds like a
 field radio, a tank intercom or a pilot over the rotors.
 
@@ -80,6 +80,14 @@ def trim(signal, threshold=0.012, pad_s=0.03):
     return signal[max(0, loud[0] - pad) : min(len(signal), loud[-1] + pad)]
 
 
+def pitch(signal, factor):
+    """resamples so the voice sounds lower (factor < 1) or higher; also stretches it a little"""
+    if factor == 1.0:
+        return signal
+    positions = np.arange(0, len(signal) - 1, factor)
+    return np.interp(positions, np.arange(len(signal)), signal)
+
+
 def normalize(signal, rms_db=-17.0, peak=0.89):
     loud = signal[np.abs(signal) > 0.02 * np.abs(signal).max()]
     rms = np.sqrt(np.mean(loud**2)) if len(loud) else 1.0
@@ -146,6 +154,10 @@ STYLES = {
     "command_radio": {"low": 200, "high": 4600, "drive": 1.5, "hiss": 0.010, "bed": None},
     "pilot_radio": {"low": 420, "high": 2900, "drive": 4.0, "hiss": 0.035, "bed": "rotor"},
     "work_radio": {"low": 240, "high": 4200, "drive": 1.9, "hiss": 0.012, "bed": None},
+    # Sandline Syndicate: a cheap CB set, narrow and overdriven
+    "cb_radio": {"low": 380, "high": 2900, "drive": 5.0, "hiss": 0.030, "bed": "engine"},
+    "cb_radio_dry": {"low": 400, "high": 3000, "drive": 4.4, "hiss": 0.026, "bed": None},
+    "marine_radio": {"low": 300, "high": 3600, "drive": 2.2, "hiss": 0.022, "bed": "engine"},
 }
 
 
@@ -402,7 +414,7 @@ def build_speech_set(kokoro, set_id, spec, kind="speech"):
             speaker = speakers[(index + action_index) % len(speakers)]
             samples, rate = kokoro.create(text, voice=speaker, speed=spec["speed"], lang=_lang(speaker))
             assert rate == RATE, rate
-            clip = radio(trim(np.asarray(samples, dtype=np.float64)), spec["style"])
+            clip = radio(pitch(trim(np.asarray(samples, dtype=np.float64)), spec.get("pitch", 1.0)), spec["style"])
             name = "{0}_{1:02d}.ogg".format(action, index + 1)
             write_ogg(os.path.join(folder, name), clip)
             lines[action].append({"file": name, "text": text, "speaker": speaker})
