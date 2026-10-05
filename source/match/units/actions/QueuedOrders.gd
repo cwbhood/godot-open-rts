@@ -69,6 +69,7 @@ func _start_next():
 	match _running_order["kind"]:
 		"move":
 			_current = Moving.new(_running_order["position"])
+			_current.exact = true  # queued orders carry the unit's own slot
 		"fight":
 			_current = AttackMoving.new(_running_order["position"])
 		"patrol":

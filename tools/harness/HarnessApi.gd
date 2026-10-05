@@ -506,11 +506,16 @@ func _line_with_mouse(order):
 	var camera = get_viewport().get_camera_3d()
 	var from = ground(order["from"])
 	var to = ground(order["to"])
+	# zoomed out, so both ends land on the map and not on the side panels (the city panel
+	# covers the right of the screen); the player's zoom comes back afterwards
+	var old_size = camera.size
+	camera.set_size_safely(camera.size_max)
 	camera.set_position_safely((from + to) / 2.0)
 	await _frames(2)
 	await mouse.drag(
 		camera.unproject_position(from), camera.unproject_position(to), MOUSE_BUTTON_RIGHT, 8
 	)
+	camera.set_size_safely(old_size)
 	return {"ok": true}
 
 

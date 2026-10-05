@@ -1,5 +1,7 @@
 extends "res://source/match/units/actions/Action.gd"
 
+# the spot was picked for this unit already (a line or a group order): go exactly there
+var exact = false
 var _target_position = null
 
 @onready var _unit = Utils.NodeEx.find_parent_with_group(self, "units")
@@ -31,7 +33,7 @@ func _exit_tree():
 
 func _pick_destination():
 	"""a free spot near the ordered point, so that units sent to one place spread out"""
-	if _movement_trait.has_method("free_spot_near"):
+	if not exact and _movement_trait.has_method("free_spot_near"):
 		return _movement_trait.free_spot_near(_target_position)
 	return _target_position
 

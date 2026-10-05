@@ -52,7 +52,7 @@ static var _path_budget_frame = -1
 static var _path_budget_left = 0
 static var _idle_units = {}
 static var _idle_units_frame = -1
-static var _claims = {}  # instance id -> [unit, destination] of units heading to a picked spot
+static var _claims = {}  # instance id -> [unit, destination, domain] of units heading to a spot
 
 @export var domain = Constants.Match.Navigation.Domain.TERRAIN
 @export var speed: float = 4.0
@@ -521,6 +521,8 @@ func _occupants_near(center, distance):
 		var claim = _claims[id]
 		if id == _unit.get_instance_id() or not is_instance_valid(claim[0]):
 			continue
+		if claim[2] != domain:
+			continue  # a spot on another navigation map (land, water, air) is no obstacle
 		if claim[1].distance_to(center_yless) <= distance:
 			occupants.append([claim[1], claim[0].radius])
 	return occupants
@@ -555,7 +557,7 @@ func _is_spot_free(spot, occupants, spacing = null):
 
 
 func _claim(spot):
-	_claims[_unit.get_instance_id()] = [_unit, spot * Vector3(1, 0, 1)]
+	_claims[_unit.get_instance_id()] = [_unit, spot * Vector3(1, 0, 1), domain]
 
 
 func _release_claim():

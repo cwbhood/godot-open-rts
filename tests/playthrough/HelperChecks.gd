@@ -502,6 +502,13 @@ func _on_unit_damaged(unit):
 		_hits_by_human += 1
 
 
+func _is_attack(action):
+	# actions are freed while units switch orders: test validity before the type
+	if action == null or not is_instance_valid(action):
+		return false
+	return action is AutoAttacking or action is AttackingWhileInRange
+
+
 func _watch_for_attacks():
 	"""while at peace no unit of ours may be attacking anything"""
 	if Diplomacy.state_between(_human, _rival) != Diplomacy.State.NEUTRAL:
@@ -509,13 +516,5 @@ func _watch_for_attacks():
 	for unit in get_tree().get_nodes_in_group("units"):
 		if unit.player != _human or unit.action == null or not is_instance_valid(unit.action):
 			continue
-		var sub = unit.action.get("_sub_action")
-		if sub != null and not is_instance_valid(sub):
-			sub = null
-		if (
-			unit.action is AutoAttacking
-			or unit.action is AttackingWhileInRange
-			or sub is AutoAttacking
-			or sub is AttackingWhileInRange
-		):
+		if _is_attack(unit.action) or _is_attack(unit.action.get("_sub_action")):
 			_attack_actions_seen += 1
