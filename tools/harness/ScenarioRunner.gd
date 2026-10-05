@@ -108,6 +108,7 @@ func run():
 	mouse.block_real_mouse = not real_mouse
 	add_child(recorder)
 	add_child(api)
+	api.match_replaced.connect(func(new_match): _match = new_match)
 	get_tree().root.add_child.call_deferred(mouse)
 	_match = load("res://source/match/Match.tscn").instantiate()
 	_match.settings = _match_settings(map_path)

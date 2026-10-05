@@ -1,0 +1,38 @@
+{
+  "name": "save-load",
+  "description": "Plays a Syndicate player against a Foundry and a Syndicate AI, then saves and loads the match twice mid-game (a factory with a queue, a site under construction, a treaty and a war). Each load must bring back every unit, stock and city, and the match must keep running afterwards: the AIs keep building and nothing errors.",
+  "map": "plain_and_simple",
+  "seed": 3,
+  "minutes": 7,
+  "speed": 4,
+  "players": [
+    {"type": "human", "faction": "syndicate"},
+    {"type": "ai", "personality": "balanced", "faction": "foundry"},
+    {"type": "ai", "personality": "trader", "faction": "syndicate"}
+  ],
+  "setup": [
+    {"do": "extract", "resource": "iron", "expect_ok": true},
+    {"do": "extract", "resource": "timber", "expect_ok": true},
+    {"do": "give", "player": "own", "resources": {"timber": 200, "iron": 200, "copper": 100, "oil": 100}},
+    {"do": "spawn", "player": "own", "unit": "vehicle_factory", "spot": "base", "offset": [-10, 6], "expect_ok": true}
+  ],
+  "events": [
+    {"at": 5, "do": "produce", "unit": "worker", "expect_ok": true},
+    {"at": 60, "do": "produce", "unit": "raider", "count": 3, "expect_ok": true},
+    {"at": 100, "do": "build", "structure": "power_plant", "spot": "base", "offset": [9, 4], "search": true, "expect_ok": true},
+    {"at": 104, "do": "declare_war", "player": "own", "on": "p1"},
+    {"at": 105, "do": "produce", "unit": "raider", "count": 2, "expect_ok": true},
+    {"at": 106, "do": "reload", "name": "harness-save-load-1", "expect_ok": true},
+    {"at": 110, "do": "screenshot", "name": "after-first-load"},
+    {"at": 240, "do": "fight", "units": "own:combat", "to": "base", "offset": [0, 15]},
+    {"at": 300, "do": "reload", "name": "harness-save-load-2", "expect_ok": true},
+    {"at": 305, "do": "screenshot", "name": "after-second-load"}
+  ],
+  "checks": [
+    {"at": 200, "name": "the queued raiders came out of the loaded factory", "expect": "units", "units": "own:raider", "min": 4},
+    {"at": 200, "name": "the loaded power plant site was finished", "expect": "built", "units": "own:power_plant", "min": 1},
+    {"end": true, "name": "the Foundry AI kept building after the loads", "expect": "units", "units": "p1:structures", "min": 5},
+    {"end": true, "name": "the Syndicate AI kept building after the loads", "expect": "units", "units": "p2:structures", "min": 5},
+    {"end": true, "expect": "no_errors"}
+  ]
+}

@@ -20,6 +20,7 @@ const Keybinds = preload("res://source/match/Keybinds.gd")
 const MatchLimits = preload("res://source/match/MatchLimits.gd")
 const CityBuildUp = preload("res://source/match/city/CityBuildUp.gd")
 const GraphicsQuality = preload("res://source/options/GraphicsQuality.gd")
+const SaveGame = preload("res://source/match/SaveGame.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Factions = preload("res://source/data-model/Factions.gd")
@@ -32,6 +33,8 @@ const START_UNIT_OFFSETS = [
 @export var settings: Resource = null
 # shows the starter city being built before play starts (set by the Play menu, see CityBuildUp)
 @export var play_city_build_up = false
+# a save from SaveGame.gd: its units replace the starter cities (set by Loading.gd)
+var saved_state = null
 
 var map:
 	set = _set_map,
@@ -124,6 +127,8 @@ func _ready():
 	if settings.visibility == settings.Visibility.FULL:
 		fog_of_war.reveal()
 	MatchSignals.match_started.emit()
+	if saved_state != null:
+		SaveGame.restore_after_start.call_deferred(self, saved_state)
 	if city_build_up != null:
 		city_build_up.start()
 
@@ -229,6 +234,9 @@ func _create_players_from_settings():
 
 
 func _setup_player_units():
+	if saved_state != null:
+		SaveGame.spawn_units(self, saved_state)
+		return
 	for player in _players.get_children():
 		if not player is Player:
 			continue

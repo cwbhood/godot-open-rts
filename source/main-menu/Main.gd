@@ -1,6 +1,8 @@
 extends Control
 
 const CrashPrompt = preload("res://source/crash/CrashPrompt.gd")
+const SaveGame = preload("res://source/match/SaveGame.gd")
+const SaveLoadPanel = preload("res://source/main-menu/SaveLoadPanel.gd")
 const EMBLEM = preload("res://assets/logos/ironbound_emblem.svg")
 const TITLE_FONT = preload("res://assets/ui/fonts/ironbound_title.tres")
 const BODY_FONT = preload("res://assets/ui/fonts/barlow-600.woff2")
@@ -18,6 +20,33 @@ func _ready():
 		func(): get_tree().change_scene_to_file("res://source/replay/ReplayViewer.tscn")
 	)
 	play_button.add_sibling(replays_button)
+	var load_button = Button.new()
+	load_button.name = "LoadButton"
+	load_button.text = tr("LOAD_GAME")
+	load_button.pressed.connect(_open_load)
+	play_button.add_sibling(load_button)
+	var saves = SaveGame.list_saves()
+	if not saves.is_empty():
+		var continue_button = Button.new()
+		continue_button.name = "ContinueButton"
+		continue_button.text = tr("CONTINUE")
+		continue_button.tooltip_text = saves[0]["name"] + "  " + saves[0]["summary"]
+		continue_button.pressed.connect(_continue.bind(saves[0]["path"]))
+		play_button.add_sibling(continue_button)
+
+
+func _continue(path):
+	var data = SaveGame.read(path)
+	if data == null or not ResourceLoader.exists(data.get("map", "")):
+		_open_load()
+		return
+	SaveLoadPanel.load_save(get_tree(), data)
+
+
+func _open_load():
+	var panel = SaveLoadPanel.new()
+	panel.mode = SaveLoadPanel.Mode.LOAD
+	add_child(panel)
 
 
 func _on_play_button_pressed():

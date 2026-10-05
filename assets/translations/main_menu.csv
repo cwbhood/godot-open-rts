@@ -88,3 +88,13 @@ CREDITS_IRONBOUND,Ironbound,Ironbound
 CREDITS_BASED_ON,Based on,Na podstawie
 CREDITS_ENGINE,Engine,Silnik
 CREDITS_FONTS,Fonts,Czcionki
+CONTINUE,Continue,Kontynuuj
+LOAD_GAME,Load game,Wczytaj grę
+SAVE_GAME,Save game,Zapisz grę
+SAVE_NAME,Name of the save,Nazwa zapisu
+SAVE,Save,Zapisz
+LOAD,Load,Wczytaj
+DELETE,Delete,Usuń
+NO_SAVES,"No saves yet: press Esc in a match and pick Save game, or press F5","Brak zapisów: naciśnij Esc w meczu i wybierz Zapisz grę albo naciśnij F5"
+SAVE_FAILED,Could not write the save,Nie udało się zapisać gry
+LOAD_FAILED,This save cannot be loaded (its map is missing or it is from a newer version),"Nie można wczytać tego zapisu (brak mapy lub zapis z nowszej wersji)"

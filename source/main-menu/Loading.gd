@@ -1,7 +1,10 @@
 extends Control
 
+const SaveGame = preload("res://source/match/SaveGame.gd")
+
 var match_settings = null
 var map_path = null
+var saved_game = null  # a save from SaveGame.gd: settings and map come from it
 
 @onready var _label = find_child("Label")
 @onready var _progress_bar = find_child("ProgressBar")
@@ -9,6 +12,9 @@ var map_path = null
 
 func _ready():
 	_progress_bar.value = 0.0
+	if saved_game != null:
+		match_settings = SaveGame.settings_from(saved_game)
+		map_path = saved_game["map"]
 
 	_label.text = tr("LOADING_STEP_PRELOADING")
 	await get_tree().physics_frame
@@ -31,7 +37,10 @@ func _ready():
 	a_match.settings = match_settings
 	a_match.map = map
 	# --no-build-up skips the starter city animation (automated runs)
-	a_match.play_city_build_up = not "--no-build-up" in OS.get_cmdline_user_args()
+	a_match.play_city_build_up = (
+		saved_game == null and not "--no-build-up" in OS.get_cmdline_user_args()
+	)
+	a_match.saved_state = saved_game
 	_progress_bar.value = 0.9
 
 	_label.text = tr("LOADING_STEP_STARTING_MATCH")

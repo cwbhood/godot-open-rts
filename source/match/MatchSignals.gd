@@ -11,6 +11,7 @@ signal diplomacy_offered(proposer, partner, kind, offered, requested)  # AI offe
 
 # notifications
 signal match_started
+signal match_loaded  # a saved match was put back after match_started (SaveGame.gd)
 signal match_aborted
 signal match_finished_with_victory
 signal match_finished_with_defeat
