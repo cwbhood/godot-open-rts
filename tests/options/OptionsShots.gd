@@ -103,7 +103,7 @@ func _pause_menu():
 	await _frames(5)
 	var end = a_match.find_child("MatchEndHandler", true, false)
 	_check("surrender shows the defeat screen", end != null and end.visible)
-	_check("surrender shows Defeat", end != null and end.find_child("Defeat").visible)
+	_check("surrender shows Defeat", end != null and end.find_child("Defeat", true, false).visible)
 	await _shot("surrender_defeat")
 
 
