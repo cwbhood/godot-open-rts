@@ -1,0 +1,139 @@
+{
+	"name": "Stylised",
+	"description": "Painted-miniature look: soft warm light, bright pastel ground, ink outlines and a tilt-shift blur.",
+	"environment": {
+		"tonemap_mode": 4,
+		"tonemap_exposure": 1.05,
+		"ssao_radius": 1.2,
+		"ssao_intensity": 1.4,
+		"glow_intensity": 0.5,
+		"glow_bloom": 0.06,
+		"adjustment_contrast": 1.08,
+		"adjustment_saturation": 1.2,
+		"ambient_light_color": [
+			0.8,
+			0.82,
+			0.95
+		],
+		"ambient_light_sky_contribution": 0.6
+	},
+	"sky": {
+		"sky_top_color": [
+			0.42,
+			0.62,
+			0.9
+		],
+		"sky_horizon_color": [
+			0.95,
+			0.85,
+			0.75
+		],
+		"ground_horizon_color": [
+			0.95,
+			0.85,
+			0.75
+		]
+	},
+	"sun": {
+		"elevation": 48,
+		"azimuth": 40,
+		"energy": 1.1,
+		"tint": [
+			1.0,
+			0.92,
+			0.8
+		],
+		"shadow_blur": 2.0
+	},
+	"ambient": {
+		"energy": 1.15
+	},
+	"base_haze": 0.0,
+	"terrain": {
+		"sand_pale": [
+			0.96,
+			0.82,
+			0.64
+		],
+		"sand_light": [
+			0.93,
+			0.74,
+			0.54
+		],
+		"sand_dark": [
+			0.88,
+			0.66,
+			0.48
+		],
+		"sand_red": [
+			0.9,
+			0.6,
+			0.44
+		],
+		"hardpan_color": [
+			0.94,
+			0.82,
+			0.68
+		],
+		"crack_color": [
+			0.78,
+			0.62,
+			0.5
+		],
+		"gravel_color": [
+			0.78,
+			0.64,
+			0.52
+		],
+		"rock_light": [
+			0.9,
+			0.6,
+			0.46
+		],
+		"rock_dark": [
+			0.62,
+			0.38,
+			0.32
+		],
+		"grass_light": [
+			0.58,
+			0.74,
+			0.36
+		],
+		"grass_dark": [
+			0.34,
+			0.56,
+			0.3
+		],
+		"crack_scale": 1.2,
+		"ripple_strength": 0.15,
+		"relief_strength": 0.3
+	},
+	"grade": {
+		"lift": 0.0,
+		"split_tone": 0.2,
+		"shadow_tint": [
+			0.46,
+			0.46,
+			0.58
+		],
+		"highlight_tint": [
+			0.56,
+			0.52,
+			0.46
+		],
+		"tilt_shift": 0.5,
+		"vignette": 0.18,
+		"tilt_shift_band": 0.45
+	},
+	"outline": {
+		"line_color": [
+			0.16,
+			0.1,
+			0.1,
+			0.75
+		],
+		"thickness": 1.5,
+		"depth_threshold": 0.25
+	}
+}

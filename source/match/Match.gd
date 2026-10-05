@@ -20,6 +20,7 @@ const Keybinds = preload("res://source/match/Keybinds.gd")
 const MatchLimits = preload("res://source/match/MatchLimits.gd")
 const CityBuildUp = preload("res://source/match/city/CityBuildUp.gd")
 const GraphicsQuality = preload("res://source/options/GraphicsQuality.gd")
+const Look = preload("res://source/match/environment/Look.gd")
 const SaveGame = preload("res://source/match/SaveGame.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
@@ -78,6 +79,10 @@ func _exit_tree():
 func _ready():
 	add_to_group("match")  # the crash reporter reads map, players and match time from here
 	GraphicsQuality.attach(self)  # the options' graphics preset (shadows, AO, glow)
+	if get_node_or_null("Look") == null:  # the art direction: light, grade, terrain palette
+		var look = Look.new()
+		look.name = "Look"
+		add_child(look)
 	if get_node_or_null("WeatherEffects") == null:
 		var weather_effects = WeatherEffects.new()
 		weather_effects.name = "WeatherEffects"

@@ -25,6 +25,7 @@ func populate(map):
 	_scatter_outcrops()
 	_scatter_open_ground()
 	_scatter_outer_area()
+	_scatter_pebbles()
 	_build_multimeshes()
 
 
@@ -163,6 +164,28 @@ func _scatter_open_ground():
 				_add("dead_tree", pos, Vector2(0.6, 0.9))
 			elif roll < 0.326:
 				_add("rock_slabs", pos, Vector2(0.25, 0.45), 0.05)
+		x += cell
+
+
+func _scatter_pebbles():
+	"""small stones in loose clusters: open ground reads as real ground, not a flat colour"""
+	var cell = 1.8
+	var x = 0.0
+	while x < _map.size.x:
+		var z = 0.0
+		while z < _map.size.y:
+			var pos = Vector2(x + _rng.randf() * cell, z + _rng.randf() * cell)
+			z += cell
+			if _rng.randf() > 0.2 or _map.is_obstructed(pos, 0.3) or _map.is_reserved(pos, 0.3):
+				continue
+			for i in range(_rng.randi_range(1, 4)):
+				var offset = Vector2.from_angle(_rng.randf() * TAU) * _rng.randf() * 0.5
+				_add(
+					_pick(["boulder_a", "boulder_b", "boulder_c"]),
+					pos + offset,
+					Vector2(0.03, 0.09),
+					0.01
+				)
 		x += cell
 
 
