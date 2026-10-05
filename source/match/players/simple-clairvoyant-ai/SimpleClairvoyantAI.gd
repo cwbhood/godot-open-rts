@@ -45,6 +45,7 @@ const GameData = preload("res://source/data-model/GameData.gd")
 var think_interval_multiplier = 1.0
 var reaction_delay_s = 0.5
 var first_attack_after_s = 0.0
+var ultimatum_after_s = 0.0  # when a non-peaceful AI starts demanding tribute (0: never)
 var scouting = true
 var tech_upgrades = true
 var retreat_below_hp = 0.0
@@ -164,6 +165,7 @@ func _apply_difficulty():
 	think_interval_multiplier = float(difficulty.get("think_interval_multiplier", 1.0))
 	reaction_delay_s = float(difficulty.get("reaction_delay_s", reaction_delay_s))
 	first_attack_after_s = float(difficulty.get("first_attack_after_s", 0.0))
+	ultimatum_after_s = float(difficulty.get("ultimatum_after_s", 0.0))
 	scouting = difficulty.get("scouting", true)
 	tech_upgrades = difficulty.get("tech_upgrades", true)
 	retreat_below_hp = float(difficulty.get("retreat_below_hp", 0.0))

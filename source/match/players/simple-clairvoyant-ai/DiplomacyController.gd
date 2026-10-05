@@ -5,19 +5,29 @@ extends Node
 # personalities offer pacts to stronger neighbours, and those that accept alliances look
 # for an ally when they share an enemy. Offers to other AIs are answered on the spot, a
 # human gets them in the diplomacy panel.
+#
+# Tension: an AI that is not peaceful does not leave a human neighbour in peace for ever.
+# Once the difficulty's "ultimatum_after_s" has passed it demands tribute for a
+# non-aggression pact; a human who does not sign in time is at war with it. A pact buys
+# a few quiet minutes, then the next demand comes. Much weaker AIs make no demands.
 
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const Trade = preload("res://source/match/city/Trade.gd")
+const FactionRules = preload("res://source/data-model/Factions.gd")
 
 const LOSING_THREAT = 1.3  # sue for peace once the enemy is this much stronger
 const PEACEFUL = 1.2  # personalities at least this peaceful look for treaties on their own
 const MIN_WAR_S = 60.0  # wars last at least this long before peaceful AIs give up
+const ULTIMATUM_GRACE_S = 20.0  # on top of the offer's own expiry, before war is declared
+const ULTIMATUM_AGAIN_S = 240.0  # after a pact ends, the next demand waits this long
+const TOO_WEAK_TO_THREATEN = 1.3  # no demands while the human is this much stronger
 
 var offers_made = 0  # statistics
 
 var _player = null
 var _last_offer_s = {}  # partner instance id -> time of last offer
 var _elapsed_s = 0.0
+var _ultimatums = {}  # human instance id -> {"deadline_s", "next_s"}
 
 @onready var _ai = get_parent()
 
@@ -41,12 +51,82 @@ func _tick(delta):
 	)
 	others.shuffle()
 	for other in others:
+		if not Diplomacy.is_ai(other) and _press_human(diplomacy, other):
+			return
 		var since_offer = _elapsed_s - _last_offer_s.get(other.get_instance_id(), -INF)
 		if since_offer < Constants.Match.Diplomacy.AI_OFFER_COOLDOWN_S:
 			continue
 		var kind = _treaty_wanted_with(diplomacy, other)
 		if kind != null and _offer(diplomacy, other, kind):
 			return  # one offer per round
+
+
+func _press_human(diplomacy, human):
+	"""the ultimatum: demands tribute for a pact, declares war when it runs out; true when
+	it spoke this round"""
+	var after_s = float(_ai.ultimatum_after_s)
+	if after_s <= 0.0 or _ai.peacefulness >= PEACEFUL:
+		return false
+	var now_s = float(_ai.match_time_s)  # game time; the decision timer runs a bit off
+	var id = human.get_instance_id()
+	var entry = _ultimatums.get(id, {"deadline_s": -1.0, "next_s": after_s})
+	_ultimatums[id] = entry
+	var state = diplomacy.get_state(_player, human)
+	if state != Diplomacy.State.NEUTRAL:
+		entry["deadline_s"] = -1.0
+		if state != Diplomacy.State.WAR:
+			entry["next_s"] = max(entry["next_s"], now_s + ULTIMATUM_AGAIN_S)
+		return false
+	if entry["deadline_s"] >= 0.0:
+		if now_s < entry["deadline_s"]:
+			return false
+		entry["deadline_s"] = -1.0
+		diplomacy.declare_war(_player, human)
+		_alert(human, tr("ULTIMATUM_WAR").format([_my_name(human)]))
+		return true
+	if now_s < entry["next_s"]:
+		return false
+	return _demand_tribute(diplomacy, human, entry, now_s)
+
+
+func _demand_tribute(diplomacy, human, entry, now_s):
+	if Diplomacy.threat_ratio(_player, human) >= TOO_WEAK_TO_THREATEN:
+		return false
+	var wanted = Trade.scarce_resource_of(_player)
+	var tier = int(_player.get_tier())
+	var amount = min(10 + 6 * tier, int(human.get(wanted)))
+	var requested = {wanted: amount} if amount > 0 else {}
+	if (
+		diplomacy.validate(_player, human, Diplomacy.PACT, {}, requested)
+		!= Diplomacy.Result.ACCEPTED
+	):
+		return false
+	entry["deadline_s"] = (now_s + Constants.Match.Diplomacy.OFFER_EXPIRY_S + ULTIMATUM_GRACE_S)
+	offers_made += 1
+	_last_offer_s[human.get_instance_id()] = _elapsed_s
+	MatchSignals.diplomacy_offered.emit(_player, human, Diplomacy.PACT, {}, requested)
+	_alert(human, tr("ULTIMATUM_DEMAND").format([_my_name(human)]))
+	return true
+
+
+func _my_name(human):
+	"""as the human's diplomacy bar names us: faction and colour, or "Faction N" """
+	var label = FactionRules.label_for(_player)
+	if label != "":
+		return label
+	var others = get_tree().get_nodes_in_group("players").filter(
+		func(player): return player != human
+	)
+	return tr("TRADE_FACTION").format([others.find(_player) + 1])
+
+
+func _alert(human, text):
+	"""a warning line for the human, through the guide's alerts"""
+	if not human.is_in_group("players") or Diplomacy.is_ai(human):
+		return
+	var guide = get_tree().root.find_child("Guide", true, false)
+	if guide != null and guide.has_method("show_alert"):
+		guide.show_alert(text)
 
 
 func _treaty_wanted_with(diplomacy, other):

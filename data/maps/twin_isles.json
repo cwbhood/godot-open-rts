@@ -287,6 +287,20 @@
         ]
       },
       {
+        "kind": "timber",
+        "center": [
+          54,
+          116
+        ]
+      },
+      {
+        "kind": "timber",
+        "center": [
+          106,
+          44
+        ]
+      },
+      {
         "kind": "oil",
         "center": [
           73,

@@ -1,0 +1,41 @@
+{
+  "name": "rail-network",
+  "description": "A base with four far extractors and two freight trains: the trains plan their own lines, lay one shared network (a trunk with branches, not a line per stop), load at the gantries and unload at the station. Screenshots follow the first train.",
+  "map": "oil_and_iron",
+  "seed": 3,
+  "minutes": 7,
+  "speed": 4,
+  "fog": false,
+  "weather": "clear",
+  "players": [{"type": "human"}, {"type": "ai", "personality": "turtle"}],
+  "setup": [
+    {"do": "give", "resources": {"timber": 600, "iron": 600, "copper": 400, "oil": 400}},
+    {"do": "spawn", "unit": "worker", "count": 3, "spot": {"of": "base", "offset": [6, 6]}},
+    {"do": "extract", "resource": "iron", "expect_ok": true},
+    {"do": "extract", "resource": "copper", "expect_ok": true},
+    {"do": "extract", "resource": "oil"},
+    {"do": "extract", "resource": "iron"},
+    {"do": "extract", "resource": "copper"}
+  ],
+  "events": [
+    {"at": 70, "do": "spawn", "unit": "train", "spot": {"of": "base", "offset": [4, 4]}, "expect_ok": true},
+    {"at": 150, "do": "spawn", "unit": "train", "spot": {"of": "base", "offset": [-4, 4]}, "expect_ok": true},
+    {"at": 120, "do": "camera", "follow": "own:train"},
+    {"at": 120, "do": "screenshot", "name": "train-laying"},
+    {"at": 200, "do": "camera", "follow": "own:train"},
+    {"at": 200, "do": "screenshot", "name": "train-running"},
+    {"at": 279, "do": "select", "units": "own:train"},
+    {"at": 280, "do": "camera", "follow": "own:train"},
+    {"at": 280, "do": "screenshot", "name": "train-loop"},
+    {"at": 340, "do": "select", "units": "own:worker"},
+    {"at": 360, "do": "camera", "follow": "own:train"},
+    {"at": 360, "do": "screenshot", "name": "train-late"},
+    {"at": 400, "do": "camera", "follow": "own:command_center"},
+    {"at": 400, "do": "screenshot", "name": "station"}
+  ],
+  "checks": [
+    {"at": 140, "name": "the first train is out", "expect": "units", "units": "own:train", "min": 1},
+    {"end": true, "name": "both trains run", "expect": "units", "units": "own:train", "min": 2},
+    {"end": true, "expect": "no_errors"}
+  ]
+}

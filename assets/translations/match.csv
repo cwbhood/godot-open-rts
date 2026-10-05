@@ -220,7 +220,7 @@ MATCH_END_YOU,You,Ty
 STORAGE,Storage,Magazyn
 STORAGE_DESCRIPTION,place next to extractors: their conveyors fill it so they never stop; trucks and trains collect full loads,"postaw obok kopalń: przenośniki go napełniają, więc nigdy nie stają; ciężarówki i pociągi zabierają pełne ładunki"
 TRAIN,Freight train,Pociąg towarowy
-TRAIN_DESCRIPTION,"lays its own track to extractors and storages, then runs the loop at twice truck speed with four truckloads","sam kładzie tory do kopalń i magazynów, potem jeździ pętlą dwa razy szybciej niż ciężarówka, z czterema ładunkami"
+TRAIN_DESCRIPTION,"lays its own track to extractors and storages, branching off your existing railway, then runs the loop at twice truck speed with four truckloads","sam kładzie tory do kopalń i magazynów, potem jeździ pętlą dwa razy szybciej niż ciężarówka, z czterema ładunkami"
 LOGISTICS_FLEET,"Trucks {0}: {1} working, {2} standing by, {3} parked (work for about {4}). Trains {5}. Upkeep {6} oil/min","Ciężarówki {0}: {1} w pracy, {2} czeka, {3} na postoju (praca dla ok. {4}). Pociągi {5}. Utrzymanie {6} ropy/min"
 LOGISTICS_RECYCLING,({0} going to be recycled),({0} jedzie do recyklingu)
 LOGISTICS_SURPLUS,{0} trucks had nothing to do for a minute,{0} ciężarówek nie miało nic do roboty przez minutę
@@ -335,3 +335,5 @@ FOUNDRY,Foundry,Odlewnia
 FOUNDRY_DESCRIPTION,"while powered, factories on the same power grid produce 20% faster","gdy ma zasilanie, fabryki w tej samej sieci produkują o 20% szybciej"
 TRADING_POST,Trading post,Faktoria
 TRADING_POST_DESCRIPTION,a second caravan depot: trade caravans leave from and arrive at the closest one,drugi skład karawan: karawany handlowe wyruszają z najbliższego i do niego przyjeżdżają
+ULTIMATUM_DEMAND,"{0} demands tribute for a pact. Accept it in Diplomacy within a minute, or {0} declares war.","{0} żąda trybutu za pakt. Przyjmij go w Dyplomacji w ciągu minuty, albo {0} wypowie wojnę."
+ULTIMATUM_WAR,"{0} declares war: you did not pay the tribute.","{0} wypowiada wojnę: nie zapłacono trybutu."
