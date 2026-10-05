@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/VehicleFactory.tscn",
   "name": "VEHICLE_FACTORY",
   "description": "VEHICLE_FACTORY_DESCRIPTION",
+  "role": "factory",
+  "info": "VEHICLE_FACTORY_INFO",
   "icon": "res://assets/ui/icons/VehicleFactory.png",
   "tier": 1,
   "cost": {

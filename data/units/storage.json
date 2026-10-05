@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/Storage.tscn",
   "name": "STORAGE",
   "description": "STORAGE_DESCRIPTION",
+  "role": "logistics",
+  "info": "STORAGE_INFO",
   "icon": "res://assets/ui/icons/ResourceA.png",
   "icon_tint": "#b7a27a",
   "tier": 1,

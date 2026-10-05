@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/LumberMill.tscn",
   "name": "LUMBER_MILL",
   "description": "LUMBER_MILL_DESCRIPTION",
+  "role": "resource",
+  "info": "LUMBER_MILL_INFO",
   "icon": "res://assets/ui/icons/ResourceA.png",
   "icon_tint": "#5c9e40",
   "tier": 1,

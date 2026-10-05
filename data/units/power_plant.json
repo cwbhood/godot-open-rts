@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/PowerPlant.tscn",
   "name": "POWER_PLANT",
   "description": "POWER_PLANT_DESCRIPTION",
+  "role": "power",
+  "info": "POWER_PLANT_INFO",
   "icon": "res://assets/ui/icons/VehicleFactory.png",
   "icon_tint": "#ffe066",
   "tier": 1,

@@ -4,6 +4,8 @@
   "factions": ["syndicate"],
   "name": "SAM_SITE",
   "description": "SAM_SITE_DESCRIPTION",
+  "role": "defence",
+  "info": "SAM_SITE_INFO",
   "model_scale": 0.9,
   "icon_tint": "#e0905a",
   "cost": {
