@@ -82,7 +82,7 @@ func _press_human(diplomacy, human):
 			return false
 		entry["deadline_s"] = -1.0
 		diplomacy.declare_war(_player, human)
-		_alert(human, tr("ULTIMATUM_WAR").format([_my_name()]))
+		_alert(human, tr("ULTIMATUM_WAR").format([_my_name(human)]))
 		return true
 	if now_s < entry["next_s"]:
 		return false
@@ -105,13 +105,19 @@ func _demand_tribute(diplomacy, human, entry, now_s):
 	offers_made += 1
 	_last_offer_s[human.get_instance_id()] = _elapsed_s
 	MatchSignals.diplomacy_offered.emit(_player, human, Diplomacy.PACT, {}, requested)
-	_alert(human, tr("ULTIMATUM_DEMAND").format([_my_name()]))
+	_alert(human, tr("ULTIMATUM_DEMAND").format([_my_name(human)]))
 	return true
 
 
-func _my_name():
+func _my_name(human):
+	"""as the human's diplomacy bar names us: faction and colour, or "Faction N" """
 	var label = FactionRules.label_for(_player)
-	return label if label != "" else str(_player.name)
+	if label != "":
+		return label
+	var others = get_tree().get_nodes_in_group("players").filter(
+		func(player): return player != human
+	)
+	return tr("TRADE_FACTION").format([others.find(_player) + 1])
 
 
 func _alert(human, text):
