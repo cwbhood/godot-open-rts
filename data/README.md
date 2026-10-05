@@ -469,6 +469,7 @@ Blender scripts in `tools/blender/` export) or whose albedo is the key colour
   "optional_unit_actions": ["select_repeat"],   // played when the same unit is clicked 3 times
   "unit_voices": {"militia": "infantry", "drone": "drone"},
   "faction_voices": {"syndicate": {"militia": "syndicate_infantry"}},  // shared units, per faction
+  "land_voices": {"amphibious_apc": {"default": "vehicle_crew", "syndicate": "syndicate_crew"}},
   "default_voices": {"unit": "vehicle_crew", "air_unit": "pilot", "structure": "structure"},
   "advisor": "advisor",
   "advisor_events": ["base_under_attack", "low_oil", "storage_full", "..."]
@@ -477,7 +478,9 @@ Blender scripts in `tools/blender/` export) or whose albedo is the key colour
 
 A unit's own `"voice"` field wins, then `faction_voices` for its owner's faction (so a
 Syndicate militia sounds like a Syndicate hired gun, a Foundry one like a Foundry soldier),
-then `unit_voices`; units in none get the default.
+then `unit_voices`; units in none get the default. `land_voices` is for amphibious units:
+while one stands on land it speaks with that set (a set id, or one per faction with a
+`"default"`), and only switches to its marine set once it is actually in the water.
 
 `sounds/voice_sets/<id>.json` lists the lines of one voice. The game picks a line at random
 but plays every line of an action once before repeating any, and never the same line twice in
@@ -512,6 +515,6 @@ this folder. Mods are loaded in alphabetical order on top of the base data:
 - a mod's `factions/*.json` adds factions or patches one by id like units (give a whole
   `roles` object when you change it),
 - a mod's `tiers.json` or `roads.json` replaces the base one,
-- a mod's `sounds/voices.json` patches `unit_voices`, `default_voices` and each faction of `faction_voices` key by key, and a
+- a mod's `sounds/voices.json` patches `unit_voices`, `default_voices`, `land_voices` and each faction of `faction_voices` key by key, and a
   voice set with a known id replaces only the actions it lists (its `folder` applies to its
   own lines), so a mod can give the drone new beeps without copying the rest.

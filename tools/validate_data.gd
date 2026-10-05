@@ -701,6 +701,20 @@ func _check_voices(units):
 		for action in actions:
 			if voice_set.get("lines", {}).get(action, []).is_empty():
 				_error(where, "voice set '{0}' has no sound for '{1}'".format([set_id, action]))
+	var land_voices = GameData.voices().get("land_voices", {})
+	for unit_id in land_voices:
+		var where = "sounds/voices.json land_voices." + unit_id
+		if units.filter(func(entry): return entry["id"] == unit_id).is_empty():
+			_error(where, "no unit '{0}' in data/units/".format([unit_id]))
+		var mapped = land_voices[unit_id]
+		for set_id in mapped.values() if mapped is Dictionary else [mapped]:
+			var land_set = GameData.voice_set_by_id(set_id)
+			if land_set == null:
+				_error(where, "voice set '{0}' not found".format([set_id]))
+				continue
+			for action in actions:
+				if land_set.get("lines", {}).get(action, []).is_empty():
+					_error(where, "voice set '{0}' has no sound for '{1}'".format([set_id, action]))
 	var VoiceBank = load("res://source/match/audio/VoiceBank.gd")
 	for voice_set in GameData.voice_sets():
 		for action in voice_set.get("lines", {}):

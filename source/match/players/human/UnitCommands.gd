@@ -166,7 +166,8 @@ static func patrol(units, waypoints, queue = false):
 
 static func patrol_base(units, player = null):
 	"""a loop around the city and out past every extractor and outlying building; the
-	units spread over the loop instead of following each other"""
+	units spread over the loop instead of following each other, and the loop grows with
+	the base (Patrolling redraws it when buildings go up or are lost)"""
 	units = movable(units)
 	if units.is_empty():
 		return []
@@ -177,7 +178,7 @@ static func patrol_base(units, player = null):
 		return []
 	for i in range(units.size()):
 		var start = int(floor(float(i) * circuit.size() / units.size()))
-		units[i].action = Patrolling.new(circuit, start)
+		units[i].action = Patrolling.new(circuit, start, player)
 	return circuit
 
 

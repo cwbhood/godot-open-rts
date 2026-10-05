@@ -68,10 +68,13 @@ func _process(_delta):
 	)
 	var armed = movable.filter(func(unit): return unit.attack_range != null)
 	# a single constructor shows its build menu in the same slots
-	var show = not movable.is_empty() and not (units.size() == 1 and units[0] is Worker)
+	var single_constructor = (
+		units.size() == 1 and is_instance_valid(units[0]) and units[0] is Worker
+	)
+	var show = not movable.is_empty() and not single_constructor
 	# under a single constructor's build menu the cancel button would peek between the
 	# build buttons without being clickable; X (stop) still cancels
-	_cancel_button.visible = not (units.size() == 1 and units[0] is Worker)
+	_cancel_button.visible = not single_constructor
 	for command in _command_buttons:
 		var button = _command_buttons[command]
 		button.visible = show
