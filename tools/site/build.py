@@ -107,7 +107,7 @@ def page(filename, title, description, body, preview=False, schema=None, noindex
   <div class="wrap">
     <div class="stack">
       <a class="brand" href="index.html">{MARK}Ironbound</a>
-      <p>A free, open source real-time strategy game made with Godot. Created by <a href="about.html">Destin Jones</a>. MIT licensed. No accounts, no ads, no cookies and no tracking on this site.</p>
+      <p>A free, open source real-time strategy game made with Godot. Vibe coded by <a href="about.html">Destin Jones</a> with Claude, on top of Open RTS by Lampe Games. MIT licensed, so fork it and make it yours. No accounts, no ads, no cookies and no tracking on this site.</p>
     </div>
     <div>
       <h2>Play</h2>
@@ -354,6 +354,21 @@ HOME = f"""
       <p class="eyebrow">Coming next</p>
       <h2 id="factions-teaser">Two factions, two ways to win</h2>
       <p>The <strong>Foundry League</strong> builds heavy, tracked and fortified. The <strong>Sandline Syndicate</strong> trades and raids on wheels. <a href="factions.html">Meet the factions</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="fork-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Made in the open</p>
+      <h2 id="fork-title">Vibe coded with Claude. Yours to fork.</h2>
+      <p>Ironbound is a hobby project by <a href="about.html">Destin Jones</a>, vibe coded with Claude as the building partner and built on <a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> and the <a href="https://godotengine.org">Godot Engine</a>. Thanks to everyone whose open source work made it possible.</p>
+      <p>Anyone is welcome to download it, fork it and build anything you like from it: your own RTS, a mod, a totally different game. The <a href="{REPO}/blob/main/LICENSE">MIT licence</a> lets you use, change and share it freely.</p>
+    </div>
+    <div class="actions">
+      <a class="btn" href="{REPO}/fork">Fork on GitHub</a>
+      <a class="btn btn-ghost" href="open-source.html">Licence, credits and mods</a>
     </div>
   </div>
 </section>
@@ -701,6 +716,8 @@ OPEN = f"""
   <p class="eyebrow">Free to play, read, change and share</p>
   <h1>Open source</h1>
   <p>All the code and all the art in Ironbound are open. Fork it, mod it, learn from it, or help build it.</p>
+  <p>Please take it and build anything you like. Ironbound is vibe coded with Claude, and it only exists because of Open RTS, Godot and many other open source projects, so passing it on feels right.</p>
+  <div class="actions"><a class="btn" href="{REPO}/fork">Fork on GitHub</a><a class="btn btn-ghost" href="{REPO}/blob/main/LICENSE">Read the MIT licence</a></div>
 </div>
 {docs_page([
     ("licence", "Licence", f'''<p>Ironbound is released under the <strong>MIT licence</strong>, the same licence as <a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a>, the project it grew from. You may use, copy, change and sell it, as long as the licence and copyright notice stay with it. Read the <a href="{REPO}/blob/main/LICENSE">full licence</a>.</p>'''),
@@ -773,7 +790,7 @@ COMMUNITY = f"""
 </div>
 <section aria-label="Links">
   <div class="wrap cards">
-    <div class="card"><h3>Source code</h3><p>Read the code, star the project, or fork it to make your own RTS.</p><a class="more" href="{REPO}">github.com/cwbhood/godot-open-rts</a></div>
+    <div class="card"><h3>Source code</h3><p>Read the code, or <a href="{REPO}/fork">fork it</a> and build anything you like: your own RTS, a mod, or something new.</p><a class="more" href="{REPO}">github.com/cwbhood/godot-open-rts</a></div>
     <div class="card"><h3>Issues</h3><p>Report bugs, suggest features and follow what is being worked on.</p><a class="more" href="{REPO}/issues">Open issues</a></div>
     <div class="card"><h3>Pull requests</h3><p>See changes in progress and send your own.</p><a class="more" href="{REPO}/pulls">Pull requests</a></div>
     <div class="card"><h3>Releases</h3><p>Every build with its notes and checksums.</p><a class="more" href="{REPO}/releases">All releases</a></div>
