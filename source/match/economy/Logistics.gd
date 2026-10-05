@@ -40,11 +40,15 @@ const Storage = preload("res://source/match/units/Storage.gd")
 const RailVisuals = preload("res://source/match/economy/RailVisuals.gd")
 const Fleet = preload("res://source/match/economy/Fleet.gd")
 const RailNetwork = preload("res://source/match/economy/RailNetwork.gd")
+const WaterRules = preload("res://source/match/WaterRules.gd")
 
 const ROAD_WIDTH_M = 1.1
 const HAULER_SCENE = "res://source/match/units/Hauler.tscn"
 const PARKED = "PARKED"
 const STANDBY_LIMIT_S = 120.0  # no point waiting at an extractor longer than this
+const LAND_ROUTE_REACH_M = 6.0  # a truck route ends this close to the building it serves
+const LAND_ROUTE_CELL_M = 4.0  # land route answers are cached per cell of this size
+const LAND_ROUTE_KEEP_S = {true: 30.0, false: 6.0}  # how long a cached answer holds
 
 var delivered_total = {}  # statistics: goods that reached a depot
 var lost_total = {}  # statistics: goods destroyed on the way or in extractors
@@ -59,6 +63,7 @@ var danger_zones = []  # [[position, time left]] where trucks or trains were des
 var route_stats = {}  # source instance id -> {delivered, trips, lost, trip_s}
 
 var _road_visuals = {}  # extractor -> MeshInstance3D
+var _land_routes = {}  # [cell, depot id] -> [has a land route, game time it expires]
 
 var _site_loaders = {}  # site -> number of haulers on their way to load materials for it
 var _gather_carry = {}  # commodity -> fraction left over by the player's gather rate
@@ -128,17 +133,38 @@ func get_sources():
 
 
 func closest_depot(position):
-	var closest = null
-	for depot in get_depots():
-		if (
-			closest == null
-			or (
-				_distance(depot.global_position, position)
-				< _distance(closest.global_position, position)
-			)
-		):
-			closest = depot
-	return closest
+	"""the closest depot trucks can drive to from position: on maps with water a depot
+	across deep water does not count, and a building with no land route to any depot has
+	none (null), so no truck is sent to wait on the shore"""
+	var depots = get_depots()
+	depots.sort_custom(
+		func(a, b):
+			return _distance(a.global_position, position) < _distance(b.global_position, position)
+	)
+	if depots.size() == 0 or not WaterRules.map_has_water(get_tree()):
+		return depots[0] if depots.size() > 0 else null
+	for depot in depots:
+		if _has_land_route(depot.global_position, position):
+			return depot
+	return null
+
+
+func _has_land_route(from, to):
+	"""whether trucks can drive between the two points (always true without water)"""
+	var cell = Vector2i((Vector2(to.x, to.z) / LAND_ROUTE_CELL_M).floor())
+	var start = Vector2i((Vector2(from.x, from.z) / LAND_ROUTE_CELL_M).floor())
+	var key = [start, cell]
+	var cached = _land_routes.get(key)
+	if cached == null and _land_routes.size() > 4000:
+		_land_routes.clear()  # answers for cells trucks have long left
+	if cached != null and cached[1] > _clock_s:
+		return cached[0]
+	var route = WaterRules.land_route(get_tree(), from, to, LAND_ROUTE_REACH_M)
+	if route == null:
+		return true  # navigation not ready yet: assume the best, ask again later
+	var reachable = not route.is_empty()
+	_land_routes[key] = [reachable, _clock_s + LAND_ROUTE_KEEP_S[reachable]]
+	return reachable
 
 
 func is_in_yard(position):

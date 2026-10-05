@@ -12,11 +12,28 @@ var _streams = {}  # path -> AudioStream (null when it failed to load)
 
 
 static func set_id_for_unit(unit):
-	"""the set of a unit as its owner's faction voices it (a Syndicate militia is not a Foundry one)"""
+	"""the set of a unit as its owner's faction voices it (a Syndicate militia is not a Foundry
+	one); amphibious units switch to their land_voices set when they stand on land"""
 	var scene_path = unit._scene_path() if unit.has_method("_scene_path") else unit.scene_file_path
 	var owner = unit.get("player")
 	var faction = owner.get("faction") if owner != null else ""
-	return GameData.voice_set_id_for(GameData.unit_by_scene(scene_path), faction if faction else "")
+	var entry = GameData.unit_by_scene(scene_path)
+	faction = faction if faction else ""
+	if _is_on_land(unit):
+		var land_set = GameData.land_voice_set_id_for(entry, faction)
+		if land_set != null:
+			return land_set
+	return GameData.voice_set_id_for(entry, faction)
+
+
+static func _is_on_land(unit):
+	"""amphibious crews talk like boat crews only while they are actually in the water"""
+	if not unit is Node3D or not unit.is_inside_tree():
+		return true
+	var a_match = unit.get_tree().get_first_node_in_group("match")
+	if a_match == null or a_match.map == null or not a_match.map.has_method("has_water"):
+		return true
+	return a_match.map.water_depth_at(unit.global_position) == 0
 
 
 static func line_path(voice_set, line):

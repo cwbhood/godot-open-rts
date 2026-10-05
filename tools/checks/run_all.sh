@@ -44,6 +44,7 @@ CHECKS=(
   "MatchSetupCheck|res://tests/setup/MatchSetupCheck.tscn|"
   "StartZonesCheck|res://tests/start/StartZonesCheck.tscn|"
   "WaterMovement|res://tests/water/WaterMovement.tscn|"
+  "RoadRoutes|res://tests/water/RoadRoutes.tscn|"
   "SaveMenuCheck|res://tests/save/SaveMenuCheck.tscn|--no-build-up"
   "ArmyPositions|res://tests/ai/ArmyPositions.tscn|"
 )

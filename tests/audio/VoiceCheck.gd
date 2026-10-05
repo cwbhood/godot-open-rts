@@ -12,6 +12,7 @@ extends Node
 # - a faction voice override is missing, a unit unique to one faction talks with the voice
 #   of a unit unique to the other, or both factions' militia sound the same
 # - a line plays twice in a row when the same action repeats
+# - an amphibious unit on land talks with its boat crew lines (or in the water with land ones)
 # - in a staged match, selecting, ordering, hitting or producing a unit does not play a
 #   line from that unit's own set for its owner's faction (the drone must buzz, not talk), or the advisor stays
 #   silent on low oil, a full storage, a new tier or a helper alert
@@ -207,9 +208,44 @@ func _check_in_match():
 		unit.queue_free()
 		await _frames(1)
 	human.faction = original_faction
+	await _check_amphibious(match_node, human, voices)
 	await _check_advisor(human, advisor)
 	match_node.queue_free()
 	await _frames(2)
+
+
+func _check_amphibious(match_node, human, voices):
+	"""an amphibious APC talks like a land crew on land and like a boat crew in the water"""
+	var WaterLayout = load("res://source/match/maps/WaterLayout.gd")
+	var land_set = GameData.land_voice_set_id_for(GameData.unit_by_id("amphibious_apc"), "")
+	var water_set = GameData.voice_set_id_for(GameData.unit_by_id("amphibious_apc"))
+	if land_set == null or land_set == water_set:
+		_fail("the amphibious APC has no land voice of its own")
+		return
+	var unit = load(GameData.unit_by_id("amphibious_apc")["scene"]).instantiate()
+	MatchSignals.setup_and_spawn_unit.emit(unit, Transform3D(Basis(), Vector3(30, 0, 30)), human)
+	await _frames(2)
+	var map = match_node.map
+	var original_water = map.water
+	for case in [["land", land_set], ["water", water_set]]:
+		if case[0] == "water":
+			map.water = WaterLayout.from_layout(
+				{"water": [{"center": [30, 30], "radius": 6, "depth": "deep"}]}
+			)
+			map.water.build_grid(Rect2(Vector2.ZERO, Vector2(map.size)))
+		for action in ["select", "move", "ready"]:
+			voices.find_child("AudioStreamPlayer").stop()
+			if action == "select":
+				MatchSignals.unit_selected.emit(unit)
+				await _frames(1)
+			elif action == "ready":
+				MatchSignals.unit_production_finished.emit(unit, unit)
+			else:
+				MatchSignals.units_ordered.emit([unit], action)
+			_expect(voices.last_line, case[1], action, "amphibious_apc on " + case[0])
+	map.water = original_water
+	unit.queue_free()
+	await _frames(1)
 
 
 func _expect(last_line, set_id, action, unit_id):

@@ -22,6 +22,10 @@
     "amphibious_apc": "boat_crew",
     "train": "rail_crew"
   },
+  "land_voices": {
+    "amphibious_apc": {"default": "vehicle_crew", "syndicate": "syndicate_crew"},
+    "hover_skimmer": {"default": "vehicle_crew", "syndicate": "syndicate_crew"}
+  },
   "faction_voices": {
     "syndicate": {
       "militia": "syndicate_infantry",

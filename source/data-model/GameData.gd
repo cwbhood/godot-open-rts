@@ -519,6 +519,18 @@ static func _deep_merge(base, patch):
 			base[key] = patch[key]
 
 
+static func land_voice_set_id_for(unit_entry, faction = ""):
+	"""the set an amphibious unit speaks with while it is on land (data/sounds/voices.json
+	land_voices: a set id, or {"default": id, "<faction>": id}); null when it has none, so
+	the unit keeps its usual (water) set"""
+	if unit_entry == null:
+		return null
+	var mapped = voices().get("land_voices", {}).get(unit_entry["id"])
+	if mapped is Dictionary:
+		return mapped.get(faction, mapped.get("default"))
+	return mapped
+
+
 static func _merge_voices(base, mod):
 	"""unit_voices, default_voices and each faction of faction_voices are patched key by key,
 	other fields replaced"""
@@ -529,7 +541,7 @@ static func _merge_voices(base, mod):
 					base[key][faction].merge(mod[key][faction], true)
 				else:
 					base[key][faction] = mod[key][faction]
-		elif key in ["unit_voices", "default_voices"] and key in base:
+		elif key in ["unit_voices", "default_voices", "land_voices"] and key in base:
 			base[key].merge(mod[key], true)
 		else:
 			base[key] = mod[key]

@@ -8,7 +8,8 @@ extends "res://tests/playtest/PlaytestChecks.gd"
 # - a plain right-click still moves the group, Shift queues moves,
 # - F + click fights its way (engages an enemy on the way, then arrives), F + left-drag
 #   makes a fighting line,
-# - P + clicks (Shift for more points) patrols, the button patrols the base loop,
+# - P + clicks (Shift for more points) patrols, the button patrols the base loop, and a
+#   building put up afterwards joins that loop,
 # - V + click guards, X stops, Z retreats,
 # - L cycles the fire stance (hold fire ignores an enemy in range, return fire answers
 #   only a shooter), K holds position (no chase).
@@ -264,7 +265,27 @@ func _check_patrol_base_button():
 		)
 	await _frames(120)
 	await _shot("base-1-base-patrol-loop")
-	_cleanup(tanks)
+	# a building put up after the order joins the loop once the current leg is done
+	var outpost_spot = _open_spot_outside(tanks[0].action.get_waypoints(), 26.0)
+	var outpost = load("res://source/match/units/AntiGroundTurret.tscn").instantiate()
+	MatchSignals.setup_and_spawn_unit.emit(outpost, Transform3D(Basis(), outpost_spot), _human)
+	var covers_outpost = func(tank):
+		if not is_instance_valid(tank) or not tank.action is Patrolling:
+			return false
+		for point in tank.action.get_waypoints():
+			if point.distance_to(outpost_spot * Vector3(1, 0, 1)) < 8.0:
+				return true
+		return false
+	await _wait_for(func(): return tanks.all(covers_outpost), 2400)
+	_expect(tanks.all(covers_outpost), "a turret built after the order joins every unit's base patrol")
+	_expect(
+		tanks.all(func(tank): return tank.action is Patrolling and tank.action.is_base_patrol()),
+		"the units are still on the base patrol"
+	)
+	camera_on(outpost_spot, 36.0)
+	await _frames(10)
+	await _shot("base-2-loop-takes-in-new-turret")
+	_cleanup(tanks + [outpost])
 
 
 func _check_guard_stop_retreat():
@@ -400,6 +421,24 @@ func _make_rival_inert():
 
 func _units_of(player):
 	return get_tree().get_nodes_in_group("units").filter(func(unit): return unit.player == player)
+
+
+func _open_spot_outside(loop, distance):
+	"""a walkable spot this far from the command center, as far as possible from the loop"""
+	var best = null
+	var best_gap = -1.0
+	for i in range(16):
+		var angle = TAU * i / 16
+		var spot = _ground(_cc.global_position + Vector3(cos(angle), 0, sin(angle)) * distance)
+		if spot.distance_to(_cc.global_position) < distance * 0.8:
+			continue
+		var gap = INF
+		for point in loop:
+			gap = min(gap, (point * Vector3(1, 0, 1)).distance_to(spot * Vector3(1, 0, 1)))
+		if gap > best_gap:
+			best_gap = gap
+			best = spot
+	return best if best != null else _ground(_cc.global_position + Vector3(distance, 0, 0))
 
 
 func _ground(position):

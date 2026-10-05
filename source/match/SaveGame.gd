@@ -333,7 +333,8 @@ static func _capture_order(action, unit_ids):
 	if action is AttackMoving and action._target_position != null:
 		return ["fight", _vec3(action._target_position)]
 	if action is Patrolling:
-		return ["patrol", action._waypoints.map(_vec3), action._index]
+		var kind = "patrol_base" if action.is_base_patrol() else "patrol"
+		return [kind, action._waypoints.map(_vec3), action._index]
 	if action is Moving and action._target_position != null:
 		return ["move", _vec3(action._target_position)]
 	return null
@@ -366,6 +367,8 @@ static func _restore_orders(spawned, data):
 				unit.action = AttackMoving.new(_to_vec3(order[1]))
 			"patrol":
 				unit.action = Patrolling.new(order[1].map(_to_vec3), int(order[2]))
+			"patrol_base":
+				unit.action = Patrolling.new(order[1].map(_to_vec3), int(order[2]), unit.player)
 			"move":
 				if Moving.is_applicable(unit):
 					unit.action = Moving.new(_to_vec3(order[1]))
