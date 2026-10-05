@@ -12,7 +12,7 @@
     {"do": "extract", "resource": "timber"}
   ],
   "checks": [
-    {"at": 460, "name": "no war before the demand", "expect": "timeline", "kind": "diplomacy", "contains": "war", "max": 0},
+    {"at": 500, "name": "no war before the demand runs out", "expect": "timeline", "kind": "diplomacy", "contains": "war", "max": 0},
     {"end": true, "name": "the ignored demand ends in war", "expect": "timeline", "kind": "diplomacy", "contains": "war", "min": 1},
     {"end": true, "expect": "no_errors"}
   ]

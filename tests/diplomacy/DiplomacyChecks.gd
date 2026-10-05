@@ -47,6 +47,7 @@ func _ready():
 	_check_alliance_rules()
 	_check_timers()
 	await _check_hud()
+	await _check_ultimatum()
 	print("diplomacy checks: {0} failure(s)".format([_failures]))
 	get_tree().quit(1 if _failures > 0 else 0)
 
@@ -223,6 +224,79 @@ func _check_hud():
 	await _frames(5)
 	_expect(offered and hud.get("_offer_box").visible, "an AI pact offer shows in the bar")
 	await _shot("3-incoming-pact-offer")
+
+
+func _check_ultimatum():
+	"""a non-peaceful AI demands tribute for a pact once its difficulty's time is up, and
+	declares war when the demand is ignored; a signed pact buys quiet minutes"""
+	var controller = _raider.get_node("DiplomacyController")
+	_raider.ultimatum_after_s = 30.0
+	var attacks_neutrals = _raider.attacks_neutrals
+	_raider.attacks_neutrals = false  # no stray shot may start the war for it
+	for timer in controller.get_children():
+		if timer is Timer:
+			timer.paused = true  # its own decision rounds stay out of this check
+	_diplomacy.call("_set_state", _human, _raider, Diplomacy.State.NEUTRAL, 0.0)
+	_diplomacy.call("_stop_hostilities", _human, _raider)  # left over from the war check
+	_human.add_resources({"oil": 40, "iron": 40, "copper": 40, "timber": 40})
+	# make sure the raider is not much weaker, or it makes no demands
+	var home = _first_unit(_raider, func(_unit): return true).global_position_yless
+	for i in range(4):
+		var tank = TankScene.instantiate()
+		MatchSignals.setup_and_spawn_unit.emit(
+			tank, Transform3D(Basis(), home + Vector3(4 + i * 2, 0, 4)), _raider
+		)
+	await _frames(5)
+	controller.set("_ultimatums", {})
+	_raider.match_time_s = 10.0
+	_expect(not controller.call("_press_human", _diplomacy, _human), "no demand before its time")
+	_raider.match_time_s = 31.0
+	_keep_neutral(_raider)
+	var hud = _match.find_child("DiplomacyHud", true, false)
+	if hud != null:
+		hud.call("_dismiss_offer")
+	var demanded = controller.call("_press_human", _diplomacy, _human)
+	_expect(demanded, "then it demands tribute")
+	await _frames(5)
+	_expect(hud == null or hud.get("_offer_box").visible, "the demand shows as a pact offer")
+	await _shot("4-ultimatum")
+	_raider.match_time_s = 50.0
+	_keep_neutral(_raider)
+	controller.call("_press_human", _diplomacy, _human)
+	_expect(
+		_diplomacy.get_state(_human, _raider) == Diplomacy.State.NEUTRAL, "there is time to answer"
+	)
+	_raider.match_time_s = 120.0
+	_keep_neutral(_raider)
+	controller.call("_press_human", _diplomacy, _human)
+	_expect(
+		_diplomacy.get_state(_human, _raider) == Diplomacy.State.WAR,
+		"an ignored demand ends in war"
+	)
+	_diplomacy.call("_set_state", _human, _raider, Diplomacy.State.NEUTRAL, 0.0)
+	controller.set("_ultimatums", {})
+	controller.call("_press_human", _diplomacy, _human)
+	_diplomacy.sign_treaty(_raider, _human, Diplomacy.PACT)
+	controller.call("_press_human", _diplomacy, _human)
+	var entry = controller.get("_ultimatums").values()[0]
+	_expect(
+		(
+			_diplomacy.get_state(_human, _raider) == Diplomacy.State.PACT
+			and entry["next_s"] >= _raider.match_time_s + 200.0
+		),
+		"signing the pact keeps the peace and the next demand waits"
+	)
+	_raider.attacks_neutrals = attacks_neutrals
+	for timer in controller.get_children():
+		if timer is Timer:
+			timer.paused = false
+
+
+func _keep_neutral(ai):
+	"""stray shots of the busy test match do not start this war; the controller must"""
+	if _diplomacy.get_state(_human, ai) == Diplomacy.State.WAR:
+		_diplomacy.call("_set_state", _human, ai, Diplomacy.State.NEUTRAL, 0.0)
+	_diplomacy.call("_stop_hostilities", _human, ai)
 
 
 func _first_unit(player, predicate):

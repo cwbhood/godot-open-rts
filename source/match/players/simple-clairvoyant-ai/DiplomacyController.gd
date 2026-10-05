@@ -67,6 +67,7 @@ func _press_human(diplomacy, human):
 	var after_s = float(_ai.ultimatum_after_s)
 	if after_s <= 0.0 or _ai.peacefulness >= PEACEFUL:
 		return false
+	var now_s = float(_ai.match_time_s)  # game time; the decision timer runs a bit off
 	var id = human.get_instance_id()
 	var entry = _ultimatums.get(id, {"deadline_s": -1.0, "next_s": after_s})
 	_ultimatums[id] = entry
@@ -74,21 +75,21 @@ func _press_human(diplomacy, human):
 	if state != Diplomacy.State.NEUTRAL:
 		entry["deadline_s"] = -1.0
 		if state != Diplomacy.State.WAR:
-			entry["next_s"] = max(entry["next_s"], _elapsed_s + ULTIMATUM_AGAIN_S)
+			entry["next_s"] = max(entry["next_s"], now_s + ULTIMATUM_AGAIN_S)
 		return false
 	if entry["deadline_s"] >= 0.0:
-		if _elapsed_s < entry["deadline_s"]:
+		if now_s < entry["deadline_s"]:
 			return false
 		entry["deadline_s"] = -1.0
 		diplomacy.declare_war(_player, human)
 		_alert(human, tr("ULTIMATUM_WAR").format([_my_name()]))
 		return true
-	if _elapsed_s < entry["next_s"]:
+	if now_s < entry["next_s"]:
 		return false
-	return _demand_tribute(diplomacy, human, entry)
+	return _demand_tribute(diplomacy, human, entry, now_s)
 
 
-func _demand_tribute(diplomacy, human, entry):
+func _demand_tribute(diplomacy, human, entry, now_s):
 	if Diplomacy.threat_ratio(_player, human) >= TOO_WEAK_TO_THREATEN:
 		return false
 	var wanted = Trade.scarce_resource_of(_player)
@@ -100,9 +101,7 @@ func _demand_tribute(diplomacy, human, entry):
 		!= Diplomacy.Result.ACCEPTED
 	):
 		return false
-	entry["deadline_s"] = (
-		_elapsed_s + Constants.Match.Diplomacy.OFFER_EXPIRY_S + ULTIMATUM_GRACE_S
-	)
+	entry["deadline_s"] = (now_s + Constants.Match.Diplomacy.OFFER_EXPIRY_S + ULTIMATUM_GRACE_S)
 	offers_made += 1
 	_last_offer_s[human.get_instance_id()] = _elapsed_s
 	MatchSignals.diplomacy_offered.emit(_player, human, Diplomacy.PACT, {}, requested)
