@@ -6,8 +6,8 @@
   "photo_alt": "Portrait of Destin Jones, creator of Ironbound",
   "bio": [
     "I'm Destin Jones, the creator of Ironbound. I love open source and vibe coding, and I'm always chasing the next new approach that lets technology get more done. Ironbound is a full real-time strategy game built in public, and a working test of how far that approach can go.",
-    "I drive these projects with Claude as my building partner. I set the direction and make the calls, Claude helps build it, and all of it ships in the open so anyone can read it, fork it and take it further.",
-    "The results are all public. Ironbound went from a fork of Open RTS to a game with a self-building city, supply lines, trade, diplomacy, weather, unit voices and a scripted test harness in its first two days, across more than 25 pull requests anyone can read on GitHub."
+    "I vibe code these projects with Claude as my building partner. I describe what I want and test the results; Claude writes most of the code and catches plenty of my mistakes. None of it would exist without Claude, the open source community, and Lampe Games, whose Open RTS gave Ironbound its start.",
+    "I'm still learning as I go, and the game has rough edges. Everything ships in the open, so please download it, fork it and build anything you like with it. If you make something, I'd love to see it."
   ],
   "principles": [
     [
