@@ -45,6 +45,8 @@ func _on_movement_finished():
 		return
 	if _waiting:
 		# every side was taken: wait a moment next to the target, then look again
+		if not is_inside_tree():
+			return  # the order was replaced on this frame
 		await get_tree().create_timer(RETRY_WHEN_SURROUNDED_S).timeout
 		if not is_inside_tree() or not is_instance_valid(_target_unit):
 			return
