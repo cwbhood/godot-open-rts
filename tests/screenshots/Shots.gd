@@ -8,6 +8,9 @@ extends Node
 # --time_scale=6 fast-forwards the warmup, --target_player=1 centres on that player's
 # depot, --demo_routes sets the routes of player 'target_player' to dirt, paved and rail
 # and mines its deposits down so that road and depletion visuals can be checked.
+# --visibility=per_player renders with fog of war as in a real match (test scenes often
+# use full visibility), --hide=FogOfWar/ScreenOverlay,Atmosphere/Clouds hides match nodes
+# (handy to find out which layer darkens the view).
 
 var _args = {}
 
@@ -25,7 +28,14 @@ func _ready():
 		match_node.settings.players = match_node.settings.players.filter(
 			func(player_settings): return player_settings.controller == Constants.PlayerType.HUMAN
 		)
+	if _args.has("visibility"):
+		match_node.settings = match_node.settings.duplicate()
+		match_node.settings.visibility = (match_node.settings.Visibility[
+			_args["visibility"].to_upper()
+		])
 	add_child(match_node)
+	for node_path in _args.get("hide", "").split(",", false):
+		match_node.get_node(node_path).visible = false
 	Engine.time_scale = float(_args.get("time_scale", "1"))
 	if Engine.time_scale > 1.0:
 		Engine.max_physics_steps_per_frame = 32

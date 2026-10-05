@@ -13,6 +13,8 @@ uniform sampler2D wave_normals : hint_normal, filter_linear_mipmap, repeat_enabl
 uniform sampler2D foam_noise : hint_default_white, filter_linear_mipmap, repeat_enable;
 uniform sampler2D depth_texture : hint_depth_texture, filter_linear;
 
+#include "res://source/shaders/3d/depth_reconstruction.gdshaderinc"
+
 varying vec3 world_position;
 
 void vertex()
@@ -23,9 +25,7 @@ void vertex()
 void fragment()
 {
   float depth = textureLod(depth_texture, SCREEN_UV, 0.0).r;
-  vec4 ground_view = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);
-  ground_view.xyz /= ground_view.w;
-  vec3 ground_world = (INV_VIEW_MATRIX * vec4(ground_view.xyz, 1.0)).xyz;
+  vec3 ground_world = depth_to_world(SCREEN_UV, depth, INV_PROJECTION_MATRIX, INV_VIEW_MATRIX);
   float water_depth = max(world_position.y - ground_world.y, 0.0);
 
   float deep_w = smoothstep(0.0, depth_for_deep, water_depth);
