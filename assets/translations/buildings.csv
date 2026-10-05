@@ -1,0 +1,89 @@
+keys,en
+ROLE_HEADQUARTERS,City centre
+ROLE_RESOURCE,Resource building
+ROLE_LOGISTICS,Logistics
+ROLE_FACTORY,Factory
+ROLE_POWER,Power
+ROLE_DEFENCE,Defence
+ROLE_SUPPORT,Support
+ROLE_UNIT,Unit
+COMMAND_CENTER_INFO,"The heart of your city and the depot of your supply lines. Haulers load construction materials here and bring mined goods back here; whatever arrives is split between your stock and the city's warehouse. It trains constructors and haulers and powers the buildings close to it. Lose it and your city loses its depot."
+MINE_INFO,"Digs iron or copper out of the deposit it stands on. The ore piles up in a small yard; when the yard is full the mine stops until a hauler or a train collects it, so keep haulers coming or build a storage next to it. Needs power for full speed."
+OIL_DERRICK_INFO,"Pumps oil from the oil field it stands on. Oil fuels power plants and your haulers, so a stalled derrick soon slows everything. The tank is small: it stops when full until a hauler or a train empties it."
+LUMBER_MILL_INFO,"Cuts timber from the forest next to it. Timber goes into almost every building. Logs wait in the yard until a hauler or a train takes them to the city centre; when the yard is full the mill stops."
+STORAGE_INFO,"A warehouse for one commodity. Extractors next to it send their goods in by conveyor, so they never stop for a full yard, and haulers and trains collect full loads instead of half ones. Pick the commodity it keeps, or leave it on auto."
+VEHICLE_FACTORY_INFO,"Builds ground vehicles: tanks, raiders, artillery and missile trucks, depending on your faction and city tier. Needs power; without it production crawls."
+AIRCRAFT_FACTORY_INFO,"Builds helicopters, gunships and drones. Fixed-wing aircraft also need an airport to land and refuel. Needs power."
+SHIPYARD_INFO,"Builds patrol boats, hovercraft and amphibious vehicles. It has to stand on the shore with deep water next to it."
+POWER_PLANT_INFO,"Burns oil to power every building in its grid circle. Pylons carry the grid further. When oil runs out the grid browns out and factories and extractors slow down."
+SOLAR_PLANT_INFO,"Makes power from the sun without burning any fuel. Needs the Electric tier."
+PYLON_INFO,"Carries the power grid further out, so distant extractors and factories get power. Makes no power itself."
+AG_TURRET_INFO,"Fires at ground units in range. Cheap and quick to put up next to the things you want to keep."
+AA_TURRET_INFO,"Shoots down helicopters, gunships and drones in range. Cannot hit ground units."
+BUNKER_INFO,"A heavy concrete gun emplacement: tough and hard-hitting, but with a short reach. Holds chokepoints and the city edge."
+FLAK_TOWER_INFO,"A sturdy anti-air tower that fills the sky with flak. Cannot hit ground units."
+GUN_NEST_INFO,"A cheap, fast-firing nest that hits ground units from far away, but its thin walls do not last."
+SAM_SITE_INFO,"Launches long-range missiles at aircraft. Fragile up close and cannot hit ground units."
+AIRPORT_INFO,"Drones and planes land here to refuel and repair. Without an airport fixed-wing aircraft cannot be built, and they crash when they run out of fuel. Right-click it with aircraft selected to send them home."
+FOUNDRY_INFO,"While it has power, every factory on the same power grid builds 20% faster. Uses a lot of power."
+TRADING_POST_INFO,"A second caravan depot. Trade caravans leave from and arrive at the closest one, so trade routes get shorter and safer."
+INFO_COSTS,Costs
+INFO_NEEDS,Needs
+INFO_MAKES,Makes
+INFO_STATUS,Status
+INFO_HAULERS,Haulers
+INFO_POWER_USE,{0} MW power
+INFO_POWER_MAKES,"{0} MW power, {1} m grid"
+INFO_BURNS,burns {0}
+INFO_EXTRACTS,{0} from a deposit next to it
+INFO_TRAINS,{0}
+INFO_ATTACK,"{0} damage every {1} s, {2} m range"
+INFO_ATTACK_AIR,air
+INFO_ATTACK_GROUND,ground
+INFO_FASTER_FACTORIES,factories on its grid {0}% faster
+INFO_NOTHING,nothing
+INFO_HP,Health {0}/{1}
+INFO_BUILDING,"Under construction: {0}% built, {1}% of materials here"
+INFO_POWERED,Power {0}%
+INFO_NO_POWER,No power: build a power plant or pylon nearby
+INFO_YARD,"Yard {0}/{1} {2}, {3}/min"
+INFO_YARD_FULL,Yard full: stopped until a hauler collects
+INFO_DEPOSIT_LEFT,{0} left in the deposit
+INFO_DEPOSIT_GONE,Deposit exhausted
+INFO_STORED,Stored {0}/{1} {2}
+INFO_STORED_EMPTY,Empty (keeps {0})
+INFO_PRODUCING,"Building {0}: {1}%, {2} more queued"
+INFO_IDLE_FACTORY,Idle: nothing queued
+INFO_ENEMY,Owned by {0}
+INFO_NO_TRUCKS,No haulers on the way. Build more haulers at the city centre or raise this building's priority.
+INFO_TRAIN_LINE,"{0} stops here on its line"
+INFO_MORE_TRUCKS,and {0} more
+INFO_DEPOT_SUMMARY,"{0} bringing goods in, {1} loading materials, {2} parked here"
+TRUCK_NAME,Hauler {0}
+BUILDING_NUMBERED,{0} {1}
+LINK_COMING_TO_COLLECT,"coming to collect {0}, {1} m away"
+LINK_LEAVING_WITH,"took {0}, heading to {1}"
+LINK_WAITING_FOR_LOAD,waiting here for the next load
+LINK_BRINGING_GOODS,"bringing {0} from {1}, {2} m away"
+LINK_COMING_TO_LOAD,"coming to load materials for {0}, {1} m away"
+LINK_BRINGING_MATERIALS,"bringing {0}, {1} m away"
+LINK_COMING_FOR_MATERIALS,"picking up materials for this site at {0}"
+LINK_RETURNING,"bringing {0} back, {1} m away"
+LINK_PARKED,parked here with no job
+LINK_ETA,~{0} s
+JOB_COLLECTING,"Collecting from {0}, {1} m away, then to {2}"
+JOB_DELIVERING_GOODS,"Taking {0} from {1} to {2}, {3} m away"
+JOB_LOADING_FOR_SITE,"Going to {0} to load materials for {1}"
+JOB_SUPPLYING_SITE,"Taking {0} to {1}, {2} m away"
+JOB_RETURNING,"Bringing {0} back to {1}, {2} m away"
+JOB_STANDBY,"Waiting at {0} for the next load"
+JOB_PARKED,Parked at {0}: no job right now
+JOB_MANUAL,Manual control: not on the job board
+JOB_RECYCLING,Driving to the depot to be recycled
+JOB_IDLE,No job
+JOB_CARGO,Cargo: {0}
+JOB_EMPTY,Cargo: empty
+HOVER_TRUCKS,"Haulers: {0} on the way, {1} waiting here"
+INFO_DETAILS,What it does
+INFO_GRID_ONLY,carries the power grid {0} m around it
+INFO_TRADE_DEPOT,a depot for trade caravans

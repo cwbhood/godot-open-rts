@@ -4,6 +4,8 @@
   "factions": ["foundry"],
   "name": "BUNKER",
   "description": "BUNKER_DESCRIPTION",
+  "role": "defence",
+  "info": "BUNKER_INFO",
   "model_scale": 1.2,
   "icon_tint": "#b7c27a",
   "cost": {

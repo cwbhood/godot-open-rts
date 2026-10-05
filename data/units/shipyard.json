@@ -6,6 +6,8 @@
   "placement": "shore",
   "name": "SHIPYARD",
   "description": "SHIPYARD_DESCRIPTION",
+  "role": "factory",
+  "info": "SHIPYARD_INFO",
   "icon": "res://assets/ui/icons/VehicleFactory.png",
   "icon_tint": "#8fd0ff",
   "tier": 1,

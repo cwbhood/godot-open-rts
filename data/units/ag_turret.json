@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/AntiGroundTurret.tscn",
   "name": "AG_TURRET",
   "description": "AG_TURRET_DESCRIPTION",
+  "role": "defence",
+  "info": "AG_TURRET_INFO",
   "icon": "res://assets/ui/icons/AntiGroundTurret.png",
   "tier": 1,
   "cost": {
