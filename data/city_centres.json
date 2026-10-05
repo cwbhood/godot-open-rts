@@ -1,0 +1,10 @@
+{
+  "max_per_player": 2,
+  "radius_m": 24,
+  "min_spacing_m": 20,
+  "rebuild_countdown_s": 180,
+  "surrender_countdown_s": 15,
+  "attack_memory_s": 10,
+  "ai_second_centre_tier": 2,
+  "ai_second_centre_after_s": 600
+}

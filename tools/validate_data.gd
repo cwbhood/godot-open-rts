@@ -114,6 +114,7 @@ func _run():
 		if "caps" in entry:
 			_check_caps("maps/{0}.json caps".format([entry.get("id", "?")]), entry["caps"], false)
 	_check_logistics(data["logistics"], data["units"], resources)
+	_check_city_centres(data.get("city_centres", {}))
 	_check_voices(data["units"])
 	print(
 		(
@@ -571,6 +572,22 @@ func _check_caps(where, caps, complete):
 			_warn(where, "unknown score weight '{0}' is ignored".format([key]))
 		elif not (score[key] is float or score[key] is int):
 			_error(where, "score weight '{0}' must be a number".format([key]))
+
+
+func _check_city_centres(config):
+	var where = "city_centres.json"
+	for key in config:
+		if not key in GameData.CITY_CENTRE_DEFAULTS:
+			_warn(where, "unknown field '{0}' is ignored".format([key]))
+		elif not (config[key] is float or config[key] is int) or config[key] < 0:
+			_error(where, "'{0}' must be a number >= 0".format([key]))
+	var merged = GameData.city_centres()
+	if int(merged["max_per_player"]) < 1:
+		_error(where, "max_per_player must be at least 1")
+	if float(merged["radius_m"]) <= 0.0:
+		_error(where, "radius_m must be above 0")
+	if float(merged["min_spacing_m"]) > float(merged["radius_m"]) * 2.0:
+		_warn(where, "min_spacing_m is more than twice radius_m: circles can never touch")
 
 
 func _check_roads(entries, resources, tiers_count):

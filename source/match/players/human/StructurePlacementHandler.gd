@@ -10,12 +10,15 @@ enum BlueprintPositionValidity {
 	TIER_TOO_LOW,
 	IN_WATER,
 	NEEDS_SHORE,
+	CITY_CENTRE_LIMIT,
+	TOO_CLOSE_TO_CITY_CENTRE,
 }
 
 const Extractor = preload("res://source/match/units/Extractor.gd")
 const Worker = preload("res://source/match/units/Worker.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
 const WaterRules = preload("res://source/match/WaterRules.gd")
+const Structure = preload("res://source/match/units/Structure.gd")
 
 const ROTATION_BY_KEY_STEP = 45.0
 const ROTATION_DEAD_ZONE_DISTANCE = 0.1
@@ -120,6 +123,15 @@ func _calculate_blueprint_position_validity():
 	var scene_path = _pending_structure_prototype.resource_path
 	if not _player.meets_tier_requirement(scene_path):
 		return BlueprintPositionValidity.TIER_TOO_LOW
+	if _player.at_city_centre_limit(scene_path):
+		return BlueprintPositionValidity.CITY_CENTRE_LIMIT
+	var city_centres = get_tree().get_first_node_in_group("city_centres")
+	if (
+		city_centres != null
+		and scene_path.ends_with("CommandCenter.tscn")
+		and city_centres.too_close_to_own_centre(_player, _active_blueprint_node.global_position)
+	):
+		return BlueprintPositionValidity.TOO_CLOSE_TO_CITY_CENTRE
 	if not _player_has_enough_resources():
 		return BlueprintPositionValidity.NOT_ENOUGH_RESOURCES
 	if (
@@ -201,6 +213,22 @@ func _logistics_hint():
 		and not _player.power_grid.is_position_on_grid(position)
 	):
 		hints.append(tr("BLUEPRINT_OFF_GRID"))
+	var city_centres = get_tree().get_first_node_in_group("city_centres")
+	if (
+		city_centres != null
+		and scene_path.ends_with("CommandCenter.tscn")
+		and city_centres.rebuild_time_left(_player) >= 0.0
+	):
+		# rebuilding after the last city centre fell: say what the new circle would keep
+		var kept = 0
+		var total = 0
+		for unit in get_tree().get_nodes_in_group("units"):
+			if unit.player != _player or not unit is Structure:
+				continue
+			total += 1
+			if unit.global_position_yless.distance_to(position * Vector3(1, 0, 1)) <= city_centres.radius():
+				kept += 1
+		hints.append(tr("BLUEPRINT_CITY_CENTRE_KEEPS").format([kept, total]))
 	return "\n".join(hints)
 
 
@@ -225,6 +253,12 @@ func _update_feedback_label(blueprint_position_validity):
 			_feedback_label.text = tr("BLUEPRINT_IN_WATER")
 		BlueprintPositionValidity.NEEDS_SHORE:
 			_feedback_label.text = tr("BLUEPRINT_NEEDS_SHORE")
+		BlueprintPositionValidity.CITY_CENTRE_LIMIT:
+			_feedback_label.text = tr("BLUEPRINT_CITY_CENTRE_LIMIT").format(
+				[get_tree().get_first_node_in_group("city_centres").max_per_player()]
+			)
+		BlueprintPositionValidity.TOO_CLOSE_TO_CITY_CENTRE:
+			_feedback_label.text = tr("BLUEPRINT_TOO_CLOSE_TO_CITY_CENTRE")
 		BlueprintPositionValidity.VALID:
 			_feedback_label.text = _logistics_hint()
 
