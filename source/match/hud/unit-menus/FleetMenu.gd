@@ -42,6 +42,7 @@ static func applies_to(selection):
 
 func _make_button(on_pressed):
 	var button = Button.new()
+	button.theme_type_variation = "SlotButton"
 	button.custom_minimum_size = Vector2(80, 80)
 	button.focus_mode = Control.FOCUS_NONE
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

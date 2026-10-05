@@ -29,6 +29,64 @@ func _ready():
 	var option_nodes = find_child("GridContainer").find_children("OptionButton*")
 	for option_node_id in range(option_nodes.size()):
 		option_nodes[option_node_id].item_selected.connect(_on_player_selected.bind(option_node_id))
+	_style()
+	_make_scrollable()
+	get_viewport().size_changed.connect(_fit_to_screen)
+	_fit_to_screen.call_deferred()
+
+
+func _style():
+	for label in [
+		find_child("VBoxContainer2").get_node("Label"),
+		find_child("GridContainer").get_parent().get_node("Label"),
+	]:
+		label.theme_type_variation = "HeaderLabel"
+		label.add_theme_font_size_override("font_size", 24)
+		label.uppercase = true
+		label.get_node("Panel").hide()
+	_start_button.custom_minimum_size.y = 48
+	_map_list.custom_minimum_size = Vector2(220, 160)
+
+
+func _make_scrollable():
+	"""the map and player columns scroll when the window is too short for them (1280x720);
+	Start and Back stay below, always on screen"""
+	var content = find_child("GridContainer").get_parent().get_parent()  # the two columns
+	var column = content.get_parent()
+	var scroll = ScrollContainer.new()
+	scroll.name = "Scroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var index = content.get_index()
+	var owned = ([content] + content.find_children("*", "", true, false)).filter(
+		func(node): return node.owner == self
+	)
+	column.add_child(scroll)
+	column.move_child(scroll, index)
+	scroll.owner = self
+	content.reparent(scroll, false)
+	for node in owned:
+		node.owner = self  # find_child() only finds owned nodes
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# the slots used to reserve room for all of them; the scroll does that now
+	find_child("GridContainer").custom_minimum_size.y = 0
+
+
+func _fit_to_screen():
+	var panel = find_child("PanelContainer")
+	var screen = get_viewport_rect().size
+	var column = panel.get_node("MarginContainer/VBoxContainer")
+	var scroll = column.get_node("Scroll")
+	var content = scroll.get_child(0)
+	var chrome = column.get_combined_minimum_size().y + 40.0  # margins, buttons, spacing
+	var wanted = content.get_combined_minimum_size().y + chrome
+	var height = min(wanted, screen.y - 32.0)
+	var width = min(column.custom_minimum_size.x + 40.0, screen.x - 32.0)
+	column.custom_minimum_size.x = min(column.custom_minimum_size.x, width - 40.0)
+	panel.offset_left = -round(width / 2.0)
+	panel.offset_right = round(width / 2.0)
+	panel.offset_top = -round(height / 2.0)
+	panel.offset_bottom = round(height / 2.0)
 
 
 func _setup_ai_personalities():
@@ -65,7 +123,17 @@ func _setup_sandbox_check_box():
 	_sandbox_check_box.name = "SandboxCheckBox"
 	_sandbox_check_box.text = tr("SANDBOX_MODE")
 	_sandbox_check_box.tooltip_text = tr("SANDBOX_MODE_DESCRIPTION")
-	_map_details.get_parent().add_child(_sandbox_check_box)
+	# the map's details over the check box (they used to share one cell and hide each other)
+	var holder = _map_details.get_parent()
+	var column = VBoxContainer.new()
+	column.name = "MapDetails"
+	holder.add_child(column)
+	column.owner = self
+	_map_details.reparent(column, false)
+	_map_details.owner = self
+	_map_details.fit_content = true
+	_map_details.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(_sandbox_check_box)
 
 
 func _setup_map_list():

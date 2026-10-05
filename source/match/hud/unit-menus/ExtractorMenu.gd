@@ -32,6 +32,7 @@ func _ready():
 
 func _make_button(text, on_pressed):
 	var button = Button.new()
+	button.theme_type_variation = "SlotButton"
 	button.custom_minimum_size = Vector2(80, 80)
 	button.text = text
 	button.focus_mode = Control.FOCUS_NONE

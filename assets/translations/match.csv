@@ -293,3 +293,27 @@ MATCH_END_COL_DELIVERED,Goods delivered,Dostarczone
 MATCH_END_COL_TRADES,Trades,Wymiany
 MATCH_END_REMATCH,Play again,Zagraj ponownie
 MATCH_END_MAIN_MENU,Main menu,Menu główne
+HOTKEY,Hotkey: {0},Skrót: {0}
+HUD_EXPAND,Show more,Pokaż więcej
+HUD_COLLAPSE,Fold away,Zwiń
+HUD_MATCH_TIME_TOOLTIP,Time played in this match,Czas gry w tym meczu
+HUD_INCOME_TOOLTIP,Delivered to your depots over the last minute: {0}/min,Dostarczono do magazynów w ostatniej minucie: {0}/min
+HUD_CITY_POPULATION,Citizens,Mieszkańcy
+HUD_CITY_POPULATION_TOOLTIP,Citizens / room in houses. Houses add room; every tier raises the city's maximum.,Mieszkańcy / miejsca w domach. Domy dodają miejsca; każda epoka podnosi limit miasta.
+HUD_CITY_GROWTH,Growth,Wzrost
+HUD_CITY_GROWTH_TOOLTIP,Citizens gained per second,Przyrost mieszkańców na sekundę
+HUD_CITY_NEEDS,Needs,Potrzeby
+HUD_CITY_NEEDS_TOOLTIP,How well the warehouse meets the city's needs (per commodity under Details),Jak magazyn zaspokaja potrzeby miasta (każdy surowiec w Szczegółach)
+HUD_CITY_POWER,Power,Zasilanie
+HUD_CITY_POWER_TOOLTIP,Share of the city's power demand the grid covers,Jaką część zapotrzebowania miasta pokrywa sieć
+HUD_CITY_TRUCKS,Trucks,Ciężarówki
+HUD_CITY_TRUCKS_TOOLTIP,Trucks at work / all trucks (more under Details),Ciężarówki w pracy / wszystkie (więcej w Szczegółach)
+HUD_CITY_DEFENSE,Defense,Obrona
+HUD_CITY_DEFENSE_TOOLTIP,The civil defense: posts and militia guard the city,Obrona cywilna: posterunki i milicja strzegą miasta
+HUD_CITY_DETAILS,Details,Szczegóły
+HUD_CITY_SCIENCE,{0}/{1} to {2},{0}/{1} do {2}
+REPLAYS_EMPTY_TITLE,No replays yet,Brak powtórek
+REPLAYS_PICK_TITLE,Pick a replay,Wybierz powtórkę
+REPLAYS_PICK,"Choose a match on the left to watch it again as a map: units, supply runs, raids and each faction's economy.","Wybierz mecz po lewej, aby obejrzeć go ponownie na mapie: jednostki, dostawy, napady i gospodarkę każdej frakcji."
+REPLAYS_NONE_BODY,"Every match you play is recorded. Finish or leave a match and it shows up here, ready to watch again.","Każdy rozegrany mecz jest nagrywany. Zakończ lub opuść mecz, a pojawi się tutaj, gotowy do ponownego obejrzenia."
+QUEUE_CANCEL_TOOLTIP,Click to cancel: the cost comes back,"Kliknij, aby anulować: koszt wraca"

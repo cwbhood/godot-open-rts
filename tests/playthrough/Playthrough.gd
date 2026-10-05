@@ -605,6 +605,9 @@ func _trade_round():
 	hud.get("_get_resource_option").select(Constants.Match.Resources.ALL.find(need[0][0]))
 	hud.get("_give_amount").value = 10
 	hud.get("_get_amount").value = 6
+	if hud.has_method("open_trade"):
+		hud.open_trade()  # the city panel starts folded down to its summary
+		await _frames(2)
 	var button = hud.get("_propose_button")
 	if not button.is_visible_in_tree():
 		_finding("hud", "the trade propose button is not visible", false)

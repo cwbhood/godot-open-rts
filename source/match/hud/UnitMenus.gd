@@ -24,6 +24,13 @@ var _shown = []
 
 
 func _ready():
+	# no grey placeholder squares: the menus size the panel to the rows they use
+	find_child("BackgroundGrid").hide()
+	for index in range(12, 17):
+		var padding = _generic_menu.get_node_or_null("Padding%d" % index)
+		if padding != null:
+			padding.hide()
+	_generic_menu.find_child("CancelActionButton").theme_type_variation = "SlotButton"
 	_reset_menus()
 	MatchSignals.unit_selected.connect(func(_unit): _reset_menus())
 	MatchSignals.unit_deselected.connect(func(_unit): _reset_menus())
