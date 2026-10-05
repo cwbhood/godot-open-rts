@@ -1,0 +1,22 @@
+{
+  "id": "gun_nest",
+  "base": "ag_turret",
+  "factions": ["syndicate"],
+  "name": "GUN_NEST",
+  "description": "GUN_NEST_DESCRIPTION",
+  "model_scale": 0.85,
+  "icon_tint": "#e0905a",
+  "cost": {
+    "timber": 2,
+    "iron": 4,
+    "copper": 1
+  },
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 8,
+    "hp_max": 8,
+    "attack_damage": 1,
+    "attack_interval": 0.45,
+    "attack_range": 8.5
+  }
+}

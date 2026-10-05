@@ -74,7 +74,8 @@ func _power_factor():
 	if Constants.Match.Power.DEMAND_MW.get(_unit._scene_path(), 0.0) <= 0.0:
 		return 1.0
 	var unpowered = Constants.Match.Power.UNPOWERED_PRODUCTION_FACTOR
-	return unpowered + (1.0 - unpowered) * _unit.power_ratio
+	var bonus = _unit.get("grid_production_bonus")  # e.g. a Foundry on the same grid
+	return (unpowered + (1.0 - unpowered) * _unit.power_ratio) * (bonus if bonus != null else 1.0)
 
 
 func cancel_all():

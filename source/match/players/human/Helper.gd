@@ -32,6 +32,7 @@ const Constructing = preload("res://source/match/units/actions/Constructing.gd")
 const Moving = preload("res://source/match/units/actions/Moving.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
 const GameData = preload("res://source/data-model/GameData.gd")
+const Factions = preload("res://source/data-model/Factions.gd")
 const MatchRules = preload("res://source/data-model/MatchRules.gd")
 
 const NODE_NAME = "Helper"
@@ -746,7 +747,7 @@ func _best_unit_for(factory):
 	if producer == null:
 		return null
 	var best = null
-	for entry in GameData.producible_by(producer["id"]):
+	for entry in GameData.producible_by(producer["id"], _player.faction):
 		if not _is_combat_entry(entry) or entry["id"] == SCOUT_UNIT_ID:
 			continue
 		if not _player.can_produce(entry["scene"]):
@@ -843,15 +844,23 @@ func _next_scout_target():
 
 
 func _scout_scene():
-	var entry = GameData.unit_by_id(SCOUT_UNIT_ID)
-	if entry != null and _player.can_produce(entry["scene"]):
-		return entry["scene"]
+	var scene_path = _scout_role_scene()
+	if scene_path != null and _player.can_produce(scene_path):
+		return scene_path
 	return null
 
 
 func _is_scout_scene(path):
+	return path == _scout_role_scene()
+
+
+func _scout_role_scene():
+	"""the faction's "scout" role, the scout buggy without a faction (see Factions.gd)"""
+	var scene_path = Factions.role_scene(_player.faction, "scout")
+	if scene_path != null:
+		return scene_path
 	var entry = GameData.unit_by_id(SCOUT_UNIT_ID)
-	return entry != null and entry["scene"] == path
+	return entry["scene"] if entry != null else null
 
 
 func _take_scout(unit):

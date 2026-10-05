@@ -40,3 +40,6 @@ MATCH_RULE_AUTO_BUILD_TOOLTIP,"Auto-expand (G): constructors that pick and build
 MATCH_RULES_ON,on,wł.
 MATCH_RULES_OFF,off,wył.
 MATCH_RULES_LINE,"Rules: {0}. Tutorial and tips {1}, AI assist {2}, auto-build {3}.","Zasady: {0}. Samouczek i wskazówki {1}, asystent SI {2}, samodzielna budowa {3}."
+FACTION,Faction,Frakcja
+FACTION_RANDOM,Random faction,Losowa frakcja
+FACTION_RANDOM_DESCRIPTION,"picked when the match starts, from the factions that suit the AI's play style",losowana na starcie meczu spośród frakcji pasujących do stylu gry SI

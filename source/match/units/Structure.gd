@@ -17,6 +17,8 @@ var materials_unpaid = {}  # lost on the way (raided haulers), has to be paid ag
 var materials_delivered = {}
 var materials_total = 0
 var power_ratio = 1.0  # set by the power grid for structures that consume power
+# set by the power grid: factories on the grid of a powered Foundry produce faster
+var grid_production_bonus = 1.0
 
 var _construction_progress = 1.0
 

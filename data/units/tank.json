@@ -1,6 +1,9 @@
 {
   "id": "tank",
   "category": "unit",
+  "factions": [
+    "foundry"
+  ],
   "scene": "res://source/match/units/Tank.tscn",
   "model": "res://assets/models/ironbound/units/tank.glb",
   "model_scale": 2.575,

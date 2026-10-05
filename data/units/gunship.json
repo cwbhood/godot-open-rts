@@ -1,6 +1,9 @@
 {
   "id": "gunship",
   "category": "unit",
+  "factions": [
+    "syndicate"
+  ],
   "scene": "res://source/match/units/Gunship.tscn",
   "model": "res://assets/models/ironbound/units/helicopter_attack.glb",
   "model_scale": 0.826,

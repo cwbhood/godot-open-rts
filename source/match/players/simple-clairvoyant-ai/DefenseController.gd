@@ -5,14 +5,16 @@ signal resources_required(resources, metadata)
 const Worker = preload("res://source/match/units/Worker.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
 const AGTurret = preload("res://source/match/units/AntiGroundTurret.gd")
-const AGTurretScene = preload("res://source/match/units/AntiGroundTurret.tscn")
 const AATurret = preload("res://source/match/units/AntiAirTurret.gd")
-const AATurretScene = preload("res://source/match/units/AntiAirTurret.tscn")
+const Factions = preload("res://source/data-model/Factions.gd")
 
 const REFRESH_INTERVAL_S = 1.0 / 60.0 * 30.0
 const NO_ROOM_RETRY_S = 30.0  # after finding no free spot, wait before searching again
 
 var _player = null
+# the faction's "ag_turret" and "aa_turret" roles, e.g. the Foundry's bunker (Factions.gd)
+var _ag_turret_scene = null
+var _aa_turret_scene = null
 var _number_of_pending_ag_turret_resource_requests = 0
 var _number_of_pending_aa_turret_resource_requests = 0
 var _no_room = false  # no free spot was found lately
@@ -23,6 +25,8 @@ var _no_room = false  # no free spot was found lately
 func setup(player):
 	_setup_refresh_timer()
 	_player = player
+	_ag_turret_scene = load(Factions.role_scene_of(player, "ag_turret"))
+	_aa_turret_scene = load(Factions.role_scene_of(player, "aa_turret"))
 	_attach_current_turrets()
 	MatchSignals.unit_spawned.connect(_on_unit_spawned)
 	_enforce_number_of_ag_turrets()
@@ -38,22 +42,22 @@ func provision(resources, metadata):
 	)
 	if metadata == "ag_turret":
 		assert(
-			resources == Constants.Match.Units.CONSTRUCTION_COSTS[AGTurretScene.resource_path],
+			resources == Constants.Match.Units.CONSTRUCTION_COSTS[_ag_turret_scene.resource_path],
 			"unexpected amount of resources"
 		)
 		_number_of_pending_ag_turret_resource_requests -= 1
 		if workers.is_empty() or ccs.is_empty():
 			return
-		_construct_turret(AGTurretScene)
+		_construct_turret(_ag_turret_scene)
 	elif metadata == "aa_turret":
 		assert(
-			resources == Constants.Match.Units.CONSTRUCTION_COSTS[AATurretScene.resource_path],
+			resources == Constants.Match.Units.CONSTRUCTION_COSTS[_aa_turret_scene.resource_path],
 			"unexpected amount of resources"
 		)
 		_number_of_pending_aa_turret_resource_requests -= 1
 		if workers.is_empty() or ccs.is_empty():
 			return
-		_construct_turret(AATurretScene)
+		_construct_turret(_aa_turret_scene)
 	else:
 		assert(false, "unexpected flow")
 
@@ -92,13 +96,13 @@ func _enforce_number_of_ag_turrets():
 	)
 	for _i in range(number_of_extra_ag_turrets_required):
 		resources_required.emit(
-			Constants.Match.Units.CONSTRUCTION_COSTS[AGTurretScene.resource_path], "ag_turret"
+			Constants.Match.Units.CONSTRUCTION_COSTS[_ag_turret_scene.resource_path], "ag_turret"
 		)
 		_number_of_pending_ag_turret_resource_requests += 1
 
 
 func _enforce_number_of_aa_turrets():
-	if not _player.meets_tier_requirement(AATurretScene.resource_path):
+	if not _player.meets_tier_requirement(_aa_turret_scene.resource_path):
 		return
 	var aa_turrets = get_tree().get_nodes_in_group("units").filter(
 		func(unit): return unit is AATurret and unit.player == _player
@@ -114,7 +118,7 @@ func _enforce_number_of_aa_turrets():
 	)
 	for _i in range(number_of_extra_aa_turrets_required):
 		resources_required.emit(
-			Constants.Match.Units.CONSTRUCTION_COSTS[AATurretScene.resource_path], "aa_turret"
+			Constants.Match.Units.CONSTRUCTION_COSTS[_aa_turret_scene.resource_path], "aa_turret"
 		)
 		_number_of_pending_aa_turret_resource_requests += 1
 

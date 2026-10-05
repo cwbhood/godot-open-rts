@@ -337,6 +337,9 @@ func _finish_blueprint_rotation():
 
 
 func _on_structure_placement_request(structure_prototype):
+	if not _player.in_roster(structure_prototype.resource_path):
+		MatchSignals.structure_placement_refused.emit(_player)  # another faction's building
+		return
 	if _auto_deposit != null:
 		_cancel_structure_placement()  # a button press wins over the hovered deposit
 		_suppressed_deposit = null
@@ -404,7 +407,7 @@ func _mouse_near_auto_deposit(mouse_pos_3d):
 func _extractor_scene_for(kind):
 	"""scene of a structure constructors can build to extract 'kind', unlocked ones first"""
 	var candidates = []
-	for entry in GameData.producible_by("worker"):
+	for entry in GameData.producible_by("worker", _player.faction):
 		if kind in entry.get("extracts", []):
 			candidates.append(entry["scene"])
 	if candidates.is_empty():

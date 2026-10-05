@@ -123,7 +123,7 @@ what you want to test. A short one:
 | `minutes` (or `seconds`) | 5 | Game time limit |
 | `speed` | 1 | Game speed |
 | `view` | `fast` | `fast` or `window` |
-| `players` | you + balanced AI | `{"type": "human", "helper": true, "color": "red", "start_zone": 0}` or `{"type": "ai", "personality": "raider", "difficulty": "hard"}` |
+| `players` | you + balanced AI | `{"type": "human", "helper": true, "color": "red", "start_zone": 0}` or `{"type": "ai", "personality": "raider", "difficulty": "hard", "faction": "syndicate"}` (`faction`: `foundry`, `syndicate` or `random`; left out, the player may build every unit) |
 | `fog` | true | false reveals the whole map |
 | `weather` | `clear` | `clear`, `overcast`, `rain`, `sandstorm`, or `random` for the map's own changing weather |
 | `tutorial` | false | true keeps the tutorial panel |

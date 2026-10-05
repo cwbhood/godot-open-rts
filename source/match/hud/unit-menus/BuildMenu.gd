@@ -5,6 +5,8 @@ extends GridContainer
 # in the selected producer. Buttons stay disabled until the city reaches the required tier.
 # Each button shows its cost and, for the first slots, a hotkey (letters no other order
 # or the camera uses), which works while the menu is on screen.
+# Only the units of the player's faction are listed (see Factions.gd); the buttons are
+# made again when the menu is shown for a player of another faction.
 
 const GameData = preload("res://source/data-model/GameData.gd")
 const HudStyle = preload("res://source/match/hud/HudStyle.gd")
@@ -19,14 +21,31 @@ var unit = null
 
 var _buttons = {}  # scene path -> button
 var _hotkeys = {}  # keycode -> button
+var _faction = null  # faction id the buttons were made for
 
 
 func _ready():
 	columns = 4
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var entries = GameData.producible_by(producer_id)
+	_make_buttons(_faction_of(_player()))
+
+
+func _make_buttons(faction_id):
+	_faction = faction_id
+	_buttons.clear()
+	_hotkeys.clear()
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
+	var entries = GameData.producible_by(producer_id, faction_id)
+	# without a faction everything is allowed: the units the game had before factions
+	# (no "factions" field, or not data-only) come first so they keep their slots
 	entries.sort_custom(
-		func(a, b): return [int(a.get("tier", 1)), a["id"]] < [int(b.get("tier", 1)), b["id"]]
+		func(a, b):
+			return (
+				[_faction_only(a, faction_id), int(a.get("tier", 1)), a["id"]]
+				< [_faction_only(b, faction_id), int(b.get("tier", 1)), b["id"]]
+			)
 	)
 	entries = entries.slice(0, SLOTS)
 	# only the rows in use: the empty slots of a short last row go first (top left), so the
@@ -53,8 +72,19 @@ func _unhandled_key_input(event):
 	button.pressed.emit()
 
 
+static func _faction_only(entry, faction_id):
+	return faction_id == "" and "factions" in entry and "base" in entry
+
+
+static func _faction_of(player):
+	var faction_id = player.get("faction") if player != null else null
+	return faction_id if faction_id is String else ""
+
+
 func _process(_delta):
 	var player = _player()
+	if player != null and _faction_of(player) != _faction:
+		_make_buttons(_faction_of(player))
 	for scene_path in _buttons:
 		var button = _buttons[scene_path]
 		var disabled = player == null or not player.can_produce(scene_path)

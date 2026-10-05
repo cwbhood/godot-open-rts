@@ -6,7 +6,8 @@ extends Node
 # and demand. A network short on supply browns out: all its consumers (factories,
 # extractors, the city) get power_ratio < 1. Unconnected consumers get no power at all.
 # Oil-fired power plants burn oil from the player's stock in proportion to their load
-# and stop when the stock runs dry.
+# and stop when the stock runs dry. A powered structure with a "production_bonus" (the
+# Foundry) speeds up the factories of its network (Structure.grid_production_bonus).
 
 const Structure = preload("res://source/match/units/Structure.gd")
 
@@ -94,8 +95,15 @@ func _tick(delta):
 		total_demand_mw += network["demand"]
 	city_power_ratio = 0.0
 	for network in networks:
+		var bonus = 0.0
+		for consumer in network["consumers"]:
+			bonus = max(
+				bonus,
+				float(Constants.Match.Power.PRODUCTION_BONUS.get(consumer._scene_path(), 0.0))
+			)
 		for consumer in network["consumers"]:
 			consumer.power_ratio = network["ratio"]
+			consumer.grid_production_bonus = 1.0 + bonus * network["ratio"]
 		if network["has_city"]:
 			city_power_ratio = network["ratio"]
 	for structure in structures:
@@ -104,6 +112,7 @@ func _tick(delta):
 			and Constants.Match.Power.DEMAND_MW.get(structure._scene_path(), 0.0) > 0.0
 		):
 			structure.power_ratio = 0.0
+			structure.grid_production_bonus = 1.0
 	if city != null:
 		city.power_ratio = city_power_ratio if city_core != null else 0.0
 	MatchSignals.power_changed.emit(_player)

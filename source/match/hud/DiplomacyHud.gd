@@ -5,6 +5,7 @@ extends PanelContainer
 # offer a non-aggression pact or an alliance, for free or for goods, with the AI's asking
 # price and Good/Fair/Bad advice. Incoming treaty offers and status changes show here too.
 
+const FactionRules = preload("res://source/data-model/Factions.gd")
 const Human = preload("res://source/match/players/human/Human.gd")
 const Trade = preload("res://source/match/city/Trade.gd")
 const Diplomacy = preload("res://source/match/diplomacy/Diplomacy.gd")
@@ -333,7 +334,11 @@ func _diplomacy():
 
 
 func faction_name(player):
-	"""same numbering as the trade panel"""
+	"""the player's faction and colour (e.g. "Sandline Syndicate (Red)"), or the same
+	numbering as the trade panel for players without a faction"""
+	var label = FactionRules.label_for(player)
+	if label != "":
+		return label
 	var index = _factions.find(player)
 	return tr("TRADE_FACTION").format([index + 1]) if index >= 0 else "?"
 

@@ -1,0 +1,31 @@
+{
+  "id": "rocket_technical",
+  "base": "raider",
+  "factions": ["syndicate"],
+  "name": "ROCKET_TECHNICAL",
+  "description": "ROCKET_TECHNICAL_DESCRIPTION",
+  "model": "res://assets/models/ironbound/units/raider_technical.glb",
+  "model_scale": 1.15,
+  "classic_model": "res://assets/models/ironbound/units/artillery_truck.glb",
+  "classic_model_scale": 1.0,
+  "icon_tint": "#ff6a3c",
+  "tier": 2,
+  "cost": {
+    "iron": 5,
+    "copper": 2,
+    "oil": 4
+  },
+  "build_time_s": 6.0,
+  "unit_slots": 2,
+  "speed": 3.8,
+  "properties": {
+    "sight_range": 9.0,
+    "hp": 10,
+    "hp_max": 10,
+    "attack_damage": 3,
+    "attack_interval": 1.2,
+    "attack_range": 7.0
+  },
+  "projectile": "rocket",
+  "fuel_per_s": 0.012
+}

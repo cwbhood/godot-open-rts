@@ -1,0 +1,29 @@
+{
+  "id": "foundry",
+  "base": "power_plant",
+  "factions": ["foundry"],
+  "name": "FOUNDRY",
+  "description": "FOUNDRY_DESCRIPTION",
+  "model": "res://assets/models/ironbound/buildings/refinery.glb",
+  "model_scale": 1.0,
+  "icon": "res://assets/ui/icons/VehicleFactory.png",
+  "icon_tint": "#b7c27a",
+  "tier": 2,
+  "cost": {
+    "timber": 6,
+    "iron": 12,
+    "copper": 4
+  },
+  "properties": {
+    "sight_range": 6.0,
+    "hp": 20,
+    "hp_max": 20
+  },
+  "power": {
+    "output_mw": null,
+    "grid_radius_m": null,
+    "burns": null,
+    "demand_mw": 4.0
+  },
+  "production_bonus": 0.2
+}
