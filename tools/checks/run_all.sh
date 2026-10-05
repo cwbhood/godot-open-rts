@@ -90,7 +90,7 @@ printf '%s\n' "${CHECKS[@]}" | xargs -P "$JOBS" -I{} bash -c 'IFS="|" read -r n 
   for entry in "${CHECKS[@]}"; do
     name="${entry%%|*}"
     if [ -f "$OUT/$name/result.txt" ]; then
-      sed 's/^/| /; s/|/ | /g; s/$/ |/' "$OUT/$name/result.txt"
+      sed 's/|/ | /g; s/^/| /; s/$/ |/' "$OUT/$name/result.txt"
     fi
   done
 } >"$OUT/summary.md"

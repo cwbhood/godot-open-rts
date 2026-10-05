@@ -8,6 +8,7 @@
     "helper-never-attacks",
     "stress-40v40",
     "factions-foundry",
-    "factions-syndicate"
+    "factions-syndicate",
+    "save-load"
   ]
 }

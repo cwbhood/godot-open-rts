@@ -57,6 +57,7 @@ func _quicksave_and_load(a_match):
 	_check("the pause menu has Save game", menu.find_child("SaveButton", true, false) != null)
 	_check("the pause menu has Load game", menu.find_child("LoadButton", true, false) != null)
 	await _shot("2-pause-menu")
+	var paused_count = _unit_count()  # the match ran on between F5 and Esc
 	var panel = menu.open_save_load(SaveLoadPanel.Mode.SAVE)
 	await _frames(2)
 	panel.find_child("SaveName", true, false).text = TEST_SAVE
@@ -78,8 +79,8 @@ func _quicksave_and_load(a_match):
 	_check("Load game starts the saved match", loaded != null and _loaded == loaded_before + 1)
 	_check("the loaded match is not paused", not get_tree().paused)
 	_check(
-		"the loaded match has the same units (%d, loaded %d)" % [count, _count_on_load],
-		_count_on_load == count
+		"the loaded match has the same units (%d, loaded %d)" % [paused_count, _count_on_load],
+		_count_on_load == paused_count
 	)
 	await _shot("5-loaded")
 
