@@ -45,7 +45,7 @@ func _physics_process(delta):
 
 
 func _pick_target():
-	var attacker = _caravan.get_meta("last_hit_by", null)
+	var attacker = _caravan.get_meta("last_hit_by") if _caravan.has_meta("last_hit_by") else null
 	if (
 		attacker != null
 		and is_instance_valid(attacker)
