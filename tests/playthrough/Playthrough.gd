@@ -1063,6 +1063,8 @@ func _select(units):
 	if units.size() == 1:
 		var unit = units[0]
 		await _look_at(unit.global_position)
+		if not is_instance_valid(unit):
+			return  # destroyed while the camera moved
 		var screen = _camera.unproject_position(unit.global_position + Vector3(0, 0.3, 0))
 		await _mouse_move(screen)
 		if get_viewport().gui_get_hovered_control() != null:
@@ -1071,6 +1073,8 @@ func _select(units):
 				Vector3(0, 0, -7), Vector3(7, 0, 0), Vector3(-7, 0, 0), Vector3(0, 0, 7)
 			]:
 				await _look_at(unit.global_position + offset)
+				if not is_instance_valid(unit):
+					return
 				screen = _camera.unproject_position(unit.global_position + Vector3(0, 0.3, 0))
 				await _mouse_move(screen)
 				if get_viewport().gui_get_hovered_control() == null:
@@ -1079,6 +1083,8 @@ func _select(units):
 		await _frames(2)
 		await _mouse_button(screen, MOUSE_BUTTON_LEFT, false)
 		await _frames(3)
+		if not is_instance_valid(unit):
+			return
 		if not unit.is_in_group("selected_units"):
 			_stats["clicks_missed"] += 1
 			_bump(_stats, "select_fallbacks")
