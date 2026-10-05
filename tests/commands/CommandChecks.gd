@@ -294,8 +294,11 @@ func _check_guard_stop_retreat():
 	MatchSignals.setup_and_spawn_unit.emit(
 		hauler, Transform3D(Basis(), _ground(_cc.global_position + Vector3(14, 0, 4))), _human
 	)
-	await _frames(30)
+	# manual from the start: an automated truck drives off to park by the depot, where the
+	# click meant for it can land on the depot instead
 	hauler.automated = false
+	hauler.action = null
+	await _frames(30)
 	await _select(tanks)
 	camera_on(_cc.global_position + Vector3(10, 0, 8), 24.0)
 	await _frames(10)
