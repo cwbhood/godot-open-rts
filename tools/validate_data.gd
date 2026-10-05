@@ -75,6 +75,7 @@ const DIFFICULTY_FIELDS = {
 	"army_size_scale": [0.1, 4.0],
 	"max_attack_groups": [0, 20],
 	"first_attack_after_s": [0, 7200],
+	"ultimatum_after_s": [0, 7200],
 	"raid_interval_scale": [0.0, 10.0],
 	"scouting": "bool",
 	"tech_upgrades": "bool",

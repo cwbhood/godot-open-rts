@@ -13,6 +13,7 @@
   "army_size_scale": 1.25,
   "max_attack_groups": 0,
   "first_attack_after_s": 0,
+  "ultimatum_after_s": 360,
   "raid_interval_scale": 0.8,
   "scouting": true,
   "tech_upgrades": true,
