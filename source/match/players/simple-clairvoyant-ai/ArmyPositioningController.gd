@@ -559,6 +559,13 @@ func _is_busy_fighting(unit):
 func _intruders():
 	var react = float(_settings["react_m"])
 	var found = []
+	# every city centre's circle is defended, a second city centre's too, so that no city
+	# raises the white flag while the army stands by (see CityCentres.gd)
+	var circles = []
+	var city_centres = get_tree().get_first_node_in_group("city_centres")
+	if city_centres != null:
+		for centre in city_centres.centres_of(_player):
+			circles.append(centre.global_position_yless)
 	for unit in get_tree().get_nodes_in_group("units"):
 		if unit.player == _player or unit.player == null:
 			continue
@@ -566,6 +573,9 @@ func _intruders():
 			continue
 		var position = unit.global_position_yless
 		var inside = position.distance_to(_home) < _city_radius + react
+		for circle in circles:
+			if not inside and position.distance_to(circle) <= city_centres.radius():
+				inside = true
 		if not inside:
 			for spot in _guarded:
 				if position.distance_to(spot) < react * 0.6:

@@ -263,7 +263,7 @@ func _try_reaching_next_tier():
 
 
 func _try_placing_buildings():
-	var core = _find_core()
+	var core = _core_for_next_building()
 	if core == null or _buildings.size() >= Constants.Match.City.MAX_BUILDINGS:
 		return
 	if housing >= max_population:
@@ -280,6 +280,8 @@ func _try_placing_buildings():
 		if not take_from_warehouse(cost):
 			return
 	var position = _find_building_position(core)
+	if position == null and core != _find_core():
+		position = _find_building_position(_find_core())  # the emptier one has no room
 	if position == null:
 		for resource in cost:
 			warehouse[resource] += cost[resource]
@@ -351,6 +353,37 @@ func _find_building_position(core):
 			):
 				return position
 	return null
+
+
+func _core_for_next_building():
+	"""with two city centres (see CityCentres.gd) the city grows around the emptier one"""
+	var best = _find_core()
+	if best == null:
+		return null
+	var best_count = INF
+	var reach = (
+		Constants.Match.City.FIRST_BUILDING_RING_RADIUS_M
+		+ Constants.Match.City.BUILDING_RINGS * Constants.Match.City.BUILDING_RING_SPACING_M
+	)
+	for unit in get_tree().get_nodes_in_group("units"):
+		if unit.player != player or not unit is CommandCenter or not unit.is_constructed():
+			continue
+		var count = 0
+		for building in _buildings:
+			if (
+				is_instance_valid(building)
+				and (
+					(building.global_position * Vector3(1, 0, 1)).distance_to(
+						unit.global_position_yless
+					)
+					<= reach
+				)
+			):
+				count += 1
+		if count < best_count:
+			best = unit
+			best_count = count
+	return best
 
 
 func _find_core():

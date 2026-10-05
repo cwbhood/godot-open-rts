@@ -118,6 +118,7 @@ func _run():
 		if "caps" in entry:
 			_check_caps("maps/{0}.json caps".format([entry.get("id", "?")]), entry["caps"], false)
 	_check_logistics(data["logistics"], data["units"], resources)
+	_check_city_centres(data.get("city_centres", {}))
 	_check_voices(data["units"])
 	print(
 		(
@@ -582,6 +583,22 @@ func _check_caps(where, caps, complete):
 			_error(where, "score weight '{0}' must be a number".format([key]))
 
 
+func _check_city_centres(config):
+	var where = "city_centres.json"
+	for key in config:
+		if not key in GameData.CITY_CENTRE_DEFAULTS:
+			_warn(where, "unknown field '{0}' is ignored".format([key]))
+		elif not (config[key] is float or config[key] is int) or config[key] < 0:
+			_error(where, "'{0}' must be a number >= 0".format([key]))
+	var merged = GameData.city_centres()
+	if int(merged["max_per_player"]) < 1:
+		_error(where, "max_per_player must be at least 1")
+	if float(merged["radius_m"]) <= 0.0:
+		_error(where, "radius_m must be above 0")
+	if float(merged["min_spacing_m"]) > float(merged["radius_m"]) * 2.0:
+		_warn(where, "min_spacing_m is more than twice radius_m: circles can never touch")
+
+
 func _check_roads(entries, resources, tiers_count):
 	for entry in entries:
 		var where = "roads.json '{0}'".format([entry.get("id", "?")])
@@ -683,6 +700,20 @@ func _check_voices(units):
 		for action in actions:
 			if voice_set.get("lines", {}).get(action, []).is_empty():
 				_error(where, "voice set '{0}' has no sound for '{1}'".format([set_id, action]))
+	var land_voices = GameData.voices().get("land_voices", {})
+	for unit_id in land_voices:
+		var where = "sounds/voices.json land_voices." + unit_id
+		if units.filter(func(entry): return entry["id"] == unit_id).is_empty():
+			_error(where, "no unit '{0}' in data/units/".format([unit_id]))
+		var mapped = land_voices[unit_id]
+		for set_id in mapped.values() if mapped is Dictionary else [mapped]:
+			var land_set = GameData.voice_set_by_id(set_id)
+			if land_set == null:
+				_error(where, "voice set '{0}' not found".format([set_id]))
+				continue
+			for action in actions:
+				if land_set.get("lines", {}).get(action, []).is_empty():
+					_error(where, "voice set '{0}' has no sound for '{1}'".format([set_id, action]))
 	var VoiceBank = load("res://source/match/audio/VoiceBank.gd")
 	for voice_set in GameData.voice_sets():
 		for action in voice_set.get("lines", {}):

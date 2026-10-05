@@ -7,7 +7,7 @@ ROLE_POWER,Power
 ROLE_DEFENCE,Defence
 ROLE_SUPPORT,Support
 ROLE_UNIT,Unit
-COMMAND_CENTER_INFO,"The heart of your city and the depot of your supply lines. Haulers load construction materials here and bring mined goods back here; whatever arrives is split between your stock and the city's warehouse. It trains constructors and haulers and powers the buildings close to it. Lose it and your city loses its depot."
+COMMAND_CENTER_INFO,"The heart of your city and the depot of your supply lines. Haulers load construction materials here and bring mined goods back here; whatever arrives is split between your stock and the city's warehouse. It trains constructors and haulers and powers the buildings close to it. The buildings inside its circle belong to its city; you may have two. Lose the last one and you have 3 minutes to build a new one or you are defeated. Attacked with no defenders inside its circle, it raises a white flag and surrenders to the attacker."
 MINE_INFO,"Digs iron or copper out of the deposit it stands on. The ore piles up in a small yard; when the yard is full the mine stops until a hauler or a train collects it, so keep haulers coming or build a storage next to it. Needs power for full speed."
 OIL_DERRICK_INFO,"Pumps oil from the oil field it stands on. Oil fuels power plants and your haulers, so a stalled derrick soon slows everything. The tank is small: it stops when full until a hauler or a train empties it."
 LUMBER_MILL_INFO,"Cuts timber from the forest next to it. Timber goes into almost every building. Logs wait in the yard until a hauler or a train takes them to the city centre; when the yard is full the mill stops."

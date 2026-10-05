@@ -44,6 +44,7 @@ var _args = {
 	"difficulty": "",
 	"factions": "",
 	"stop-on-win": "0",  # 1: end as soon as only one player has units left
+	"match-end": "0",  # 1: city centre countdowns can defeat players (CityCentres.gd)
 }
 var _match = null
 var _elapsed_s = 0.0
@@ -90,7 +91,18 @@ func _ready():
 		settings.players.append(player_settings)
 	settings.visibility = settings.Visibility.ALL_PLAYERS
 	settings.visible_player = 0
-	FeatureFlags.handle_match_end = false
+	FeatureFlags.handle_match_end = _args["match-end"] == "1"
+	for city_event in [
+		"city_centre_countdown_started",
+		"city_rebuilt",
+		"player_defeated",
+		"city_surrender_started",
+		"city_surrender_ended",
+		"city_captured",
+	]:
+		MatchSignals.get(city_event).connect(
+			func(a = null, b = null, c = null): _log_city_event(city_event, [a, b, c])
+		)
 	MatchSignals.diplomacy_changed.connect(
 		func(a, b, state):
 			print(
@@ -348,6 +360,20 @@ func _on_unit_exiting(unit):
 	var killer = unit.last_attacker_player
 	if killer != null and is_instance_valid(killer):
 		_kills[killer.get_index()] = _kills.get(killer.get_index(), 0) + 1
+
+
+func _log_city_event(event, values):
+	var parts = []
+	for value in values:
+		if value == null:
+			continue
+		if value is Node and value.is_in_group("players"):
+			parts.append("P%d" % _player_index(value))
+		elif value is Node and value.get("player") != null:
+			parts.append("cc of P%d" % _player_index(value.player))
+		else:
+			parts.append(str(value))
+	print("SIM %.0fs %s %s" % [_elapsed_s, event, " ".join(parts)])
 
 
 func _player_index(player):

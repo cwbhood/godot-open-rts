@@ -30,7 +30,18 @@ const DOMAINS = {"terrain": 1, "air": 0}  # mirrors Constants.Match.Navigation.D
 const MOVEMENT_DOMAINS = {"land": 1, "water": 2, "amphibious": 3}  # navigation domains
 const GENERATED_SCENES_ROOT = "res://data-units/"
 const MODEL_FIELDS = ["model", "model_scale", "model_offset", "model_rotation_y_deg"]
-const NOT_INHERITED = ["factions"]  # a unit built on a faction's unit is shared unless it says
+const NOT_INHERITED = ["factions"]
+# used for keys data/city_centres.json leaves out
+const CITY_CENTRE_DEFAULTS = {
+	"max_per_player": 2,
+	"radius_m": 24.0,
+	"min_spacing_m": 20.0,
+	"rebuild_countdown_s": 180.0,
+	"surrender_countdown_s": 15.0,
+	"attack_memory_s": 10.0,
+	"ai_second_centre_tier": 2,
+	"ai_second_centre_after_s": 600.0,
+}  # a unit built on a faction's unit is shared unless it says
 
 static var _cache = null
 static var _generated_scenes = {}  # scene path -> PackedScene, kept alive for load()
@@ -234,6 +245,14 @@ static func movement():
 	return get_data()["movement"]
 
 
+static func city_centres():
+	"""the rules for city centres: radius, how many, rebuild and surrender countdowns, see
+	data/city_centres.json and source/match/city/CityCentres.gd"""
+	var merged = CITY_CENTRE_DEFAULTS.duplicate(true)
+	merged.merge(get_data().get("city_centres", {}), true)
+	return merged
+
+
 static func is_generated_scene(scene_path):
 	return scene_path.begins_with(GENERATED_SCENES_ROOT)
 
@@ -394,6 +413,7 @@ static func _load_all():
 		"roads": _load_list_file(BASE_DATA_DIR + "/roads.json", "roads"),
 		"caps": _load_object_file(BASE_DATA_DIR + "/caps.json"),
 		"logistics": _parse_dict_file(BASE_DATA_DIR + "/logistics.json"),
+		"city_centres": _parse_dict_file(BASE_DATA_DIR + "/city_centres.json"),
 		"voices": _parse_dict_file(BASE_DATA_DIR + "/sounds/voices.json"),
 		"voice_sets": _load_dir(BASE_DATA_DIR + "/sounds/voice_sets"),
 		"movement": _load_object_file(BASE_DATA_DIR + "/movement.json").get("movement", {}),
@@ -418,6 +438,7 @@ static func _load_all():
 			data["roads"] = mod_roads
 		data["caps"].merge(_load_object_file(mod_dir + "/caps.json"), true)
 		_deep_merge(data["logistics"], _parse_dict_file(mod_dir + "/logistics.json"))
+		data["city_centres"].merge(_parse_dict_file(mod_dir + "/city_centres.json"), true)
 		_merge_voices(data["voices"], _parse_dict_file(mod_dir + "/sounds/voices.json"))
 		_merge_voice_sets(data["voice_sets"], _load_dir(mod_dir + "/sounds/voice_sets"))
 		data["movement"].merge(
@@ -519,6 +540,18 @@ static func _deep_merge(base, patch):
 			base[key] = patch[key]
 
 
+static func land_voice_set_id_for(unit_entry, faction = ""):
+	"""the set an amphibious unit speaks with while it is on land (data/sounds/voices.json
+	land_voices: a set id, or {"default": id, "<faction>": id}); null when it has none, so
+	the unit keeps its usual (water) set"""
+	if unit_entry == null:
+		return null
+	var mapped = voices().get("land_voices", {}).get(unit_entry["id"])
+	if mapped is Dictionary:
+		return mapped.get(faction, mapped.get("default"))
+	return mapped
+
+
 static func _merge_voices(base, mod):
 	"""unit_voices, default_voices and each faction of faction_voices are patched key by key,
 	other fields replaced"""
@@ -529,7 +562,7 @@ static func _merge_voices(base, mod):
 					base[key][faction].merge(mod[key][faction], true)
 				else:
 					base[key][faction] = mod[key][faction]
-		elif key in ["unit_voices", "default_voices"] and key in base:
+		elif key in ["unit_voices", "default_voices", "land_voices"] and key in base:
 			base[key].merge(mod[key], true)
 		else:
 			base[key] = mod[key]

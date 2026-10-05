@@ -4,7 +4,7 @@ extends RefCounted
 # settings and a snapshot of the match: every unit and structure (where it stands, its
 # health, construction, cargo, stored goods and production queue), the resource deposits
 # still left, each player's stock and city, the treaties and trade agreements, the match
-# clock and the camera.
+# clock, the city centre countdowns and white flags (CityCentres.gd) and the camera.
 #
 # Loading builds the match from the saved settings (Loading.gd with `saved_game`), spawns the
 # saved units instead of the starter city (Match._setup_player_units calls spawn_units) and
@@ -187,6 +187,9 @@ static func capture(a_match):
 	var market = a_match.get_node_or_null("Market")
 	if market != null:
 		data["market"] = _capture_market(market, players)
+	var city_centres = a_match.get_node_or_null("CityCentres")
+	if city_centres != null:
+		data["city_centres"] = city_centres.capture(players, unit_ids)
 	var guide = a_match.find_child("Guide", true, false)
 	if guide != null:
 		data["guide"] = {
@@ -333,7 +336,8 @@ static func _capture_order(action, unit_ids):
 	if action is AttackMoving and action._target_position != null:
 		return ["fight", _vec3(action._target_position)]
 	if action is Patrolling:
-		return ["patrol", action._waypoints.map(_vec3), action._index]
+		var kind = "patrol_base" if action.is_base_patrol() else "patrol"
+		return [kind, action._waypoints.map(_vec3), action._index]
 	if action is Moving and action._target_position != null:
 		return ["move", _vec3(action._target_position)]
 	return null
@@ -366,6 +370,8 @@ static func _restore_orders(spawned, data):
 				unit.action = AttackMoving.new(_to_vec3(order[1]))
 			"patrol":
 				unit.action = Patrolling.new(order[1].map(_to_vec3), int(order[2]))
+			"patrol_base":
+				unit.action = Patrolling.new(order[1].map(_to_vec3), int(order[2]), unit.player)
 			"move":
 				if Moving.is_applicable(unit):
 					unit.action = Moving.new(_to_vec3(order[1]))
@@ -540,6 +546,9 @@ static func restore_after_start(a_match, data):
 			)
 	_restore_orders(spawned, data)
 	_restore_civil_defense(players, spawned, data)
+	var city_centres = a_match.get_node_or_null("CityCentres")
+	if city_centres != null and "city_centres" in data:
+		city_centres.restore(data["city_centres"], players, spawned)
 	var market = a_match.get_node_or_null("Market")
 	if market != null and not data.get("market", {}).is_empty():
 		_restore_market(market, data["market"], players)

@@ -10,6 +10,7 @@ mods add to it or patch it (see [mods](#mods)).
 | `tiers.json` | City tiers and the science each one needs |
 | `roads.json` | Road levels of supply routes and their cost and speed |
 | `caps.json` | Unit cap, match-wide unit cap, match length and end-of-match score |
+| `city_centres.json` | City centre circle, how many a player may have, rebuild countdown and surrender |
 | `logistics.json` | Trucks' job board, extractor buffers, storage, trains, fleet upkeep and recycling |
 | `movement.json` | How ground and air units steer around each other and through crowds |
 | `units/*.json` | One file per unit or structure |
@@ -70,6 +71,27 @@ The city earns science on its own (population, how well it is supplied, power). 
 moves to the next tier once science passes the threshold. The first tier must be at 0.
 `max_population` is the largest the city can grow at that tier: it stops growing and
 building houses there until the next tier. It must not shrink from tier to tier.
+
+## city_centres.json
+
+```json
+{
+  "max_per_player": 2,             // city centres one player may build (sites count)
+  "radius_m": 24,                  // the city circle: buildings and houses inside belong to it
+  "min_spacing_m": 20,             // a player's city centres stand at least this far apart
+  "rebuild_countdown_s": 180,      // after the last city centre falls: rebuild or be defeated
+  "surrender_countdown_s": 15,     // white flag up until the city goes to the attacker
+  "attack_memory_s": 10,           // a hit this recent counts as "under attack"
+  "ai_second_centre_tier": 2,      // the AI builds a second city centre from this tier
+  "ai_second_centre_after_s": 600  // ... and not before this much match time
+}
+```
+
+Rebuilding inside the old circle keeps what still stands there; the player's buildings and
+houses outside every circle are abandoned. A city centre attacked with no friendly turret
+or fighting unit inside its circle raises a white flag, takes no more damage, and after the
+countdown goes to the attacker with the most firepower there, with the buildings and
+houses in its circle. See source/match/city/CityCentres.gd.
 
 ## caps.json
 
@@ -447,6 +469,7 @@ Blender scripts in `tools/blender/` export) or whose albedo is the key colour
   "optional_unit_actions": ["select_repeat"],   // played when the same unit is clicked 3 times
   "unit_voices": {"militia": "infantry", "drone": "drone"},
   "faction_voices": {"syndicate": {"militia": "syndicate_infantry"}},  // shared units, per faction
+  "land_voices": {"amphibious_apc": {"default": "vehicle_crew", "syndicate": "syndicate_crew"}},
   "default_voices": {"unit": "vehicle_crew", "air_unit": "pilot", "structure": "structure"},
   "advisor": "advisor",
   "advisor_events": ["base_under_attack", "low_oil", "storage_full", "..."]
@@ -455,7 +478,9 @@ Blender scripts in `tools/blender/` export) or whose albedo is the key colour
 
 A unit's own `"voice"` field wins, then `faction_voices` for its owner's faction (so a
 Syndicate militia sounds like a Syndicate hired gun, a Foundry one like a Foundry soldier),
-then `unit_voices`; units in none get the default.
+then `unit_voices`; units in none get the default. `land_voices` is for amphibious units:
+while one stands on land it speaks with that set (a set id, or one per faction with a
+`"default"`), and only switches to its marine set once it is actually in the water.
 
 `sounds/voice_sets/<id>.json` lists the lines of one voice. The game picks a line at random
 but plays every line of an action once before repeating any, and never the same line twice in
@@ -490,6 +515,6 @@ this folder. Mods are loaded in alphabetical order on top of the base data:
 - a mod's `factions/*.json` adds factions or patches one by id like units (give a whole
   `roles` object when you change it),
 - a mod's `tiers.json` or `roads.json` replaces the base one,
-- a mod's `sounds/voices.json` patches `unit_voices`, `default_voices` and each faction of `faction_voices` key by key, and a
+- a mod's `sounds/voices.json` patches `unit_voices`, `default_voices`, `land_voices` and each faction of `faction_voices` key by key, and a
   voice set with a known id replaces only the actions it lists (its `folder` applies to its
   own lines), so a mod can give the drone new beeps without copying the rest.

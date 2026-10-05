@@ -23,6 +23,7 @@ const CityBuildUp = preload("res://source/match/city/CityBuildUp.gd")
 const GraphicsQuality = preload("res://source/options/GraphicsQuality.gd")
 const Look = preload("res://source/match/environment/Look.gd")
 const SaveGame = preload("res://source/match/SaveGame.gd")
+const CityCentres = preload("res://source/match/city/CityCentres.gd")
 
 const CommandCenter = preload("res://source/match/units/CommandCenter.tscn")
 const Factions = preload("res://source/data-model/Factions.gd")
@@ -105,6 +106,10 @@ func _ready():
 		var limits = MatchLimits.new()
 		limits.name = "MatchLimits"
 		add_child(limits)
+	if get_node_or_null("CityCentres") == null:  # rebuild countdown, city circles, surrender
+		var city_centres = CityCentres.new()
+		city_centres.name = "CityCentres"
+		add_child(city_centres)
 	if get_node_or_null("Market") == null:
 		var market = Market.new()
 		market.name = "Market"

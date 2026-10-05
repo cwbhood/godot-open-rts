@@ -21,6 +21,7 @@ const TOPICS = [
 	"COMMANDS",
 	"AIRCRAFT",
 	"LIMITS",
+	"CITY_CENTRES",
 	"TESTING",
 ]
 

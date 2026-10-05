@@ -117,7 +117,16 @@ func can_produce(scene_path):
 		in_roster(scene_path)
 		and meets_tier_requirement(scene_path)
 		and not needs_airport_for(scene_path)
+		and not at_city_centre_limit(scene_path)
 	)
+
+
+func at_city_centre_limit(scene_path):
+	"""a player may only have so many city centres, see CityCentres.gd"""
+	if not scene_path.ends_with("CommandCenter.tscn") or not is_inside_tree():
+		return false
+	var city_centres = get_tree().get_first_node_in_group("city_centres")
+	return city_centres != null and not city_centres.can_place_more(self)
 
 
 func get_production_multiplier():
