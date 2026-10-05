@@ -73,14 +73,12 @@ func _hit_target():
 	_unit.set_meta(
 		"next_attack_availability_time", Time.get_ticks_msec() + int(_unit.attack_interval * 1000.0)
 	)
-	var projectile = (
-		load(
-			Constants.Match.Units.PROJECTILES[_unit.get_script().resource_path.replace(
-				".gd", ".tscn"
-			)]
-		)
-		. instantiate()
+	# by scene path, so data-only units (see GameData "base") fire their own projectile
+	var projectiles = Constants.Match.Units.PROJECTILES
+	var projectile_path = projectiles.get(
+		_unit._scene_path(), projectiles[_unit.get_script().resource_path.replace(".gd", ".tscn")]
 	)
+	var projectile = load(projectile_path).instantiate()
 	projectile.target_unit = _target_unit
 	_unit.add_child(projectile)
 	_schedule_hit()

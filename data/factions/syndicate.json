@@ -1,0 +1,32 @@
+{
+  "id": "syndicate",
+  "order": 2,
+  "name": "FACTION_SYNDICATE",
+  "description": "FACTION_SYNDICATE_DESCRIPTION",
+  "color_hint": "#b4532a",
+  "start_units": ["drone", "worker", "worker", "hauler", "hauler"],
+  "hidden_units": ["ag_turret", "aa_turret"],
+  "roles": {
+    "main_t1": "raider",
+    "main_t2": "rocket_technical",
+    "main_t3": "rocket_technical",
+    "air_t2": "helicopter",
+    "air_t3": "gunship",
+    "raider": "raider",
+    "scout": "scout_buggy",
+    "ag_turret": "gun_nest",
+    "aa_turret": "sam_site",
+    "militia": "militia",
+    "trade_depot": "trading_post"
+  },
+  "city": {
+    "production_speed": 1.0,
+    "trade_growth": 1.5
+  },
+  "armed_caravans": {
+    "attack_damage": 1,
+    "attack_interval": 0.8,
+    "attack_range": 5.0
+  },
+  "ai_personalities": ["raider", "trader", "balanced"]
+}

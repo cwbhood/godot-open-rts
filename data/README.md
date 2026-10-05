@@ -15,6 +15,7 @@ mods add to it or patch it (see [mods](#mods)).
 | `units/*.json` | One file per unit or structure |
 | `maps/*.json` | One file per playable map |
 | `ai/*.json` | One file per rival AI personality (its play style) |
+| `factions/*.json` | One file per playable faction: its units, roles, start units and perks |
 | `difficulties/*.json` | One file per AI difficulty, applied on top of the play style |
 | `player_colors.json` | The colours players and AIs can pick in the Play menu |
 | `sounds/voices.json`, `sounds/voice_sets/*.json` | Which voice each unit answers with, and the advisor's announcements |
@@ -169,7 +170,8 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 \
 | `id` | Unique id, also the file name |
 | `category` | `"unit"` or `"structure"` |
 | `scene` | The Godot scene of the unit. Leave it out when you use `base` |
-| `base` | Id of an existing unit to copy. The new unit inherits every field and you only list what changes |
+| `base` | Id of an existing unit to copy. The new unit inherits every field but `factions` and you only list what changes (`properties`, `power` and `cost` merge key by key; a `null` value drops the base's field, e.g. `"power": null`) |
+| `factions` | Optional: ids of the [factions](#factionsjson) that may build it, e.g. `["syndicate"]`. Left out, the unit is shared by all |
 | `model` | `.glb` / `.gltf` / `.tscn` model replacing the scene's own model (for any unit, with or without `base`) |
 | `model_scale`, `model_offset`, `model_rotation_y_deg` | Placement of `model` |
 | `classic_model`, `classic_model_scale`, `classic_model_offset`, `classic_model_rotation_y_deg` | Art used instead of `model` when the player picks classic unit models in Options (or the game runs with `--unit-models=classic`) |
@@ -193,6 +195,51 @@ xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --resolution 1280x720 \
 | `power` | `output_mw`, `demand_mw`, `grid_radius_m`, `burns` (commodity per MW per second) |
 | `blueprint` | Structures only: the ghost shown while placing it |
 | `voice` | Optional: id of the voice set it answers with, overriding `sounds/voices.json` |
+| `production_bonus` | Structures with a `demand_mw`: while powered, the factories on the same power grid produce this much faster (0.2 = +20%, the Foundry). Several do not stack |
+| `trade_depot` | Structures: `true` makes it a caravan depot like the command center (the Trading Post) |
+
+## factions/*.json
+
+```json
+{
+  "id": "syndicate",
+  "order": 2,                              // place in the Play menu
+  "name": "FACTION_SYNDICATE",             // translation keys
+  "description": "FACTION_SYNDICATE_DESCRIPTION",
+  "color_hint": "#b4532a",                 // the faction's colour, for menus
+  "start_units": ["drone", "worker", "worker", "hauler", "hauler"],
+  "hidden_units": ["ag_turret", "aa_turret"],   // shared units it replaces with its own
+  "roles": {"main_t1": "raider", "ag_turret": "gun_nest", "raider": "raider"},
+  "city": {"trade_growth": 1.5, "production_speed": 1.0},
+  "armed_caravans": {"attack_damage": 1, "attack_interval": 0.8, "attack_range": 5.0},
+  "ai_personalities": ["raider", "trader", "balanced"]
+}
+```
+
+A player's faction decides what it can build: every unit without `factions` plus the
+units that list this faction, minus `hidden_units`. Each slot of the Play menu picks one
+(or Random, which an AI picks among the factions listing its personality in
+`ai_personalities`). `roles` tell the AI and the city which of its units fill each job:
+
+| Role | Used for |
+| --- | --- |
+| `main_t1`, `main_t2`, `main_t3` | The AI's main battle unit at each city tier (vehicle factory) |
+| `air_t2`, `air_t3` | The AI's aircraft at tier 2 and 3 |
+| `support_t2` | A support unit (artillery) |
+| `raider` | What the AI sends on raids against supply lines |
+| `scout` | What the helper scouts with |
+| `ag_turret`, `aa_turret` | Turrets the AI builds and the city puts up as defense posts |
+| `militia` | The city's militia |
+| `production_boost`, `trade_depot` | The faction's Foundry and Trading Post, which the AI builds |
+
+A role left out uses the unit the game used before factions (`tank`, `heavy_tank`,
+`battle_tank`, `helicopter`, `gunship`, `raider`, `scout_buggy`, `ag_turret`, `aa_turret`,
+`militia`) when that unit is in the roster. `city.trade_growth` multiplies the city growth
+a trade gives (and its cap), `city.production_speed` the speed of every factory.
+`armed_caravans` lets the faction's trade caravans shoot back at raiders.
+
+Players created without a faction (test scenes, old saves of the match settings) may build
+everything and use the default roles.
 
 ## maps/*.json
 
@@ -435,6 +482,8 @@ this folder. Mods are loaded in alphabetical order on top of the base data:
 - a file whose `id` already exists replaces just the fields it lists, so a mod
   rebalancing the tank only needs `{"id": "tank", "cost": {"iron": 5, "oil": 3}}`
   (a listed field is replaced as a whole: give the full `cost` or `properties`),
+- a mod's `factions/*.json` adds factions or patches one by id like units (give a whole
+  `roles` object when you change it),
 - a mod's `tiers.json` or `roads.json` replaces the base one,
 - a mod's `sounds/voices.json` patches `unit_voices` and `default_voices` key by key, and a
   voice set with a known id replaces only the actions it lists (its `folder` applies to its

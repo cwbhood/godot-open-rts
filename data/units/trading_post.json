@@ -1,0 +1,23 @@
+{
+  "id": "trading_post",
+  "base": "power_plant",
+  "factions": ["syndicate"],
+  "name": "TRADING_POST",
+  "description": "TRADING_POST_DESCRIPTION",
+  "model": "res://assets/models/ironbound/buildings/market.glb",
+  "model_scale": 1.0,
+  "icon": "res://assets/ui/icons/CommandCenter.png",
+  "icon_tint": "#e0905a",
+  "tier": 1,
+  "cost": {
+    "timber": 8,
+    "iron": 6
+  },
+  "properties": {
+    "sight_range": 7.0,
+    "hp": 14,
+    "hp_max": 14
+  },
+  "power": null,
+  "trade_depot": true
+}

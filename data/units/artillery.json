@@ -1,6 +1,9 @@
 {
   "id": "artillery",
   "category": "unit",
+  "factions": [
+    "foundry"
+  ],
   "scene": "res://source/match/units/Artillery.tscn",
   "model": "res://assets/models/ironbound/units/artillery.glb",
   "model_scale": 0.85,

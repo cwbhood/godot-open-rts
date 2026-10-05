@@ -293,3 +293,21 @@ MATCH_END_COL_DELIVERED,Goods delivered,Dostarczone
 MATCH_END_COL_TRADES,Trades,Wymiany
 MATCH_END_REMATCH,Play again,Zagraj ponownie
 MATCH_END_MAIN_MENU,Main menu,Menu główne
+FACTION_FOUNDRY,Foundry League,Liga Odlewni
+FACTION_FOUNDRY_DESCRIPTION,"Olive-drab tracked armour and fortified production: tanks, artillery, bunkers, flak towers and the Foundry, which speeds up the factories on its power grid.","Gąsienicowy pancerz i umocniona produkcja: czołgi, artyleria, bunkry, wieże przeciwlotnicze i Odlewnia, która przyspiesza fabryki w swojej sieci."
+FACTION_SYNDICATE,Sandline Syndicate,Syndykat Piaskowej Linii
+FACTION_SYNDICATE_DESCRIPTION,"Fast wheeled raiders and traders: raiders, scout buggies, rocket technicals, gunships, gun nests, SAM sites and trading posts. Trade boosts their city 1.5x and their caravans shoot back.","Szybkie kołowe łupieżce i kupcy: łupieżcy, łaziki zwiadowcze, technikale rakietowe, śmigłowce szturmowe, gniazda karabinów, wyrzutnie i faktorie. Handel wzmacnia ich miasto 1,5x, a karawany odpowiadają ogniem."
+BUNKER,Bunker,Bunkier
+BUNKER_DESCRIPTION,"heavy anti-ground emplacement: tough, hits hard, short reach","ciężkie stanowisko przeciwpancerne: wytrzymałe, mocne, krótki zasięg"
+GUN_NEST,Gun nest,Gniazdo karabinów
+GUN_NEST_DESCRIPTION,cheap fast-firing anti-ground nest with long reach and thin walls,"tanie, szybkostrzelne gniazdo przeciw celom naziemnym, daleki zasięg, cienkie ściany"
+FLAK_TOWER,Flak tower,Wieża flak
+FLAK_TOWER_DESCRIPTION,sturdy anti-air tower that fills the sky with flak,wytrzymała wieża przeciwlotnicza zasypująca niebo ogniem
+SAM_SITE,SAM site,Wyrzutnia rakiet plot.
+SAM_SITE_DESCRIPTION,"long-range anti-air missiles, fragile","przeciwlotnicze rakiety dalekiego zasięgu, delikatna"
+ROCKET_TECHNICAL,Rocket technical,Technikal rakietowy
+ROCKET_TECHNICAL_DESCRIPTION,pickup with a rocket rack: fast and hits hard from range,pikap z wyrzutnią rakiet: szybki i mocno bije z dystansu
+FOUNDRY,Foundry,Odlewnia
+FOUNDRY_DESCRIPTION,"while powered, factories on the same power grid produce 20% faster","gdy ma zasilanie, fabryki w tej samej sieci produkują o 20% szybciej"
+TRADING_POST,Trading post,Faktoria
+TRADING_POST_DESCRIPTION,a second caravan depot: trade caravans leave from and arrive at the closest one,drugi skład karawan: karawany handlowe wyruszają z najbliższego i do niego przyjeżdżają
