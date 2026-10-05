@@ -35,6 +35,7 @@ CHECKS=(
   "CrashPromptCheck|res://tests/crash/CrashPromptCheck.tscn|"
   "DiplomacyChecks|res://tests/diplomacy/DiplomacyChecks.tscn|"
   "LogisticsChecks|res://tests/logistics/LogisticsChecks.tscn|"
+  "RailNetworkCheck|-s res://tests/logistics/RailNetworkCheck.gd|"
   "MovementScenarios|res://tests/movement/MovementScenarios.tscn|"
   "OptionsShots|res://tests/options/OptionsShots.tscn|--no-build-up"
   "ConstructorChecks|res://tests/playtest/ConstructorChecks.tscn|"
