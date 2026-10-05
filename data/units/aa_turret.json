@@ -7,6 +7,8 @@
   "blueprint": "res://source/match/units/structure-geometries/AntiAirTurret.tscn",
   "name": "AA_TURRET",
   "description": "AA_TURRET_DESCRIPTION",
+  "role": "defence",
+  "info": "AA_TURRET_INFO",
   "icon": "res://assets/ui/icons/AntiAirTurret.png",
   "tier": 2,
   "cost": {
