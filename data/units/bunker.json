@@ -6,7 +6,10 @@
   "description": "BUNKER_DESCRIPTION",
   "role": "defence",
   "info": "BUNKER_INFO",
-  "model_scale": 1.2,
+  "model": "res://assets/models/ironbound/buildings/bunker.glb",
+  "model_scale": 0.902,
+  "classic_model": "res://assets/models/ironbound/buildings/defense_turret.glb",
+  "classic_model_scale": 1.2,
   "icon_tint": "#b7c27a",
   "cost": {
     "timber": 3,

@@ -5,8 +5,10 @@
     "foundry"
   ],
   "scene": "res://source/match/units/BattleTank.tscn",
-  "model": "res://assets/models/ironbound/units/tank_battle.glb",
-  "model_scale": 1.28,
+  "model": "res://assets/models/ironbound/units/battle_tank.glb",
+  "model_scale": 1.476,
+  "classic_model": "res://assets/models/ironbound/units/tank_battle.glb",
+  "classic_model_scale": 1.28,
   "name": "BATTLE_TANK",
   "description": "BATTLE_TANK_DESCRIPTION",
   "icon": "res://assets/ui/icons/Tank.png",

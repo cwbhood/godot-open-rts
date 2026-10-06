@@ -6,7 +6,10 @@
   "description": "SAM_SITE_DESCRIPTION",
   "role": "defence",
   "info": "SAM_SITE_INFO",
-  "model_scale": 0.9,
+  "model": "res://assets/models/ironbound/buildings/sam_site.glb",
+  "model_scale": 0.7,
+  "classic_model": "res://assets/models/ironbound/buildings/defense_aa.glb",
+  "classic_model_scale": 0.9,
   "icon_tint": "#e0905a",
   "cost": {
     "iron": 4,
