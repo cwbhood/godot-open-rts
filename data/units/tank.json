@@ -14,20 +14,20 @@
   "icon": "res://assets/ui/icons/Tank.png",
   "tier": 1,
   "cost": {
-    "iron": 6,
+    "iron": 5,
     "copper": 1,
     "oil": 3
   },
   "build_time_s": 6.0,
   "unit_slots": 2,
-  "speed": 2.75,
+  "speed": 3.0,
   "produced_by": [
     "vehicle_factory"
   ],
   "properties": {
     "sight_range": 8.0,
-    "hp": 10,
-    "hp_max": 10,
+    "hp": 11,
+    "hp_max": 11,
     "attack_damage": 2,
     "attack_interval": 0.75,
     "attack_range": 5.0,

@@ -10,8 +10,8 @@
   "icon_tint": "#b7c27a",
   "cost": {
     "timber": 3,
-    "iron": 8,
-    "copper": 1
+    "iron": 5,
+    "copper": 2
   },
   "properties": {
     "sight_range": 8.0,
