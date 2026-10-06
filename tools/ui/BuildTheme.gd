@@ -64,10 +64,11 @@ func _box(
 
 
 func _panel_box():
-	var box = _box(Color(BG, 0.9), LINE, 1, 5, Vector4(2, 2, 2, 2))
-	box.shadow_color = Color(0, 0, 0, 0.35)
-	box.shadow_size = 6
-	box.shadow_offset = Vector2(0, 2)
+	# see-through glass over the battlefield, a hairline edge and a soft drop shadow
+	var box = _box(Color(BG, 0.84), Color(FG, 0.1), 1, 10, Vector4(2, 2, 2, 2))
+	box.shadow_color = Color(0, 0, 0, 0.3)
+	box.shadow_size = 12
+	box.shadow_offset = Vector2(0, 4)
 	return box
 
 
@@ -105,11 +106,13 @@ func _panels():
 
 
 func _button_states(type, margin = Vector4(10, 5, 10, 5)):
-	theme.set_stylebox("normal", type, _box(SURFACE_2, LINE, 1, 4, margin))
-	theme.set_stylebox("hover", type, _box(SURFACE_3, Color(ACCENT, 0.7), 1, 4, margin))
-	theme.set_stylebox("pressed", type, _box(ACCENT, ACCENT, 1, 4, margin))
-	theme.set_stylebox("hover_pressed", type, _box(ACCENT.lightened(0.12), ACCENT, 1, 4, margin))
-	theme.set_stylebox("disabled", type, _box(Color(SURFACE, 0.8), Color(LINE, 0.6), 1, 4, margin))
+	theme.set_stylebox("normal", type, _box(SURFACE_2, Color(FG, 0.08), 1, 6, margin))
+	theme.set_stylebox("hover", type, _box(SURFACE_3, Color(ACCENT, 0.7), 1, 6, margin))
+	theme.set_stylebox("pressed", type, _box(ACCENT, ACCENT, 1, 6, margin))
+	theme.set_stylebox("hover_pressed", type, _box(ACCENT.lightened(0.12), ACCENT, 1, 6, margin))
+	theme.set_stylebox(
+		"disabled", type, _box(Color(SURFACE, 0.8), Color(LINE, 0.6), 1, 6, margin)
+	)
 	theme.set_stylebox("focus", type, StyleBoxEmpty.new())
 	theme.set_color("font_color", type, FG)
 	theme.set_color("font_hover_color", type, Color.WHITE)

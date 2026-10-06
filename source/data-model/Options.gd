@@ -67,6 +67,9 @@ const RESETTABLE = [
 	set = _set_graphics_quality
 # the unit art from before the play-ready Blender models (see GameData.use_classic_models)
 @export var classic_unit_models = false
+# the match's art direction, a file in data/looks (see source/match/environment/Look.gd);
+# empty: the game's default look
+@export var art_style = ""
 
 # --- audio (linear, 0..1)
 @export_range(0.0, 1.0) var master_volume = 1.0:

@@ -314,6 +314,13 @@ func _advance_wind(delta):
 
 
 func _apply():
+	# the art direction (Look.gd) scales and tints what the weather sets
+	var look = get_tree().get_first_node_in_group("look")
+	var look_sun_energy = look.get_sun_energy_multiplier() if look != null else 1.0
+	var look_sun_tint = look.get_sun_tint() if look != null else Color.WHITE
+	var look_ambient = look.get_ambient_multiplier() if look != null else 1.0
+	var look_haze = look.get_haze_multiplier() if look != null else 1.0
+	var haze = _current.haze * look_haze + (look.get_base_haze() if look != null else 0.0)
 	var cloud_material = _clouds.material_override
 	cloud_material.set_shader_parameter("coverage", _current.coverage)
 	cloud_material.set_shader_parameter("offset", _cloud_offset)
@@ -331,16 +338,16 @@ func _apply():
 	var sun = _get_sun()
 	if sun != null:
 		shadow_material.set_shader_parameter("sun_direction", -sun.global_transform.basis.z)
-		sun.light_energy = _current.sun_energy + _flash * 3.0
-		sun.light_color = _current.sun_color
+		sun.light_energy = _current.sun_energy * look_sun_energy + _flash * 3.0
+		sun.light_color = _current.sun_color * look_sun_tint
 	var environment = _get_environment()
 	if environment != null:
-		environment.ambient_light_energy = _current.ambient_energy
-		environment.fog_enabled = _current.haze > 0.01
+		environment.ambient_light_energy = _current.ambient_energy * look_ambient
+		environment.fog_enabled = haze > 0.01
 		environment.fog_light_color = _current.haze_color
 		# the camera looks down at 30 degrees, so the ground is about twice its height away
 		var camera_distance = 80.0 if camera == null else max(camera.global_position.y, 1.0) * 2.0
-		environment.fog_density = _current.haze * 0.55 / camera_distance
+		environment.fog_density = haze * 0.55 / camera_distance
 		environment.fog_sky_affect = 0.0
 	# zoomed out, single drops and dust grains are too small to see: emit fewer of them
 	var particle_share = lerp(1.0, 0.4, zoom_visibility)

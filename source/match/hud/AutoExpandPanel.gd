@@ -10,7 +10,7 @@ const HudStyle = preload("res://source/match/hud/HudStyle.gd")
 
 const REFRESH_INTERVAL_S = 0.5
 const RESERVE_CHOICES = [0, 10, 25, 50]
-const WIDTH = 280
+const WIDTH = 300
 
 var _player = null
 var _title = Label.new()

@@ -13,6 +13,7 @@ signal closed
 
 const GameData = preload("res://source/data-model/GameData.gd")
 const Options = preload("res://source/data-model/Options.gd")
+const Look = preload("res://source/match/environment/Look.gd")
 const GraphicsQuality = preload("res://source/options/GraphicsQuality.gd")
 const Keybinds = preload("res://source/match/Keybinds.gd")
 const MenuStyle = preload("res://source/options/MenuStyle.gd")
@@ -302,6 +303,16 @@ func _build_video_tab(rows):
 			GameData.switch_unit_models()
 			_changed()
 	)
+	var looks = Look.available_looks()
+	var art = _option_row(
+		rows, "art_style", "Art style", looks.map(func(id): return Look.display_name(id))
+	)
+	art.item_selected.connect(
+		func(index):
+			Globals.options.art_style = looks[index]
+			_changed()
+	)
+	_hint(rows, "How matches are lit and coloured. Takes effect in the next match.")
 
 
 func _build_interface_tab(rows):
@@ -525,6 +536,8 @@ func _load_values():
 	_controls["graphics_quality"].select(options.graphics_quality)
 	_quality_hint.text = GraphicsQuality.describe(options.graphics_quality)
 	_controls["classic_unit_models"].select(1 if options.classic_unit_models else 0)
+	var art_style = options.art_style if options.art_style != "" else Look.DEFAULT_LOOK
+	_controls["art_style"].select(max(Look.available_looks().find(art_style), 0))
 	_fill_resolutions()
 	_refresh_resolution_state()
 

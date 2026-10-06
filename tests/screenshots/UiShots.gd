@@ -4,7 +4,7 @@ extends Node
 # nothing on screen is cut off by the window edge. Run at each window size to check:
 #   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --resolution 1280x720 \
 #     res://tests/screenshots/UiShots.tscn -- --out=/tmp/ui
-# --only=play,replay,hud picks the parts. Exits with 1 when a control sticks out.
+# --only=main,play,replay,hud picks the parts. Exits with 1 when a control sticks out.
 
 const Worker = preload("res://source/match/units/Worker.gd")
 const CommandCenter = preload("res://source/match/units/CommandCenter.gd")
@@ -22,7 +22,9 @@ func _ready():
 	var size = get_viewport().get_visible_rect().size
 	_out = _args.get("out", "user://ui-shots")
 	DirAccess.make_dir_recursive_absolute(_out)
-	var only = _args.get("only", "play,replay,hud").split(",")
+	var only = _args.get("only", "main,play,replay,hud").split(",")
+	if "main" in only:
+		await _menu("res://source/main-menu/Main.tscn", "main")
 	if "play" in only:
 		await _menu("res://source/main-menu/Play.tscn", "play")
 	if "replay" in only:
