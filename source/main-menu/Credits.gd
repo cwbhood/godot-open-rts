@@ -1,7 +1,7 @@
 extends Control
 
 const CREDITS = [
-	["CREDITS_IRONBOUND", ["Destin (cwbhood) and contributors"]],
+	["CREDITS_IRONBOUND", ["Destin (destinjones) and contributors"]],
 	["CREDITS_BASED_ON", ["Open RTS by Pawel Lampe (Scony) | Lampe Games, MIT licence"]],
 	["CREDITS_ENGINE", ["Godot Engine, MIT licence, godotengine.org"]],
 	[

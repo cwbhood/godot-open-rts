@@ -3,7 +3,7 @@ main = "worker.js"
 compatibility_date = "2026-10-01"
 
 [vars]
-REPO = "cwbhood/godot-open-rts"
+REPO = "destinjones/godot-open-rts"
 
 # at most 5 reports per minute from one address
 [[unsafe.bindings]]

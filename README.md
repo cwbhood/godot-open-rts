@@ -5,7 +5,7 @@
 Ironbound is an open source real-time strategy game made with Godot 4.7. Your city builds
 itself; you run the mines, supply lines, trade, diplomacy and the army.
 
-Website: https://cwbhood.github.io/godot-open-rts/
+Website: https://destinjones.github.io/godot-open-rts/
 
 ## Features
 

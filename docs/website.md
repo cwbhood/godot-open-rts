@@ -29,7 +29,7 @@ Images live in `site/assets/img/` as WebP (a `-sm` copy for thumbnails), the vid
 `site/assets/video/`.
 
 The download buttons link to
-`https://github.com/cwbhood/godot-open-rts/releases/latest/download/<file>`, so they
+`https://github.com/destinjones/godot-open-rts/releases/latest/download/<file>`, so they
 always fetch the newest published release. `site/assets/site.js` also asks the public
 GitHub API for the release name and file sizes; if there is no public release it points
 the buttons at the Releases page instead.
@@ -57,7 +57,7 @@ Program, or a Windows code-signing certificate) and can be added to the workflow
 1. Settings > Pages > Source: GitHub Actions. (Pages on a private repository needs a
    paid GitHub plan; on a public repository it is free.)
 2. Actions > Website > Run workflow. The site appears at
-   https://cwbhood.github.io/godot-open-rts/ unless a custom domain is set.
+   https://destinjones.github.io/godot-open-rts/ unless a custom domain is set.
 3. After that, every change to `site/` merged into main publishes itself.
 
 ## Later: a browser build

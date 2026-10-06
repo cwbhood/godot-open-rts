@@ -15,7 +15,7 @@ folder paths are shortened to `user://`, `res://` or `~`.
 On the next launch the main menu asks "Send last crash report?" and shows the exact text.
 Nothing is sent unless the player presses Send.
 
-- Default: Send opens a new issue on github.com/cwbhood/godot-open-rts in the browser with
+- Default: Send opens a new issue on github.com/destinjones/godot-open-rts in the browser with
   the report filled in, and the player presses Submit. Reports land as issues titled
   `Crash report: ...`.
 - With the optional crash inbox (`tools/crash-inbox/`, a free Cloudflare Worker) set in

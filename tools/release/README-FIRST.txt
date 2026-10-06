@@ -29,4 +29,4 @@ Crash reports are saved on your computer. On the next start the game asks
 whether to send one; nothing is sent unless you press Send.
 
 Licence: MIT (see LICENSE.txt). Asset credits: ASSET_CREDITS.md.
-Source code and issues: https://github.com/cwbhood/godot-open-rts
+Source code and issues: https://github.com/destinjones/godot-open-rts
