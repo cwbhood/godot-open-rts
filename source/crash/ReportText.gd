@@ -4,7 +4,7 @@ extends RefCounted
 # body. The body is what the prompt shows word for word, so the player sees exactly what
 # leaves the computer. Paths are shortened and the account name is removed.
 
-const ISSUE_REPO = "cwbhood/godot-open-rts"
+const ISSUE_REPO = "destinjones/godot-open-rts"
 const ISSUE_LABEL = "crash-report"
 const ENDPOINT_SETTING = "ironbound/crash_reports/endpoint"
 const MAX_URL_LENGTH = 7800  # GitHub rejects new-issue links much past 8 KB

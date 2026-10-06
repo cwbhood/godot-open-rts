@@ -6,9 +6,9 @@ import pathlib
 import sys
 
 OUT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "site")
-REPO = "https://github.com/cwbhood/godot-open-rts"
+REPO = "https://github.com/destinjones/godot-open-rts"
 # Where the site is published. Change this if a custom domain is added.
-BASE = "https://cwbhood.github.io/godot-open-rts/"
+BASE = "https://destinjones.github.io/godot-open-rts/"
 HERE = pathlib.Path(__file__).resolve().parent
 CREATOR = json.loads((HERE / "creator.json").read_text())
 LATEST = REPO + "/releases/latest/download/"
@@ -134,7 +134,7 @@ def page(filename, title, description, body, preview=False, schema=None, noindex
         <li><a href="{REPO}/issues">Report a bug</a></li>
         <li><a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> (the base)</li>
         <li><a href="https://godotengine.org">Godot Engine</a></li>
-        <li><a href="https://cwbhood.github.io/open-overwatch/">Open Overwatch</a>, also by Destin</li>
+        <li><a href="https://destinjones.github.io/open-overwatch/">Open Overwatch</a>, also by Destin</li>
       </ul>
     </div>
   </div>
@@ -791,7 +791,7 @@ COMMUNITY = f"""
 </div>
 <section aria-label="Links">
   <div class="wrap cards">
-    <div class="card"><h3>Source code</h3><p>Read the code, or <a href="{REPO}/fork">fork it</a> and build anything you like: your own RTS, a mod, or something new.</p><a class="more" href="{REPO}">github.com/cwbhood/godot-open-rts</a></div>
+    <div class="card"><h3>Source code</h3><p>Read the code, or <a href="{REPO}/fork">fork it</a> and build anything you like: your own RTS, a mod, or something new.</p><a class="more" href="{REPO}">github.com/destinjones/godot-open-rts</a></div>
     <div class="card"><h3>Issues</h3><p>Report bugs, suggest features and follow what is being worked on.</p><a class="more" href="{REPO}/issues">Open issues</a></div>
     <div class="card"><h3>Pull requests</h3><p>See changes in progress and send your own.</p><a class="more" href="{REPO}/pulls">Pull requests</a></div>
     <div class="card"><h3>Releases</h3><p>Every build with its notes and checksums.</p><a class="more" href="{REPO}/releases">All releases</a></div>

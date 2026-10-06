@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cwbhood.github.io/godot-open-rts/sitemap.xml
+Sitemap: https://destinjones.github.io/godot-open-rts/sitemap.xml

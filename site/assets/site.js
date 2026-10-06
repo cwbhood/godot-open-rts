@@ -4,7 +4,7 @@
 (function () {
 	"use strict";
 
-	var REPO = "cwbhood/godot-open-rts";
+	var REPO = "destinjones/godot-open-rts";
 	var RELEASES = "https://github.com/" + REPO + "/releases";
 
 	// Mobile menu

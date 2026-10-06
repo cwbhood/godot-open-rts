@@ -10,7 +10,7 @@ Setup, about 10 minutes:
 1. Create a free Cloudflare account and install Wrangler: `npm install -g wrangler`, then
    `wrangler login`.
 2. On GitHub, create a fine-grained personal access token limited to
-   `cwbhood/godot-open-rts` with **Issues: Read and write** and nothing else.
+   `destinjones/godot-open-rts` with **Issues: Read and write** and nothing else.
 3. In this folder: `wrangler secret put GITHUB_TOKEN` (paste the token), then
    `wrangler deploy`. It prints the address, like
    `https://ironbound-crash-inbox.<you>.workers.dev`.
