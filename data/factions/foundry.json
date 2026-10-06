@@ -21,7 +21,7 @@
     "production_boost": "foundry"
   },
   "city": {
-    "production_speed": 1.0,
+    "production_speed": 1.1,
     "trade_growth": 1.0
   },
   "ai_personalities": ["balanced", "turtle"]

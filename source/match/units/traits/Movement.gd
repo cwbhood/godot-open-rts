@@ -46,6 +46,10 @@ const MOVING_PRIORITY = 1.0
 const PARKED_PRIORITY = 0.5
 const SPOT_SEARCH_RINGS = 6
 const ON_NAVMESH_TOLERANCE_M = 0.2
+# a push only ever moves a unit into the footprint next to it; a "closest point" further away
+# comes from a navigation map that is being rebaked (empty maps answer the world origin),
+# and following it teleported units, e.g. a builder onto a rock island on Twin Isles
+const ON_NAVMESH_MAX_PULL_M = 8.0
 
 static var _settings = null
 static var _path_budget_frame = -1
@@ -266,12 +270,11 @@ func _align_unit_position_to_navigation():
 	await get_tree().process_frame  # wait for navigation to be operational
 	if not is_inside_tree():
 		return  # the match was left in the meantime
-	_unit.global_transform.origin = (
-		NavigationServer3D.map_get_closest_point(
-			get_navigation_map(), get_parent().global_transform.origin
-		)
-		- Vector3(0, path_height_offset, 0)
-	)
+	var origin = get_parent().global_transform.origin
+	var closest = NavigationServer3D.map_get_closest_point(get_navigation_map(), origin)
+	if closest == Vector3.ZERO and origin.length() > ON_NAVMESH_MAX_PULL_M:
+		return  # the map is mid-rebake (see ON_NAVMESH_MAX_PULL_M): stay where spawned
+	_unit.global_transform.origin = closest - Vector3(0, path_height_offset, 0)
 
 
 func _has_target():
@@ -481,7 +484,11 @@ func _keep_on_navmesh():
 	_moved_since_navmesh_check = false
 	var position = _unit.global_position
 	var closest = NavigationServer3D.map_get_closest_point(get_navigation_map(), position)
-	if Vector2(closest.x - position.x, closest.z - position.z).length() > ON_NAVMESH_TOLERANCE_M:
+	var pull = Vector2(closest.x - position.x, closest.z - position.z).length()
+	if pull > ON_NAVMESH_MAX_PULL_M:
+		_moved_since_navmesh_check = true  # the map is mid-rebake: look again next time
+		return
+	if pull > ON_NAVMESH_TOLERANCE_M:
 		_unit.global_position = Vector3(closest.x, position.y, closest.z)
 
 

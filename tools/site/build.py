@@ -630,6 +630,7 @@ CHANGES = [
         "Original soundtrack that follows the fighting",
         "End screen with stats, a score chart and Play again",
         "Fixed: fog of war rendering black on some graphics cards",
+        "Balance: the Foundry League no longer runs dry on iron. Bunker and Tank cost less iron, Tanks are a little faster and tougher, Heavy Tanks tougher, and Foundry factories work 10% faster (AI vs AI: 3 wins each, was 1 to 5)",
     ]),
     ("Test builds", "4 October 2026", [
         "Units steer around each other instead of getting stuck in crowds",
