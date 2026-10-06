@@ -2,7 +2,9 @@ name: Release builds
 
 # Builds Windows, Linux and macOS zips with Godot 4.7.2 and attaches them, with
 # SHA256SUMS.txt, to a DRAFT GitHub release. Nothing is public until someone opens
-# the draft on the Releases page and presses "Publish release".
+# the draft on the Releases page and presses "Publish release", or starts the
+# workflow by hand with "Publish" ticked (then the release goes out as the latest
+# one, so the website's Download buttons point at it).
 #
 # Start it from the Actions tab ("Run workflow"), or push a tag like v0.1.0.
 
@@ -16,6 +18,10 @@ on:
       version:
         description: "Version number, e.g. 0.1.0 (the tag will be v<version>)"
         required: true
+      publish:
+        description: "Publish the release as the latest one (unticked: leave it as a draft)"
+        type: boolean
+        default: false
   push:
     tags: ["v*"]
 
@@ -101,7 +107,7 @@ jobs:
           path: game/dist/*
           retention-days: 14
 
-      - name: Create or update the draft release
+      - name: Create or update the release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,4 +128,9 @@ jobs:
               --draft --target "$commit" \
               --title "Ironbound ${{ steps.what.outputs.version }}" \
               --notes "$notes"
+          fi
+          # Publish only after every file is attached, so the Download links never
+          # point at a release with missing zips.
+          if [ "${{ inputs.publish }}" = "true" ]; then
+            gh release edit "$tag" --draft=false --prerelease=false --latest
           fi
