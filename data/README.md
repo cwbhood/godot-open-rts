@@ -433,8 +433,8 @@ The game ships with:
 | Very easy | no | 70% gathering, 75% build speed, thinks 3x slower, half the extractors, no turrets, no raids, one small attack group from minute 12, no scouting, no unit upgrades, spreads its fire |
 | Easy | no | 85% gathering and build speed, thinks 2x slower, 3/4 of the extractors, half the turrets, one 3/4-size attack group from minute 8, raids half as often, no scouting, no unit upgrades, spreads its fire |
 | Normal | no | the play style as it is, no bonus and no handicap |
-| Hard | no | thinks 2x faster and reacts in a quarter second, 25% more extractors and bigger attack groups, 50% more turrets, raids more often, pulls units below 30% hit points back |
-| Brutal (cheats) | **yes** | everything Hard does with 50% more extractors and army, double turrets, and +20% gathering and +15% build speed |
+| Hard | no | thinks 2x faster and reacts in a quarter second, 50% more turrets, raids more often, pulls units below 30% hit points back |
+| Brutal (cheats) | **yes** | everything Hard does with 25% more extractors, double turrets, and +20% gathering and +15% build speed |
 
 `normal` must exist: it is the default for new AI slots, for `PlayerSettings.ai_difficulty`
 and for older match setups. Play difficulties against each other with the same play style:
@@ -443,6 +443,10 @@ and for older match setups. Play difficulties against each other with the same p
 python3 tests/simulation/difficulty_ladder.py --style=balanced --seconds=1500 --jobs=4 \
     --out=/tmp/ladder
 ```
+
+AI against AI on Plain & Simple, the start position decides most matches (the first
+player won 11 of 12 matches between equal-style AIs), so compare a difficulty by how the
+same side fares against it, and play several runs: the ladder swaps sides every run.
 
 ## player_colors.json
 
