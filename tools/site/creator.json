@@ -35,6 +35,10 @@
     [
       "Open Overwatch",
       "https://destinjones.github.io/open-overwatch/"
+    ],
+    [
+      "CarFinder",
+      "https://destinjones.github.io/carfinder/"
     ]
   ],
   "other_projects": [
@@ -42,10 +46,16 @@
       "Open Overwatch",
       "https://destinjones.github.io/open-overwatch/",
       "my earlier open source project (source on GitHub at destinjones/open-overwatch)."
+    ],
+    [
+      "CarFinder",
+      "https://destinjones.github.io/carfinder/",
+      "every new car on sale in 11 countries with what it really costs (source on GitHub at destinjones/carfinder)."
     ]
   ],
   "same_as": [
     "https://github.com/destinjones",
-    "https://destinjones.github.io/open-overwatch/#creator"
+    "https://destinjones.github.io/open-overwatch/#creator",
+    "https://destinjones.github.io/carfinder/about.html#destin"
   ]
 }
