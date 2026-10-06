@@ -6,7 +6,10 @@
   "description": "FLAK_TOWER_DESCRIPTION",
   "role": "defence",
   "info": "FLAK_TOWER_INFO",
-  "model_scale": 1.2,
+  "model": "res://assets/models/ironbound/buildings/flak_tower.glb",
+  "model_scale": 0.771,
+  "classic_model": "res://assets/models/ironbound/buildings/defense_aa.glb",
+  "classic_model_scale": 1.2,
   "icon_tint": "#b7c27a",
   "projectile": "cannon_shell",
   "cost": {

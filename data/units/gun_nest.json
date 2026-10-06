@@ -6,7 +6,10 @@
   "description": "GUN_NEST_DESCRIPTION",
   "role": "defence",
   "info": "GUN_NEST_INFO",
-  "model_scale": 0.85,
+  "model": "res://assets/models/ironbound/buildings/gun_nest.glb",
+  "model_scale": 0.639,
+  "classic_model": "res://assets/models/ironbound/buildings/defense_turret.glb",
+  "classic_model_scale": 0.85,
   "icon_tint": "#e0905a",
   "cost": {
     "timber": 2,

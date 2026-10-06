@@ -89,6 +89,11 @@ func _spawn(entry, classic, player, position):
 	)
 	unit.set_meta("hold_fire", true)
 	MatchSignals.setup_and_spawn_unit.emit(unit, facing, player)
+	if unit is Structure and unit.is_under_construction():
+		# a placed structure starts as a site, the line-up compares finished buildings
+		unit.materials_delivered = unit.materials_pending
+		unit.materials_pending = {}
+		unit.construct(1.0)
 	if classic:
 		var classic_entry = {}
 		for field in GameData.MODEL_FIELDS:

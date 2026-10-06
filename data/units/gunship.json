@@ -5,8 +5,10 @@
     "syndicate"
   ],
   "scene": "res://source/match/units/Gunship.tscn",
-  "model": "res://assets/models/ironbound/units/helicopter_attack.glb",
-  "model_scale": 0.826,
+  "model": "res://assets/models/ironbound/units/gunship.glb",
+  "model_scale": 0.8,
+  "classic_model": "res://assets/models/ironbound/units/helicopter_attack.glb",
+  "classic_model_scale": 0.826,
   "name": "GUNSHIP",
   "description": "GUNSHIP_DESCRIPTION",
   "icon": "res://assets/ui/icons/Helicopter.png",
