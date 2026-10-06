@@ -46,4 +46,32 @@ python3 tools/blender/clean_generated.py -- --in raw/gunship.glb \
     --render /tmp/previews/gunship
 ```
 
+## Player buildings
+
+The player buildings got the same treatment on 2026-10-06 (126 credits for 12). They are in
+`buildings/generated/` because their old models keep their names as `classic_model`. The
+airport and the shipyard had no model of their own, so their `classic_model` is their old
+geometry scene (`source/match/units/structure-geometries/*.tscn`).
+
+Prompts use one neutral Grounded palette (weathered sand-beige concrete, dusty tan
+corrugated steel, faded olive trim, rust streaks) because both factions build them, and the
+same opening and closing sentences as above. Tripo `face_limit` 10000. All were cleaned with
+`--yaw 180 --length 2`; `model_scale` comes from `tools/art/fit_model_scale.gd` (the pylon
+set by eye to 0.7).
+
+| Model | Subject (prompt core) | Team colour |
+| --- | --- | --- |
+| `command_center.glb` | two-storey sloped concrete block, control tower, radar dish, helipad roof | roof edge, tower cap |
+| `vehicle_factory.glb` | corrugated assembly hall, roll-up door with ramp, gantry rail, exhaust stacks | door frame, roof ridge |
+| `aircraft_factory.glb` | curved-roof hangar, control cabin, helipad with landing circle, fuel tanks | door edges, helipad circle |
+| `mine.glb` | lattice headframe with winding wheel, winch house, conveyor to an ore hopper, carts | winch house roof, hopper |
+| `oil_derrick.glb` | pumpjack, short drilling tower, two storage tanks, pipes | walking beam, tank bands |
+| `lumber_mill.glb` | open saw shed, circular saw, log conveyor, plank stacks, log pile | roof edge, saw housing |
+| `power_plant.glb` | concrete cooling tower, generator hall, two chimneys, transformers | tower rim, hall roof trim |
+| `solar_plant.glb` | three rows of tilted panels, inverter hut, fence | hut roof and door |
+| `pylon.glb` | lattice transmission tower, insulators, transformer box | transformer, top cross arm |
+| `storage.glb` | corrugated warehouse with loading dock, containers, pallets, forklift | roll-up door, one container |
+| `shipyard.glb` | concrete quay with slipway, boat hull on blocks, dock crane, workshop | crane cab, workshop roof edge |
+| `airport.glb` | short runway, round-roofed hangar, control tower with radar, fuel truck | tower cab, hangar door frame |
+
 The raw downloads and concept images are not in the repository (they are 4 MB each).
