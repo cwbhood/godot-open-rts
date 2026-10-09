@@ -203,13 +203,32 @@ HOME = f"""
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-media"><img src="assets/img/clouds.webp" srcset="assets/img/clouds-sm.webp 720w, assets/img/clouds.webp 1600w" sizes="100vw" alt="" width="1600" height="900" fetchpriority="high"></div>
   <div class="wrap hero-body">
-    <p class="eyebrow">Open source real-time strategy &middot; Godot 4.7</p>
-    <h1 id="hero-title">Ironbound <span>The city builds itself.</span></h1>
-    <p>You run what keeps it alive: mines and oil derricks, supply lines and power, trade with rival factions, and the army that holds the frontier.</p>
+    <p class="eyebrow">Ironbound &middot; open source RTS &middot; Godot 4.7</p>
+    <h1 id="hero-title">You never place a house. <span>The city builds itself.</span></h1>
+    <p>Ironbound is a real-time strategy game where you are not the general. You are the one keeping a frontier city alive. Run the mines. Keep the trucks rolling. Lay the rail. Keep the power on. The army is what the city earns.</p>
+    <p class="hero-flex">Free. No account. No installer. Unzip and play.</p>
     <div class="actions">
-      <a class="btn" href="#download">{ICON_DOWN}Download free</a>
+      <a class="btn" href="#download">{ICON_DOWN}<span>Download<small>Windows / Linux / macOS</small></span></a>
       <a class="btn btn-ghost" href="play.html">How to play</a>
     </div>
+    <p class="hero-trust">Open source. MIT licensed. <a href="{REPO}/fork">Fork it</a> and build your own game.</p>
+  </div>
+</section>
+
+<section aria-labelledby="fantasy-title">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">The fantasy</p>
+      <h2 id="fantasy-title">Feed the city, and it feeds your war</h2>
+      <p>There is no house to place and no district to plan. Every delivery that reaches your command center feeds citizens, and a fed, powered city grows on its own, builds workshops and earns science.</p>
+      <p>Science is what moves you up: Industrial at 150, Electric at 450. Each tier opens heavier units, so the army you can field depends on how well you keep the city fed.</p>
+    </div>
+    <ul class="cargo" aria-label="The four commodities the city eats">
+      <li><span class="tag tag-timber">Timber</span></li>
+      <li><span class="tag tag-iron">Iron</span></li>
+      <li><span class="tag tag-copper">Copper</span></li>
+      <li><span class="tag tag-oil">Oil</span></li>
+    </ul>
   </div>
 </section>
 
@@ -217,22 +236,15 @@ HOME = f"""
   <div class="wrap">
     <div class="section-head">
       <p class="eyebrow">The loop</p>
-      <h2 id="loop-title">Feed the city, and it feeds your war</h2>
-      <p>You never place a house. Every delivery that reaches your command center feeds citizens, and a fed, powered city grows, builds workshops and earns science.</p>
+      <h2 id="loop-title">Dig. Deliver. Grow. Deal. Hold the line.</h2>
     </div>
     <div class="loop">
-      <div class="loop-step"><span class="mono">Extract</span><h3>Dig</h3><p>Constructors put lumber mills, mines and oil derricks next to deposits. Deposits run dry, so you keep expanding.</p></div>
-      <div class="loop-step"><span class="mono">Haul</span><h3>Deliver</h3><p>Haulers drive goods home along supply lines. Goods count only when they arrive, and raiders hunt the trucks.</p></div>
-      <div class="loop-step"><span class="mono">Grow</span><h3>The city builds</h3><p>Citizens eat what you deliver. The city grows from Frontier to Industrial at 150 science and to Electric at 450.</p></div>
-      <div class="loop-step"><span class="mono">Trade</span><h3>Deal</h3><p>Swap surplus with other factions by caravan. Trade grows the city faster than digging alone.</p></div>
-      <div class="loop-step"><span class="mono">Fight</span><h3>Hold the line</h3><p>New tiers unlock tanks, artillery, gunships and drones to guard your routes and break your rivals.</p></div>
+      <div class="loop-step"><span class="mono">01</span><h3>Dig</h3><p>Constructors put lumber mills, mines and oil derricks next to deposits. Deposits run dry, so you keep expanding.</p></div>
+      <div class="loop-step"><span class="mono">02</span><h3>Deliver</h3><p>Haulers drive goods home. Goods only count when they arrive. Raiders hunt the trucks.</p></div>
+      <div class="loop-step"><span class="mono">03</span><h3>Grow</h3><p>Citizens eat what you deliver. The city builds itself from Frontier to Industrial to Electric.</p></div>
+      <div class="loop-step"><span class="mono">04</span><h3>Deal</h3><p>Swap surplus with rival factions by caravan. Trade grows the city faster than digging alone.</p></div>
+      <div class="loop-step"><span class="mono">05</span><h3>Hold the line</h3><p>New tiers unlock tanks, artillery, gunships and drones. Guard your routes. Break your rivals.</p></div>
     </div>
-    <ul class="cargo" aria-label="The four commodities" style="margin-top:1.5rem">
-      <li><span class="tag tag-timber">Timber</span></li>
-      <li><span class="tag tag-iron">Iron</span></li>
-      <li><span class="tag tag-copper">Copper</span></li>
-      <li><span class="tag tag-oil">Oil</span></li>
-    </ul>
   </div>
 </section>
 
@@ -245,12 +257,12 @@ HOME = f"""
           <source src="assets/video/city-build-up.mp4" type="video/mp4">
         </video>
       </div>
-      <figcaption>The starter city going up at the start of a match. Cranes, workers and the command center rise while the clock waits.</figcaption>
+      <figcaption>The starter city going up. Cranes, workers and the command center rise while the clock waits.</figcaption>
     </figure>
     <div class="stack" id="buildup-text">
-      <p class="eyebrow">Every match</p>
-      <h2 id="buildup-title">Watch your city rise</h2>
-      <p>Pick your start zone on the map before the timer runs out, then watch builders raise your command center. From there the city keeps building on its own as long as you keep it supplied.</p>
+      <p class="eyebrow">Your first minute</p>
+      <h2 id="buildup-title">Claim your ground before the timer runs out</h2>
+      <p>Every match opens on the map. Pick your start zone, then watch builders raise your command center. From there the city keeps building on its own, for as long as you keep it supplied.</p>
       <p class="muted">Seven desert maps, from a duel on Twin Basins to four-player Four Oases, plus island maps where amphibious units cross the water.</p>
     </div>
   </div>
@@ -259,19 +271,20 @@ HOME = f"""
 <section aria-labelledby="shots-title">
   <div class="wrap">
     <div class="section-head">
-      <p class="eyebrow">Screenshots</p>
-      <h2 id="shots-title">From the current test build</h2>
+      <p class="eyebrow">Screenshots from the current test build</p>
+      <h2 id="shots-title">Muzzle flashes, tracers and rocket trails</h2>
+      <p>Click any shot to see it full size.</p>
     </div>
     <div class="gallery">
-      {shot("battle", "Tanks, artillery and helicopters trading fire near an oasis", "Muzzle flashes, tracers and rocket trails")}
-      {shot("city-handover", "A command center surrounded by yellow constructors and turrets", "Your city just after the build-up")}
-      {shot("base-roads-rail", "An AI base linked to its mines by roads and a railway", "Rival bases pave roads and lay rail")}
-      {shot("start-zones", "The start zone picker on the Four Oases map", "Pick a start zone before the timer ends")}
-      {shot("twin-isles", "Twin Isles: two sandy islands in a deep blue sea", "Twin Isles, an island map")}
-      {shot("rain", "Rain falling over an oasis", "Weather: rain")}
-      {shot("sandstorm", "A sandstorm turning the desert orange", "Weather: sandstorms")}
-      {shot("train", "A train running a loop between mines and the city", "Trains lay their own track")}
-      {shot("map-editor", "The in-game map editor with lakes, forests and start points", "Paint your own maps")}
+      {shot("battle", "Tanks, artillery and helicopters trading fire near an oasis", "Tanks, artillery and helicopters trading fire at an oasis")}
+      {shot("base-roads-rail", "An AI base linked to its mines by roads and a railway", "A rival that paves roads and lays rail to its mines")}
+      {shot("train", "A train running a loop between mines and the city", "Trains that lay their own track")}
+      {shot("city-handover", "A command center surrounded by yellow constructors and turrets", "Your city the moment the build-up hands it over")}
+      {shot("start-zones", "The start zone picker on the Four Oases map", "Four Oases: pick your start zone before the timer ends")}
+      {shot("twin-isles", "Twin Isles: two sandy islands in a deep blue sea", "Twin Isles, where the fight crosses water")}
+      {shot("sandstorm", "A sandstorm turning the desert orange", "Sandstorms turn the desert orange")}
+      {shot("rain", "Rain falling over an oasis", "Rain rolling over an oasis")}
+      {shot("map-editor", "The in-game map editor with lakes, forests and start points", "Paint your own map in the editor")}
     </div>
   </div>
 </section>
@@ -279,82 +292,71 @@ HOME = f"""
 <section aria-labelledby="features-title">
   <div class="wrap">
     <div class="section-head">
-      <p class="eyebrow">What is in the game</p>
-      <h2 id="features-title">Built so far</h2>
-      <p>Everything below runs in the current test build. See the <a href="changelog.html">changelog</a> for when each part landed and the <a href="roadmap.html">roadmap</a> for what comes next.</p>
+      <p class="eyebrow">What is in the build</p>
+      <h2 id="features-title">Six systems. All shipped. All playable today.</h2>
+      <p>Each crate below runs in the build you can download right now. The <a href="changelog.html">changelog</a> says when each part landed.</p>
     </div>
     <div class="manifest">
       <div class="manifest-group">
-        <h3>Economy <span class="mono">CRATE 01</span></h3>
+        <h3>Run an economy <span class="mono">CRATE 01</span></h3>
         <ul>
-          <li>Four commodities with deposits that run dry</li>
-          <li>Haulers on supply lines, with a job board so trucks always find work</li>
-          <li>Power grid with plants, pylons and blackouts</li>
-          <li>Dirt tracks, paved roads, and trains that lay their own rail</li>
-          <li>Storage yards and conveyors; recycle surplus trucks for 75% back</li>
-          <li>Constructors that auto-expand your economy on their own</li>
+          <li>Dig timber, iron, copper and oil from deposits that run dry</li>
+          <li>Put haulers on supply lines; a job board means a truck always finds work</li>
+          <li>Wire a power grid with plants and pylons, and live through blackouts</li>
+          <li>Pave dirt tracks into roads, and run trains that lay their own rail</li>
+          <li>Buffer goods in storage yards and on conveyors; recycle surplus trucks for 75% back</li>
+          <li>Set constructors to auto-expand and they grow the economy on their own</li>
         </ul>
       </div>
       <div class="manifest-group">
-        <h3>City and trade <span class="mono">CRATE 02</span></h3>
+        <h3>Grow a city and trade <span class="mono">CRATE 02</span></h3>
         <ul>
-          <li>A city that grows from deliveries through three tiers</li>
-          <li>Trade offers with a fair-price verdict, agreements and embargoes</li>
-          <li>Caravans that can be raided</li>
-          <li>Diplomacy: war, non-aggression pacts and alliances</li>
-          <li>Civil defense and militia when the city is attacked</li>
+          <li>Watch the city climb three tiers on nothing but deliveries</li>
+          <li>Haggle with trade offers that tell you whether the price is fair; sign agreements or impose embargoes</li>
+          <li>Ship goods by caravan, and guard them: caravans can be raided</li>
+          <li>Declare war, sign non-aggression pacts or form alliances</li>
+          <li>Count on civil defense and militia when the city is attacked</li>
         </ul>
       </div>
       <div class="manifest-group">
-        <h3>Army <span class="mono">CRATE 03</span></h3>
+        <h3>Command an army <span class="mono">CRATE 03</span></h3>
         <ul>
-          <li>Tanks, heavy tanks, artillery, raiders, scout buggies, missile trucks, helicopters, gunships and drones</li>
-          <li>Drones that must land at airports to refuel</li>
-          <li>Line drag, fight, patrol, guard, retreat, fire stances and Shift queues</li>
-          <li>Units that steer around each other instead of jamming</li>
-          <li>Visible weapon fire, war sounds and a voice for every unit type</li>
+          <li>Field tanks, heavy tanks, artillery, raiders, scout buggies, missile trucks, helicopters, gunships and drones</li>
+          <li>Keep your drones flying: they must land at airports to refuel</li>
+          <li>Drag a battle line, then fight, patrol, guard, retreat, set fire stances and queue it all with Shift</li>
+          <li>Move big groups that steer around each other instead of jamming</li>
+          <li>Hear every unit type answer in its own voice over the sound of the fight</li>
         </ul>
       </div>
       <div class="manifest-group">
-        <h3>Matches and AI <span class="mono">CRATE 04</span></h3>
+        <h3>Face rival AIs <span class="mono">CRATE 04</span></h3>
         <ul>
-          <li>Rival AIs with play styles and difficulty levels</li>
-          <li>AI armies that hold defence zones and raid supply lines</li>
+          <li>Play against rival AIs that hold defence zones and raid your supply lines</li>
           <li>Pick your colour, your start zone and each AI's difficulty</li>
-          <li>Guided or Raw match rules: tutorial, helper AI and auto-build on or off</li>
-          <li>Unit cap, city size caps and a 45-minute match clock with a score</li>
+          <li>Choose Guided or Raw rules: tutorial, helper AI and auto-build on or off</li>
+          <li>Race a 45-minute match clock to the best score, under a unit cap and city size caps</li>
         </ul>
       </div>
       <div class="manifest-group">
-        <h3>World <span class="mono">CRATE 05</span></h3>
+        <h3>Fight across a desert world <span class="mono">CRATE 05</span></h3>
         <ul>
-          <li>Desert maps with oases, forests, canyons and fair start zones</li>
-          <li>Water, islands and amphibious units</li>
-          <li>Rain, sandstorms, drifting clouds and their shadows</li>
-          <li>In-game map editor</li>
-          <li>Ambient soundscape made from scratch</li>
+          <li>Fight over oases, forests and canyons on maps with fair start zones</li>
+          <li>Cross water to islands with amphibious units</li>
+          <li>Play through rain, sandstorms and drifting cloud shadows</li>
+          <li>Paint your own maps in the in-game editor</li>
+          <li>Listen to an ambient soundscape made from scratch</li>
         </ul>
       </div>
       <div class="manifest-group">
-        <h3>Help and tools <span class="mono">CRATE 06</span></h3>
+        <h3>Learn it, then mod it <span class="mono">CRATE 06</span></h3>
         <ul>
-          <li>Step-by-step tutorial, hints and an F1 manual</li>
-          <li>Opt-in helper AI that runs the economy and never attacks</li>
-          <li>Crash and freeze reports you choose to send</li>
-          <li>Units, maps and resources defined in JSON, ready to mod</li>
-          <li>A play harness that tests matches from scripts</li>
+          <li>Learn the game with a step-by-step tutorial, hints and an F1 manual</li>
+          <li>Hand the economy to an opt-in helper AI that never attacks</li>
+          <li>Send a crash or freeze report only when you choose to</li>
+          <li>Mod units, maps and resources: they are plain JSON files</li>
+          <li>Test whole matches from scripts with the play harness</li>
         </ul>
       </div>
-    </div>
-  </div>
-</section>
-
-<section aria-labelledby="factions-teaser">
-  <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow">Coming next</p>
-      <h2 id="factions-teaser">Two factions, two ways to win</h2>
-      <p>The <strong>Foundry League</strong> builds heavy, tracked and fortified. The <strong>Sandline Syndicate</strong> trades and raids on wheels. <a href="factions.html">Meet the factions</a>.</p>
     </div>
   </div>
 </section>
@@ -362,10 +364,10 @@ HOME = f"""
 <section aria-labelledby="fork-title">
   <div class="wrap">
     <div class="section-head">
-      <p class="eyebrow">Made in the open</p>
+      <p class="eyebrow">The story</p>
       <h2 id="fork-title">Vibe coded with Claude. Yours to fork.</h2>
-      <p>Ironbound is a hobby project by <a href="about.html">Destin Jones</a>, vibe coded with Claude as the building partner and built on <a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> and the <a href="https://godotengine.org">Godot Engine</a>. Thanks to everyone whose open source work made it possible.</p>
-      <p>Anyone is welcome to download it, fork it and build anything you like from it: your own RTS, a mod, a totally different game. The <a href="{REPO}/blob/main/LICENSE">MIT licence</a> lets you use, change and share it freely.</p>
+      <p>Ironbound is a hobby project by one developer, <a href="about.html">Destin Jones</a>, built with Claude as the building partner, on top of <a href="https://github.com/lampe-games/godot-open-rts">Open RTS by Lampe Games</a> and the <a href="https://godotengine.org">Godot Engine</a>. Thanks to everyone whose open source work made it possible.</p>
+      <p>Anyone is welcome to download it, fork it and build anything from it: your own RTS, a mod, a totally different game. The <a href="{REPO}/blob/main/LICENSE">MIT licence</a> lets you use, change and share it freely.</p>
     </div>
     <div class="actions">
       <a class="btn" href="{REPO}/fork">Fork on GitHub</a>
@@ -374,9 +376,26 @@ HOME = f"""
   </div>
 </section>
 
-<section id="download" aria-label="Download">
+<section aria-labelledby="honest-title">
   <div class="wrap">
-    {downloads()}
+    <div class="section-head">
+      <p class="eyebrow">Straight talk</p>
+      <h2 id="honest-title">Early development. You are joining a build.</h2>
+      <p>Ironbound is playable and changing every day. Expect rough edges. In exchange, you get to watch it move: every change is in the <a href="changelog.html">changelog</a>, and anything that breaks can go straight to the <a href="{REPO}/issues">issue tracker</a>.</p>
+      <p>The builds are not code-signed, so your system will warn you the first time you run one. Each release lists SHA-256 checksums so you can check the file. <a href="download.html#unsigned">Why unsigned?</a></p>
+      <p>Next on the <a href="roadmap.html">roadmap</a>: two factions with two ways to win. The <strong>Foundry League</strong> builds heavy, tracked and fortified. The <strong>Sandline Syndicate</strong> trades and raids on wheels. <a href="factions.html">Meet the factions</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="download" aria-labelledby="close-title">
+  <div class="wrap stack-lg">
+    <div class="section-head">
+      <p class="eyebrow">Free for everyone</p>
+      <h2 id="close-title">Free. No account. Unzip and play.</h2>
+    </div>
+    {downloads("h3")}
+    <p class="closer">The city builds itself. <span>You just have to keep it alive.</span></p>
   </div>
 </section>
 {LIGHTBOX}
